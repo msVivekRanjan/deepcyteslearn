@@ -1,0 +1,2356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVEL 2 — CYBER INTELLIGENCE OPERATIONS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg-void: #020408;
+    --bg-deep: #040a0f;
+    --bg-panel: #070e16;
+    --bg-card: #0a1520;
+    --bg-glass: rgba(10,25,40,0.7);
+    --cyan: #00e5ff;
+    --cyan-dim: #0097a7;
+    --cyan-ghost: rgba(0,229,255,0.08);
+    --cyan-glow: rgba(0,229,255,0.3);
+    --green: #00ff88;
+    --green-dim: #00c853;
+    --red: #ff3060;
+    --amber: #ffab00;
+    --purple: #7c4dff;
+    --border: rgba(0,229,255,0.15);
+    --border-bright: rgba(0,229,255,0.4);
+    --text-bright: #e8f4f8;
+    --text-mid: #8ab4c8;
+    --text-dim: #4a6a7a;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-ui: 'Rajdhani', sans-serif;
+    --font-display: 'Orbitron', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text-bright);
+    font-family: var(--font-ui);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,229,255,0.015) 2px, rgba(0,229,255,0.015) 4px);
+    pointer-events:none;
+    z-index:9999;
+    animation: scanMove 8s linear infinite;
+  }
+  @keyframes scanMove { from{background-position:0 0} to{background-position:0 100px} }
+
+  /* GRID BACKGROUND */
+  #grid-bg {
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* LAYOUT */
+  #app { display:flex; min-height:100vh; position:relative; z-index:1; }
+
+  /* SIDEBAR NAV */
+  #sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: var(--bg-deep);
+    border-right: 1px solid var(--border);
+    display:flex; flex-direction:column;
+    position: sticky; top:0; height:100vh; overflow-y:auto;
+    z-index:100;
+  }
+  #sidebar::-webkit-scrollbar { width:3px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius:2px; }
+
+  .sidebar-header {
+    padding: 20px 16px 14px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(0,229,255,0.05), transparent);
+  }
+  .sidebar-header .level-badge {
+    font-family: var(--font-display);
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity:0.7;
+  }
+  .sidebar-header h1 {
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--text-bright);
+    line-height:1.4;
+    letter-spacing:1px;
+  }
+
+  /* XP BAR */
+  .xp-panel {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .xp-label {
+    display:flex; justify-content:space-between; align-items:center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .xp-label span:last-child { color: var(--cyan); }
+  .xp-track { background: rgba(0,229,255,0.1); height:4px; border-radius:2px; overflow:hidden; }
+  .xp-fill {
+    height:100%; border-radius:2px;
+    background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
+    transition: width 0.6s ease;
+    box-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  /* NAV ITEMS */
+  .nav-section { padding: 8px 0; }
+  .nav-section-label {
+    padding: 6px 16px 4px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing:2px;
+    color: var(--text-dim);
+    text-transform:uppercase;
+  }
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 8px 16px;
+    cursor:pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight:500;
+    letter-spacing:0.5px;
+  }
+  .nav-item:hover { background: var(--cyan-ghost); color: var(--text-mid); border-left-color: var(--cyan-dim); }
+  .nav-item.active { background: rgba(0,229,255,0.1); color: var(--cyan); border-left-color: var(--cyan); }
+  .nav-item .nav-icon { font-size:14px; width:20px; text-align:center; opacity:0.8; }
+  .nav-item .nav-status { margin-left:auto; font-family:var(--font-mono); font-size:9px; }
+  .nav-item .nav-status.done { color: var(--green); }
+  .nav-item .nav-status.locked { color: var(--text-dim); }
+
+  /* MAIN CONTENT */
+  #main { flex:1; overflow-x:hidden; }
+
+  /* TOPBAR */
+  #topbar {
+    padding: 12px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-deep);
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:50;
+  }
+  .topbar-breadcrumb {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .topbar-breadcrumb span { color: var(--cyan); }
+  .topbar-right {
+    display:flex; align-items:center; gap:16px;
+  }
+  .status-dot {
+    width:8px; height:8px; border-radius:50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  .status-text { font-family:var(--font-mono); font-size:10px; color: var(--green); }
+  .operator-badge {
+    background: rgba(0,229,255,0.1);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--cyan);
+  }
+
+  /* SECTIONS */
+  .section {
+    display: none;
+    padding: 28px;
+    animation: fadeIn 0.4s ease;
+  }
+  .section.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* SECTION HEADER */
+  .section-hero {
+    background: linear-gradient(135deg, rgba(0,229,255,0.06), rgba(0,150,200,0.03));
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    border-radius: 2px;
+    position:relative;
+    overflow:hidden;
+  }
+  .section-hero::before {
+    content:'';
+    position:absolute;
+    top:-50%;right:-100px;
+    width:300px;height:300px;
+    background: radial-gradient(circle, rgba(0,229,255,0.06), transparent 70%);
+    pointer-events:none;
+  }
+  .section-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--cyan-dim);
+    letter-spacing: 3px;
+    text-transform:uppercase;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--text-bright);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+  .section-subtitle {
+    font-size: 15px;
+    color: var(--text-mid);
+    line-height:1.6;
+    max-width: 700px;
+    font-weight:400;
+  }
+
+  /* CARDS GRID */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:20px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+
+  /* PANEL CARD */
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow:hidden;
+  }
+  .panel-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,229,255,0.04);
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing:2px;
+    color: var(--cyan);
+    text-transform:uppercase;
+    flex:1;
+  }
+  .panel-body { padding: 16px; }
+
+  /* INFO CARD */
+  .info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 16px;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor:default;
+  }
+  .info-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+  .info-card-icon { font-size:20px; margin-bottom:8px; }
+  .info-card-title { font-size:13px; font-weight:600; color: var(--text-bright); margin-bottom:6px; letter-spacing:0.5px; }
+  .info-card-text { font-size:12px; color: var(--text-mid); line-height:1.6; }
+
+  /* TACTIC BADGE */
+  .tactic-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin: 2px;
+  }
+  .badge-cyan { background: rgba(0,229,255,0.1); color: var(--cyan); border:1px solid rgba(0,229,255,0.2); }
+  .badge-green { background: rgba(0,255,136,0.1); color: var(--green); border:1px solid rgba(0,255,136,0.2); }
+  .badge-red { background: rgba(255,48,96,0.1); color: var(--red); border:1px solid rgba(255,48,96,0.2); }
+  .badge-amber { background: rgba(255,171,0,0.1); color: var(--amber); border:1px solid rgba(255,171,0,0.2); }
+  .badge-purple { background: rgba(124,77,255,0.1); color: var(--purple); border:1px solid rgba(124,77,255,0.2); }
+
+  /* SIMULATION AREA */
+  .sim-area {
+    background: #010810;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--green);
+    padding: 16px;
+    min-height: 180px;
+    position:relative;
+    overflow:hidden;
+  }
+  .sim-area::before {
+    content: attr(data-label);
+    position:absolute;
+    top:8px; right:12px;
+    font-size:9px;
+    color: var(--text-dim);
+    letter-spacing:2px;
+  }
+  .sim-line { margin-bottom:3px; opacity:0; transition: opacity 0.1s; }
+  .sim-line.visible { opacity:1; }
+
+  /* BUTTON */
+  .btn {
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing:2px;
+    cursor:pointer;
+    text-transform:uppercase;
+    transition: all 0.2s ease;
+    border-radius: 2px;
+  }
+  .btn:hover { background: rgba(0,229,255,0.1); box-shadow: 0 0 12px rgba(0,229,255,0.2); }
+  .btn.btn-green { border-color: var(--green); color: var(--green); }
+  .btn.btn-green:hover { background: rgba(0,255,136,0.1); }
+  .btn.btn-red { border-color: var(--red); color: var(--red); }
+  .btn.btn-amber { border-color: var(--amber); color: var(--amber); }
+  .btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+
+  /* PROGRESS BAR */
+  .progress-bar { background: rgba(255,255,255,0.05); height:6px; border-radius:3px; overflow:hidden; margin:6px 0; }
+  .progress-fill { height:100%; border-radius:3px; transition: width 0.8s ease; }
+  .fill-cyan { background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); box-shadow:0 0 6px var(--cyan-glow); }
+  .fill-green { background: var(--green); box-shadow:0 0 6px rgba(0,255,136,0.4); }
+  .fill-red { background: var(--red); }
+  .fill-amber { background: var(--amber); }
+
+  /* METRIC ROW */
+  .metric-row { display:flex; align-items:center; gap:10px; margin:8px 0; font-size:12px; }
+  .metric-label { color: var(--text-dim); min-width:120px; font-family:var(--font-mono); font-size:11px; }
+  .metric-bar { flex:1; }
+  .metric-val { color: var(--cyan); font-family:var(--font-mono); font-size:11px; min-width:40px; text-align:right; }
+
+  /* INSIGHT CARD */
+  .insight-card {
+    border-left: 3px solid var(--amber);
+    background: rgba(255,171,0,0.04);
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 0 2px 2px 0;
+    font-size:13px;
+    line-height:1.6;
+    color: var(--text-mid);
+  }
+  .insight-card .insight-title { color: var(--amber); font-family:var(--font-mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+
+  /* NODE GRAPH */
+  .node-graph { width:100%; height:260px; position:relative; }
+
+  /* EXPANDABLE */
+  .expandable { border:1px solid var(--border); border-radius:2px; margin-bottom:8px; overflow:hidden; }
+  .expandable-header {
+    padding: 12px 16px; background: var(--bg-card);
+    display:flex; align-items:center; justify-content:space-between;
+    cursor:pointer; user-select:none;
+    transition: background 0.2s;
+  }
+  .expandable-header:hover { background: rgba(0,229,255,0.06); }
+  .expandable-title { font-size:13px; font-weight:600; color: var(--text-bright); display:flex; align-items:center; gap:8px; }
+  .expandable-arrow { color: var(--cyan); transition: transform 0.3s; font-size:12px; }
+  .expandable-arrow.open { transform: rotate(90deg); }
+  .expandable-body { max-height:0; overflow:hidden; transition: max-height 0.35s ease; background: var(--bg-panel); }
+  .expandable-body.open { max-height:600px; }
+  .expandable-content { padding:16px; font-size:13px; color: var(--text-mid); line-height:1.7; }
+
+  /* SELECT */
+  select {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size:11px;
+    padding: 6px 10px;
+    border-radius:2px;
+    cursor:pointer;
+    outline:none;
+  }
+  select:focus { border-color: var(--cyan); }
+
+  /* SECTION DIVIDER */
+  .divider {
+    height:1px; background: var(--border);
+    margin: 24px 0;
+  }
+
+  /* CANVAS */
+  canvas { display:block; }
+
+  /* TOOLTIP HOVER */
+  [data-tooltip] { position:relative; }
+  [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position:absolute;
+    bottom:100%; left:50%; transform:translateX(-50%);
+    background: var(--bg-card);
+    border:1px solid var(--border-bright);
+    color: var(--text-bright);
+    font-family: var(--font-mono);
+    font-size:10px;
+    padding:5px 10px;
+    border-radius:2px;
+    white-space:nowrap;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 0.2s;
+    z-index:100;
+  }
+  [data-tooltip]:hover::after { opacity:1; }
+
+  /* GLITCH TEXT */
+  .glitch {
+    position:relative;
+    animation: glitch-anim 4s infinite;
+  }
+  @keyframes glitch-anim {
+    0%,90%,100%{text-shadow:none}
+    92%{text-shadow:-2px 0 var(--red),2px 0 var(--cyan)}
+    94%{text-shadow:2px 0 var(--red),-2px 0 var(--cyan)}
+    96%{text-shadow:none}
+  }
+
+  /* TICKER */
+  .ticker-wrap {
+    overflow:hidden; height:22px; border-top:1px solid var(--border);
+    background: rgba(0,229,255,0.03);
+  }
+  .ticker {
+    display:flex; gap:40px;
+    animation: ticker-scroll 30s linear infinite;
+    white-space:nowrap;
+    padding-top:4px;
+  }
+  @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .ticker-item { font-family:var(--font-mono); font-size:10px; color:var(--text-dim); }
+  .ticker-item span { color:var(--cyan); }
+
+  /* IOC TABLE */
+  .ioc-table { width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11px; }
+  .ioc-table th { padding:8px 12px; text-align:left; color:var(--text-dim); letter-spacing:1px; border-bottom:1px solid var(--border); background: rgba(0,229,255,0.03); }
+  .ioc-table td { padding:8px 12px; border-bottom:1px solid rgba(0,229,255,0.05); color:var(--text-mid); }
+  .ioc-table tr:hover td { background: rgba(0,229,255,0.03); }
+  .ioc-table .threat-high { color:var(--red); }
+  .ioc-table .threat-med { color:var(--amber); }
+  .ioc-table .threat-low { color:var(--green); }
+
+  /* LANDING SCREEN */
+  #landing {
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; background: var(--bg-void); z-index:200;
+  }
+  #landing.hidden { display:none; }
+  .landing-inner { text-align:center; max-width:600px; padding:40px; }
+  .landing-label { font-family:var(--font-mono); font-size:11px; letter-spacing:4px; color:var(--cyan-dim); margin-bottom:16px; text-transform:uppercase; }
+  .landing-title { font-family:var(--font-display); font-size:42px; color:var(--text-bright); line-height:1.1; margin-bottom:12px; }
+  .landing-title .accent { color:var(--cyan); }
+  .landing-sub { font-size:15px; color:var(--text-mid); margin-bottom:32px; line-height:1.6; }
+  .boot-log { background:#010810; border:1px solid var(--border); padding:16px; border-radius:2px; text-align:left; margin-bottom:28px; font-family:var(--font-mono); font-size:11px; color:var(--green); min-height:80px; }
+  .boot-line { margin-bottom:4px; }
+
+  /* REPORT BUILDER */
+  #report-log { background:#010810; border:1px solid var(--border); padding:12px; font-family:var(--font-mono); font-size:11px; color:var(--green); min-height:200px; max-height:300px; overflow-y:auto; border-radius:2px; }
+  #report-log::-webkit-scrollbar { width:3px; }
+  #report-log::-webkit-scrollbar-thumb { background:var(--cyan-dim); }
+
+  /* MINI MAP */
+  .mini-map-wrap { position:relative; width:100%; height:200px; background:#010810; border:1px solid var(--border); overflow:hidden; border-radius:2px; }
+  .map-dot { position:absolute; width:10px; height:10px; border-radius:50%; cursor:pointer; transition:transform 0.2s; }
+  .map-dot:hover { transform:scale(1.8); }
+  .map-dot::after { content:attr(data-label); position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:var(--bg-card); border:1px solid var(--border); color:var(--text-bright); font-family:var(--font-mono); font-size:9px; white-space:nowrap; padding:3px 6px; pointer-events:none; opacity:0; transition:opacity 0.2s; }
+  .map-dot:hover::after { opacity:1; }
+  .map-line { position:absolute; background:rgba(0,229,255,0.2); height:1px; transform-origin:left center; }
+</style>
+</head>
+<body>
+<div id="grid-bg"></div>
+
+<!-- BOOT LANDING -->
+<div id="landing">
+  <div class="landing-inner">
+    <div class="landing-label">// CLASSIFIED — RESTRICTED ACCESS //</div>
+    <h1 class="landing-title glitch">CYBER INTEL<br><span class="accent">LEVEL 2</span></h1>
+    <p class="landing-sub">Reconnaissance · OSINT · Threat Intelligence · Attack Surface Mapping</p>
+    <div class="boot-log" id="boot-log"></div>
+    <button class="btn" id="enter-btn" style="display:none;font-size:13px;padding:12px 32px" onclick="enterPlatform()">⊕ INITIALIZE OPERATOR SESSION</button>
+  </div>
+</div>
+
+<!-- INTELLIGENCE TICKER -->
+<div class="ticker-wrap" id="ticker-wrap" style="display:none">
+  <div class="ticker">
+    <div class="ticker-item">OSINT FEEDS <span>ACTIVE</span></div>
+    <div class="ticker-item">PASSIVE RECON <span>ENABLED</span></div>
+    <div class="ticker-item">IOC DATABASE <span>SYNCED</span></div>
+    <div class="ticker-item">TTP EXPLORER <span>LOADED</span></div>
+    <div class="ticker-item">ATTRIBUTION ENGINE <span>ONLINE</span></div>
+    <div class="ticker-item">OPSEC STATUS <span>GREEN</span></div>
+    <div class="ticker-item">THREAT INTEL <span>LIVE</span></div>
+    <div class="ticker-item">OPERATOR CLEARANCE <span>LEVEL 2</span></div>
+    <!-- duplicate for loop -->
+    <div class="ticker-item">OSINT FEEDS <span>ACTIVE</span></div>
+    <div class="ticker-item">PASSIVE RECON <span>ENABLED</span></div>
+    <div class="ticker-item">IOC DATABASE <span>SYNCED</span></div>
+    <div class="ticker-item">TTP EXPLORER <span>LOADED</span></div>
+    <div class="ticker-item">ATTRIBUTION ENGINE <span>ONLINE</span></div>
+    <div class="ticker-item">OPSEC STATUS <span>GREEN</span></div>
+    <div class="ticker-item">THREAT INTEL <span>LIVE</span></div>
+    <div class="ticker-item">OPERATOR CLEARANCE <span>LEVEL 2</span></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <div class="level-badge">◈ LEVEL 2 — OPS</div>
+      <h1>CYBER INTEL<br>OPERATIONS</h1>
+    </div>
+    <div class="xp-panel">
+      <div class="xp-label"><span>OPERATOR XP</span><span id="xp-display">0 / 900</span></div>
+      <div class="xp-track"><div class="xp-fill" id="xp-bar" style="width:0%"></div></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">// MODULES</div>
+      <div class="nav-item active" onclick="showSection('osint',this)" data-xp="100">
+        <span class="nav-icon">◎</span> OSINT Foundations
+        <span class="nav-status">S1</span>
+      </div>
+      <div class="nav-item" onclick="showSection('collection',this)" data-xp="100">
+        <span class="nav-icon">⊙</span> Collection Methods
+        <span class="nav-status">S2</span>
+      </div>
+      <div class="nav-item" onclick="showSection('profiling',this)" data-xp="100">
+        <span class="nav-icon">⊕</span> Target Profiling
+        <span class="nav-status">S3</span>
+      </div>
+      <div class="nav-item" onclick="showSection('attack-surface',this)" data-xp="100">
+        <span class="nav-icon">◈</span> Attack Surface
+        <span class="nav-status">S4</span>
+      </div>
+      <div class="nav-item" onclick="showSection('threat-intel',this)" data-xp="100">
+        <span class="nav-icon">⊗</span> Threat Intelligence
+        <span class="nav-status">S5</span>
+      </div>
+      <div class="nav-item" onclick="showSection('attribution',this)" data-xp="100">
+        <span class="nav-icon">◌</span> Attribution & Analysis
+        <span class="nav-status">S6</span>
+      </div>
+      <div class="nav-item" onclick="showSection('tradecraft',this)" data-xp="100">
+        <span class="nav-icon">◫</span> Research Tradecraft
+        <span class="nav-status">S7</span>
+      </div>
+      <div class="nav-item" onclick="showSection('validation',this)" data-xp="100">
+        <span class="nav-icon">◧</span> Intel Validation
+        <span class="nav-status">S8</span>
+      </div>
+      <div class="nav-item" onclick="showSection('reporting',this)" data-xp="100">
+        <span class="nav-icon">◱</span> Reporting & Docs
+        <span class="nav-status">S9</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN PANEL -->
+  <div id="main">
+    <div id="topbar">
+      <div class="topbar-breadcrumb">INTEL OPS → <span id="breadcrumb-text">OSINT FOUNDATIONS</span></div>
+      <div class="topbar-right">
+        <div class="status-dot"></div>
+        <span class="status-text">LIVE FEED</span>
+        <div class="operator-badge">OPR-VIVEK-01</div>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 1: OSINT =================== -->
+    <div class="section active" id="sec-osint">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 01 — FOUNDATIONS</div>
+        <h2 class="section-title">OPEN SOURCE INTELLIGENCE</h2>
+        <p class="section-subtitle">Intelligence derived from publicly available sources. The first weapon of any reconnaissance operator — free, powerful, and legally defensible.</p>
+        <div style="margin-top:14px">
+          <span class="tactic-badge badge-cyan">PASSIVE</span>
+          <span class="tactic-badge badge-green">LEGAL</span>
+          <span class="tactic-badge badge-amber">HIGH YIELD</span>
+        </div>
+      </div>
+
+      <!-- WHAT IS OSINT -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// DEFINITION</span></div>
+          <div class="panel-body">
+            <p style="font-size:13px;color:var(--text-mid);line-height:1.7;margin-bottom:14px">OSINT is the collection and analysis of information from publicly accessible sources: the internet, social media, government records, academic publications, and commercial data. No hacking required.</p>
+            <div class="info-card" style="margin-top:0">
+              <div class="info-card-title">The OSINT Paradox</div>
+              <div class="info-card-text">Every organization leaves a digital breadcrumb trail. The intelligence you need is almost always already public — the skill is knowing where to look and how to connect the dots.</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// OSINT CATEGORIES</span></div>
+          <div class="panel-body">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="info-card" style="padding:10px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div><span style="color:var(--cyan);font-weight:600">Technical OSINT</span><div class="info-card-text">DNS, IP ranges, exposed services, certificates</div></div>
+                  <span class="tactic-badge badge-cyan">TECH</span>
+                </div>
+              </div>
+              <div class="info-card" style="padding:10px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div><span style="color:var(--green);font-weight:600">SOCMINT</span><div class="info-card-text">Social media intelligence, employee profiles</div></div>
+                  <span class="tactic-badge badge-green">SOCIAL</span>
+                </div>
+              </div>
+              <div class="info-card" style="padding:10px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div><span style="color:var(--amber);font-weight:600">GEOINT</span><div class="info-card-text">Geographic & satellite intelligence</div></div>
+                  <span class="tactic-badge badge-amber">GEO</span>
+                </div>
+              </div>
+              <div class="info-card" style="padding:10px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div><span style="color:var(--purple);font-weight:600">FININT</span><div class="info-card-text">Financial records, filings, transactions</div></div>
+                  <span class="tactic-badge badge-purple">FIN</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE ECOSYSTEM MAP -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// INTERACTIVE OSINT ECOSYSTEM MAP</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">CLICK NODES TO EXPLORE</span></div>
+        <div class="panel-body">
+          <canvas id="osint-map" width="700" height="280" style="width:100%;border:1px solid var(--border);border-radius:2px;cursor:crosshair"></canvas>
+          <div id="osint-info" style="margin-top:12px;padding:10px 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:var(--text-mid);min-height:40px">
+            ← Click any node to view intelligence source details
+          </div>
+        </div>
+      </div>
+
+      <!-- TECH OSINT SIMULATOR -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// TECHNICAL OSINT SIMULATOR</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Simulate passive technical reconnaissance against a target domain.</p>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <input id="osint-target" type="text" value="target-corp.com" style="flex:1;background:var(--bg-panel);border:1px solid var(--border);color:var(--cyan);font-family:var(--font-mono);font-size:11px;padding:7px 10px;border-radius:2px;outline:none"/>
+              <button class="btn" onclick="runTechOSINT()">SCAN</button>
+            </div>
+            <div class="sim-area" data-label="TECHNICAL RECON" id="tech-osint-output">
+              <div class="sim-line visible" style="color:var(--text-dim)"># Select a target and run technical OSINT</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// HUMAN OSINT / SOCMINT</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Social media analysis reveals employee intel, org structure, and accidental leaks.</p>
+            <div class="btn-row" style="margin-bottom:12px">
+              <button class="btn" onclick="runSOCMINT('linkedin')">LinkedIn</button>
+              <button class="btn" onclick="runSOCMINT('github')">GitHub</button>
+              <button class="btn" onclick="runSOCMINT('twitter')">Twitter/X</button>
+            </div>
+            <div class="sim-area" data-label="SOCMINT OUTPUT" id="socmint-output" style="min-height:150px">
+              <div class="sim-line visible" style="color:var(--text-dim)"># Select a platform to begin human OSINT</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTELLIGENCE RELATIONSHIP GRAPH -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// INTELLIGENCE RELATIONSHIP GRAPH</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">HOW CLUES CONNECT</span></div>
+        <div class="panel-body">
+          <canvas id="rel-graph" width="700" height="220" style="width:100%;border:1px solid var(--border);border-radius:2px"></canvas>
+          <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">● <span style="color:var(--cyan)">DNS Record</span></div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">● <span style="color:var(--green)">Employee</span></div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">● <span style="color:var(--amber)">IP Address</span></div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">● <span style="color:var(--red)">Leak Source</span></div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">● <span style="color:var(--purple)">Certificate</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPERATOR INSIGHTS -->
+      <div class="insight-card">
+        <div class="insight-title">⚡ OPERATOR INSIGHT — WEAKEST LINK</div>
+        The weakest link in any organization is almost never a firewall. It's the employee who posts a photo of their workstation with sticky notes visible, or who lists internal project names on their resume.
+      </div>
+      <div class="insight-card">
+        <div class="insight-title">⚡ OPERATOR INSIGHT — INTELLIGENCE CHAINING</div>
+        One email address leads to a GitHub profile, which reveals internal project names, which exposes a staging subdomain, which shows an unpatched service. Each piece is harmless alone. Chained, they become a full attack path.
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 1 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('collection','⊙ COLLECTION METHODS')">NEXT: COLLECTION METHODS →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 2: COLLECTION =================== -->
+    <div class="section" id="sec-collection">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 02 — RECON</div>
+        <h2 class="section-title">COLLECTION METHODOLOGIES</h2>
+        <p class="section-subtitle">Passive reconnaissance gathers intelligence without touching the target. Active recon interacts with systems directly — and leaves traces. Know when to use each.</p>
+        <div style="margin-top:14px">
+          <span class="tactic-badge badge-green">PASSIVE</span>
+          <span class="tactic-badge badge-red">ACTIVE</span>
+          <span class="tactic-badge badge-amber">STEALTH</span>
+        </div>
+      </div>
+
+      <!-- COMPARISON DASHBOARD -->
+      <div class="grid-2">
+        <div class="panel" style="border-color:rgba(0,255,136,0.3)">
+          <div class="panel-header" style="background:rgba(0,255,136,0.05)"><span class="panel-title" style="color:var(--green)">// PASSIVE RECONNAISSANCE</span></div>
+          <div class="panel-body">
+            <div style="margin-bottom:14px">
+              <div class="metric-row"><span class="metric-label">Detection Risk</span><div class="metric-bar"><div class="progress-bar"><div class="progress-fill fill-green" style="width:5%"></div></div></div><span class="metric-val" style="color:var(--green)">MINIMAL</span></div>
+              <div class="metric-row"><span class="metric-label">Intel Quality</span><div class="metric-bar"><div class="progress-bar"><div class="progress-fill fill-cyan" style="width:65%"></div></div></div><span class="metric-val">GOOD</span></div>
+              <div class="metric-row"><span class="metric-label">Time Required</span><div class="metric-bar"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:70%"></div></div></div><span class="metric-val" style="color:var(--amber)">HIGH</span></div>
+            </div>
+            <div style="font-size:12px;color:var(--text-mid);line-height:1.6">
+              <div>✓ Google dorking</div>
+              <div>✓ Wayback Machine</div>
+              <div>✓ Shodan/Censys</div>
+              <div>✓ WHOIS lookup</div>
+              <div>✓ DNS records (public)</div>
+              <div>✓ LinkedIn / social media</div>
+              <div>✓ Job postings</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" style="border-color:rgba(255,48,96,0.3)">
+          <div class="panel-header" style="background:rgba(255,48,96,0.05)"><span class="panel-title" style="color:var(--red)">// ACTIVE RECONNAISSANCE</span></div>
+          <div class="panel-body">
+            <div style="margin-bottom:14px">
+              <div class="metric-row"><span class="metric-label">Detection Risk</span><div class="metric-bar"><div class="progress-bar"><div class="progress-fill fill-red" style="width:85%"></div></div></div><span class="metric-val" style="color:var(--red)">HIGH</span></div>
+              <div class="metric-row"><span class="metric-label">Intel Quality</span><div class="metric-bar"><div class="progress-bar"><div class="progress-fill fill-cyan" style="width:95%"></div></div></div><span class="metric-val">EXCELLENT</span></div>
+              <div class="metric-row"><span class="metric-label">Time Required</span><div class="metric-bar"><div class="progress-bar"><div class="progress-fill fill-green" style="width:25%"></div></div></div><span class="metric-val" style="color:var(--green)">LOW</span></div>
+            </div>
+            <div style="font-size:12px;color:var(--text-mid);line-height:1.6">
+              <div>⚠ Port scanning (Nmap)</div>
+              <div>⚠ Banner grabbing</div>
+              <div>⚠ Directory fuzzing</div>
+              <div>⚠ DNS zone transfer</div>
+              <div>⚠ Ping sweeps</div>
+              <div>⚠ Service fingerprinting</div>
+              <div>⚠ Web crawling</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE RECON SIMULATOR -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// RECON TECHNIQUE SIMULATOR</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">SELECT → OBSERVE → ANALYZE</span></div>
+        <div class="panel-body">
+          <p style="font-size:12px;color:var(--text-mid);margin-bottom:14px">Select a recon technique to see its intelligence yield, stealth score, and detection footprint:</p>
+          <div class="btn-row" style="margin-bottom:16px">
+            <button class="btn" onclick="simRecon('google')">Google Dork</button>
+            <button class="btn" onclick="simRecon('wayback')">Wayback Machine</button>
+            <button class="btn" onclick="simRecon('whois')">WHOIS</button>
+            <button class="btn btn-red" onclick="simRecon('ping')">Ping Sweep</button>
+            <button class="btn btn-red" onclick="simRecon('nmap')">Nmap Scan</button>
+            <button class="btn btn-amber" onclick="simRecon('browse')">Web Browsing</button>
+          </div>
+          <div id="recon-metrics" style="margin-bottom:14px;display:none">
+            <div class="grid-3">
+              <div class="info-card" style="text-align:center">
+                <div class="info-card-title">INTEL YIELD</div>
+                <div id="metric-yield" style="font-family:var(--font-display);font-size:24px;color:var(--cyan);margin:6px 0">-</div>
+              </div>
+              <div class="info-card" style="text-align:center">
+                <div class="info-card-title">STEALTH SCORE</div>
+                <div id="metric-stealth" style="font-family:var(--font-display);font-size:24px;margin:6px 0">-</div>
+              </div>
+              <div class="info-card" style="text-align:center">
+                <div class="info-card-title">DETECTION PROB</div>
+                <div id="metric-detect" style="font-family:var(--font-display);font-size:24px;margin:6px 0">-</div>
+              </div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="sim-area" data-label="RECON OUTPUT" id="recon-sim-output" style="min-height:160px">
+              <div class="sim-line visible" style="color:var(--text-dim)"># Select a technique to begin simulation</div>
+            </div>
+            <div>
+              <div class="panel-header" style="margin-bottom:8px;background:rgba(255,48,96,0.05)"><span class="panel-title" style="color:var(--red)">// TARGET FIREWALL LOGS</span></div>
+              <div class="sim-area" data-label="SIEM VIEW" id="siem-log" style="min-height:160px;background:#0a0102">
+                <div class="sim-line visible" style="color:var(--text-dim)"># No events detected</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETECTION HEATMAP -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// DETECTION PROBABILITY HEATMAP</span></div>
+        <div class="panel-body">
+          <canvas id="heatmap-canvas" width="700" height="180" style="width:100%;border-radius:2px"></canvas>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 2 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('profiling','⊕ TARGET PROFILING')">NEXT: TARGET PROFILING →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 3: PROFILING =================== -->
+    <div class="section" id="sec-profiling">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 03 — INTELLIGENCE</div>
+        <h2 class="section-title">TARGET PROFILING & ASSET DISCOVERY</h2>
+        <p class="section-subtitle">Map the full digital footprint of an organization: subsidiaries, vendors, employees, cloud infrastructure, and technology stack — before you ever touch a system.</p>
+      </div>
+
+      <!-- ORG PROFILING DASHBOARD -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// CORPORATE INTELLIGENCE BOARD</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">INTERACTIVE — CLICK ENTITIES</span></div>
+        <div class="panel-body">
+          <canvas id="org-chart" width="700" height="280" style="width:100%;border:1px solid var(--border);border-radius:2px;cursor:pointer"></canvas>
+          <div id="org-info" style="margin-top:10px;padding:10px 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:var(--text-mid)">
+            ← Click any entity node to view intelligence details
+          </div>
+        </div>
+      </div>
+
+      <!-- TECH STACK + SUBDOMAIN -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// TECHNOLOGY STACK ANALYZER</span></div>
+          <div class="panel-body">
+            <div class="btn-row" style="margin-bottom:12px">
+              <select id="stack-target" style="flex:1">
+                <option>E-Commerce Company</option>
+                <option>Healthcare Provider</option>
+                <option>FinTech Startup</option>
+                <option>Government Portal</option>
+              </select>
+              <button class="btn" onclick="analyzeStack()">DETECT</button>
+            </div>
+            <div id="stack-output" style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);min-height:180px">
+              <div style="color:var(--text-dim)"># Select a target type to analyze stack</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// SUBDOMAIN DISCOVERY</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:10px">Forgotten subdomains = forgotten security. Map the hidden digital estate.</p>
+            <button class="btn" onclick="discoverSubdomains()" style="margin-bottom:12px">▷ RUN ENUMERATION</button>
+            <div class="sim-area" data-label="SUBDOMAIN MAP" id="subdomain-output" style="min-height:170px">
+              <div class="sim-line visible" style="color:var(--text-dim)"># Awaiting enumeration command...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTACK SURFACE PREVIEW -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// ATTACK SURFACE PREVIEW</span></div>
+        <div class="panel-body">
+          <div class="grid-4">
+            <div class="info-card" onclick="this.style.borderColor='var(--red)';this.querySelector('.info-card-title').style.color='var(--red)'" style="cursor:pointer;text-align:center">
+              <div class="info-card-icon">🔐</div>
+              <div class="info-card-title">Login Portals</div>
+              <div class="info-card-text">Admin panels, VPN gates, SSO endpoints</div>
+            </div>
+            <div class="info-card" onclick="this.style.borderColor='var(--amber)'" style="cursor:pointer;text-align:center">
+              <div class="info-card-icon">⚡</div>
+              <div class="info-card-title">Public APIs</div>
+              <div class="info-card-text">REST/GraphQL endpoints, webhooks</div>
+            </div>
+            <div class="info-card" onclick="this.style.borderColor='var(--cyan)'" style="cursor:pointer;text-align:center">
+              <div class="info-card-icon">📁</div>
+              <div class="info-card-title">Upload Forms</div>
+              <div class="info-card-text">File upload, profile images, documents</div>
+            </div>
+            <div class="info-card" onclick="this.style.borderColor='var(--purple)'" style="cursor:pointer;text-align:center">
+              <div class="info-card-icon">🖥</div>
+              <div class="info-card-title">Exposed Services</div>
+              <div class="info-card-text">S3 buckets, open databases, dev servers</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 3 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('attack-surface','◈ ATTACK SURFACE')">NEXT: ATTACK SURFACE →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 4: ATTACK SURFACE =================== -->
+    <div class="section" id="sec-attack-surface">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 04 — EXPOSURE ANALYSIS</div>
+        <h2 class="section-title">ATTACK SURFACE MAPPING</h2>
+        <p class="section-subtitle">Every open port, public endpoint, and accessible interface is a potential entry point. Map it, prioritize it, and understand the path of least resistance.</p>
+        <div style="margin-top:14px"><span class="tactic-badge badge-red">HIGH IMPACT</span><span class="tactic-badge badge-amber">EXPOSURE</span></div>
+      </div>
+
+      <!-- 3D CANVAS -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// ATTACK SURFACE VISUALIZATION</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">ANIMATED INFRASTRUCTURE MAP</span></div>
+        <div class="panel-body">
+          <canvas id="attack-canvas" width="700" height="300" style="width:100%;border:1px solid var(--border);border-radius:2px;cursor:crosshair"></canvas>
+          <div id="port-info" style="margin-top:10px;padding:10px 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:var(--text-mid)">
+            ← Click any port node to view exposure details
+          </div>
+        </div>
+      </div>
+
+      <!-- PORT EXPLORER + API MAPPING -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// PORT EXPOSURE ANALYSIS</span></div>
+          <div class="panel-body">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">🔴 Port 22 — SSH</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">Secure Shell. Exposed SSH with password auth is a prime brute-force target. Look for: default credentials, old OpenSSH versions, key files in public repos.<br><span class="tactic-badge badge-red" style="margin-top:8px;display:inline-flex">CRITICAL EXPOSURE</span></div></div>
+              </div>
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">🔴 Port 21 — FTP</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">File Transfer Protocol. Often left with anonymous access enabled. Transmits credentials in plaintext. A goldmine for file exfiltration.<br><span class="tactic-badge badge-red" style="margin-top:8px;display:inline-flex">HIGH RISK</span></div></div>
+              </div>
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">🔴 Port 3389 — RDP</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">Remote Desktop. Direct GUI access to Windows systems. BlueKeep and similar vulnerabilities have made exposed RDP one of the most dangerous attack surfaces.<br><span class="tactic-badge badge-red" style="margin-top:8px;display:inline-flex">CRITICAL</span></div></div>
+              </div>
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">🟡 Port 80/443 — HTTP/HTTPS</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">Web services. Check for: admin panels (/admin, /wp-admin), directory listing, outdated CMS versions, exposed Git repositories, API endpoints.<br><span class="tactic-badge badge-amber" style="margin-top:8px;display:inline-flex">MEDIUM RISK</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// PATH OF LEAST RESISTANCE</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Attackers always take the easiest path. Simulate entry point evaluation:</p>
+            <div id="plor-candidates" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+              <div class="info-card" style="cursor:pointer" onclick="evaluatePath(this,'FTP with anonymous access enabled','95')">
+                <div style="display:flex;justify-content:space-between"><span class="info-card-title">Anonymous FTP Server</span><span class="tactic-badge badge-red">EASY</span></div>
+              </div>
+              <div class="info-card" style="cursor:pointer" onclick="evaluatePath(this,'Exposed /wp-admin login page','75')">
+                <div style="display:flex;justify-content:space-between"><span class="info-card-title">WordPress Admin Portal</span><span class="tactic-badge badge-amber">MEDIUM</span></div>
+              </div>
+              <div class="info-card" style="cursor:pointer" onclick="evaluatePath(this,'Internal API with no auth','88')">
+                <div style="display:flex;justify-content:space-between"><span class="info-card-title">Unauthenticated API</span><span class="tactic-badge badge-red">EASY</span></div>
+              </div>
+              <div class="info-card" style="cursor:pointer" onclick="evaluatePath(this,'Misconfigured S3 bucket','82')">
+                <div style="display:flex;justify-content:space-between"><span class="info-card-title">Open S3 Bucket</span><span class="tactic-badge badge-amber">MEDIUM</span></div>
+              </div>
+            </div>
+            <div id="path-result" style="padding:10px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">Click an entry point to evaluate exploitability</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 4 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('threat-intel','⊗ THREAT INTEL')">NEXT: THREAT INTELLIGENCE →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 5: THREAT INTEL =================== -->
+    <div class="section" id="sec-threat-intel">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 05 — INTELLIGENCE FUSION</div>
+        <h2 class="section-title">THREAT INTELLIGENCE</h2>
+        <p class="section-subtitle">Raw data becomes actionable intelligence through correlation. IOCs, TTPs, and threat actor profiles transform reactive defense into proactive hunting.</p>
+      </div>
+
+      <!-- INTEL HIERARCHY -->
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="info-card" style="border-color:rgba(0,255,136,0.3)">
+          <div class="info-card-icon">🎯</div>
+          <div class="info-card-title" style="color:var(--green)">TACTICAL INTELLIGENCE</div>
+          <div class="info-card-text">IOCs — specific artifacts: IPs, hashes, domains, signatures. Short shelf life. Actionable immediately by security tools.</div>
+          <span class="tactic-badge badge-green" style="margin-top:8px">IMMEDIATE</span>
+        </div>
+        <div class="info-card" style="border-color:rgba(255,171,0,0.3)">
+          <div class="info-card-icon">⚙</div>
+          <div class="info-card-title" style="color:var(--amber)">OPERATIONAL INTELLIGENCE</div>
+          <div class="info-card-text">TTPs — Tactics, Techniques, Procedures. How attackers behave. Harder to change than IOCs. Months of relevance.</div>
+          <span class="tactic-badge badge-amber" style="margin-top:8px">CAMPAIGN LEVEL</span>
+        </div>
+        <div class="info-card" style="border-color:rgba(124,77,255,0.3)">
+          <div class="info-card-icon">🌐</div>
+          <div class="info-card-title" style="color:var(--purple)">STRATEGIC INTELLIGENCE</div>
+          <div class="info-card-text">Threat actor motivations, geopolitical context, industry targeting trends. Years of relevance. Informs policy.</div>
+          <span class="tactic-badge badge-purple" style="margin-top:8px">LONG TERM</span>
+        </div>
+      </div>
+
+      <!-- IOC CORRELATION ENGINE -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// IOC CORRELATION ENGINE</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">LIVE THREAT FEED</span></div>
+        <div class="panel-body">
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <button class="btn" onclick="loadIOCs('ip')">IP ADDRESSES</button>
+            <button class="btn" onclick="loadIOCs('hash')">FILE HASHES</button>
+            <button class="btn" onclick="loadIOCs('domain')">DOMAINS</button>
+            <button class="btn btn-red" onclick="loadIOCs('all')">ALL INDICATORS</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="ioc-table" id="ioc-table">
+              <thead><tr><th>INDICATOR</th><th>TYPE</th><th>THREAT ACTOR</th><th>CONFIDENCE</th><th>SEVERITY</th></tr></thead>
+              <tbody id="ioc-body">
+                <tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px">Select an IOC category to load threat data</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TTP EXPLORER -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// TTP EXPLORER — MITRE ATT&CK CHAIN</span></div>
+        <div class="panel-body">
+          <canvas id="ttp-canvas" width="700" height="200" style="width:100%;border:1px solid var(--border);border-radius:2px;cursor:pointer"></canvas>
+          <div id="ttp-info" style="margin-top:10px;padding:10px 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:var(--text-mid)">
+            ← Click any ATT&CK phase to explore tactics and techniques
+          </div>
+        </div>
+      </div>
+
+      <!-- THREAT HEATMAP -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// GLOBAL THREAT ACTIVITY</span></div>
+        <div class="panel-body">
+          <div class="mini-map-wrap" id="threat-map">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">GLOBAL THREAT MAP — REAL-TIME SIMULATION</div>
+          </div>
+          <button class="btn" onclick="startThreatMap()" style="margin-top:10px">▷ ACTIVATE THREAT FEEDS</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 5 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('attribution','◌ ATTRIBUTION')">NEXT: ATTRIBUTION →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 6: ATTRIBUTION =================== -->
+    <div class="section" id="sec-attribution">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 06 — ATTRIBUTION ANALYSIS</div>
+        <h2 class="section-title">ATTRIBUTION & ANALYSIS</h2>
+        <p class="section-subtitle">Attribution is hard. False flags are common. The Diamond Model provides a structured framework for connecting adversary, capability, infrastructure, and victim — with confidence scoring.</p>
+      </div>
+
+      <!-- DIAMOND MODEL -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// DIAMOND MODEL — INTERACTIVE</span></div>
+        <div class="panel-body">
+          <canvas id="diamond-canvas" width="700" height="300" style="width:100%;border:1px solid var(--border);border-radius:2px;cursor:pointer"></canvas>
+          <div id="diamond-info" style="margin-top:10px;padding:10px 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:var(--text-mid)">
+            ← Click any Diamond Model vertex to analyze the component
+          </div>
+        </div>
+      </div>
+
+      <!-- FALSE FLAGS + CONFIDENCE -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// FALSE FLAG SIMULATOR</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">State actors and APT groups routinely plant misleading evidence. Can you spot them?</p>
+            <div id="false-flag-scenario" style="padding:12px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px;margin-bottom:12px;font-size:12px;color:var(--text-mid);line-height:1.6">
+              <div style="color:var(--amber);font-family:var(--font-mono);font-size:10px;letter-spacing:2px;margin-bottom:6px">SCENARIO LOADED:</div>
+              Attack used Chinese-language error messages in malware, routed traffic through North Korean IPs, and used Russian-speaking forums for C2 negotiation. Malware code matched known US-based APT tooling.
+            </div>
+            <div class="btn-row">
+              <button class="btn" onclick="attributeAttack('china')">Attribute: China</button>
+              <button class="btn" onclick="attributeAttack('russia')">Attribute: Russia</button>
+              <button class="btn" onclick="attributeAttack('unknown')">Unknown/False Flag</button>
+            </div>
+            <div id="attribution-result" style="margin-top:12px;padding:10px;border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;display:none"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// EVIDENCE CONFIDENCE METER</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:14px">Evaluate evidence quality. Intelligence gaps reduce confidence. Contradictions destroy it.</p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid)">Technical Attribution</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--amber)" id="conf-tech-val">45%</span></div>
+                <div class="progress-bar"><div class="progress-fill fill-amber" id="conf-tech" style="width:45%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid)">Infrastructure Evidence</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--cyan)" id="conf-infra-val">72%</span></div>
+                <div class="progress-bar"><div class="progress-fill fill-cyan" id="conf-infra" style="width:72%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid)">Behavioral Patterns</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--green)" id="conf-behav-val">88%</span></div>
+                <div class="progress-bar"><div class="progress-fill fill-green" id="conf-behav" style="width:88%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid)">Overall Confidence</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--red)" id="conf-overall-val">23%</span></div>
+                <div class="progress-bar"><div class="progress-fill fill-red" id="conf-overall" style="width:23%"></div></div>
+              </div>
+            </div>
+            <div class="insight-card" style="margin-top:14px">
+              <div class="insight-title">⚡ KEY PRINCIPLE</div>
+              Intelligence gaps are as important as the evidence you have. A 23% overall confidence despite strong behavioral evidence suggests deliberate false flagging.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 6 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('tradecraft','◫ TRADECRAFT')">NEXT: RESEARCH TRADECRAFT →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 7: TRADECRAFT =================== -->
+    <div class="section" id="sec-tradecraft">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 07 — OPERATIONAL SECURITY</div>
+        <h2 class="section-title">RESEARCH TRADECRAFT</h2>
+        <p class="section-subtitle">Every investigation leaves traces — of the investigator. Sock puppets, clean environments, and strict compartmentalization protect both the operator and the investigation.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// SOCK PUPPET BUILDER</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Create an isolated research persona. Each attribute increases or decreases exposure risk.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);min-width:100px">EMAIL DOMAIN</span>
+                <select id="pp-email" style="flex:1" onchange="updatePersonaRisk()">
+                  <option value="30">ProtonMail (encrypted)</option>
+                  <option value="60">Gmail (trackable)</option>
+                  <option value="80">Work email (!)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);min-width:100px">NETWORK</span>
+                <select id="pp-network" style="flex:1" onchange="updatePersonaRisk()">
+                  <option value="10">Tor Browser</option>
+                  <option value="25">VPN (no-log)</option>
+                  <option value="70">Home IP (!)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);min-width:100px">DEVICE</span>
+                <select id="pp-device" style="flex:1" onchange="updatePersonaRisk()">
+                  <option value="10">Isolated VM</option>
+                  <option value="40">Fresh browser profile</option>
+                  <option value="90">Personal computer (!)</option>
+                </select>
+              </div>
+            </div>
+            <div style="padding:12px;background:var(--bg-panel);border:1px solid var(--border);border-radius:2px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">EXPOSURE RISK</span><span style="font-family:var(--font-mono);font-size:11px" id="persona-risk-label">LOW</span></div>
+              <div class="progress-bar"><div class="progress-fill" id="persona-risk-bar" style="width:15%;background:var(--green)"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// OPSEC FAILURE SCENARIOS</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Real-world examples of investigators being burned:</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">💀 Browser Metadata Leak</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">Investigator used a personal browser to access target's site. Browser fingerprint (screen resolution, fonts, timezone, plugins) matched their real identity profile — exposing them without cookies or login.</div></div>
+              </div>
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">💀 Image Metadata (EXIF) Exposure</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">Uploaded a screenshot to report. Image EXIF data contained original filename, device model, and GPS coordinates from a home device. Target was notified by a third party.</div></div>
+              </div>
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">💀 Sock Puppet Account Linked</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">Created a fake LinkedIn account but logged into it from the same IP as the real account. LinkedIn's security system linked both accounts and notified the target organization's security team.</div></div>
+              </div>
+              <div class="expandable">
+                <div class="expandable-header" onclick="toggleExpand(this)"><div class="expandable-title">💀 DNS Leak Through VPN</div><span class="expandable-arrow">▶</span></div>
+                <div class="expandable-body"><div class="expandable-content">Operator used a VPN for traffic routing but didn't configure DNS-over-HTTPS. DNS queries resolved through ISP's servers, revealing real IP address and investigation target to the ISP.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VM Environment -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// OPERATIONAL ENVIRONMENT SETUP</span></div>
+        <div class="panel-body">
+          <div class="grid-4">
+            <div class="info-card" style="text-align:center;border-color:rgba(0,255,136,0.3)"><div style="font-size:24px;margin-bottom:8px">🖥</div><div class="info-card-title" style="color:var(--green)">Isolated VM</div><div class="info-card-text">Kali/TAILS VM with no shared folders or clipboards</div></div>
+            <div class="info-card" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🌐</div><div class="info-card-title">VPN + Tor</div><div class="info-card-text">Chain: VM → VPN → Tor for maximum anonymization</div></div>
+            <div class="info-card" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">📧</div><div class="info-card-title">Burner Identity</div><div class="info-card-text">Dedicated email, no personal identifiers, cash-funded</div></div>
+            <div class="info-card" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🗑</div><div class="info-card-title">Clean Wipe</div><div class="info-card-text">Snapshot before, rollback after. No persistence.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 7 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('validation','◧ VALIDATION')">NEXT: INTEL VALIDATION →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 8: VALIDATION =================== -->
+    <div class="section" id="sec-validation">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 08 — QUALITY ASSURANCE</div>
+        <h2 class="section-title">INTELLIGENCE VALIDATION</h2>
+        <p class="section-subtitle">Unvalidated intelligence is worse than no intelligence — it leads analysts down false paths and wastes resources. Cross-reference everything. Trust nothing once.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// INTELLIGENCE VERIFICATION ENGINE</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Submit a piece of intelligence for validation:</p>
+            <select id="intel-type" style="width:100%;margin-bottom:8px">
+              <option>Leaked credential database</option>
+              <option>Employee email list</option>
+              <option>Internal IP range</option>
+              <option>Confidential document</option>
+            </select>
+            <input id="intel-date" type="text" placeholder="Date collected (e.g. 2023-01-15)" style="width:100%;margin-bottom:8px;background:var(--bg-panel);border:1px solid var(--border);color:var(--text-mid);font-family:var(--font-mono);font-size:11px;padding:7px 10px;border-radius:2px;outline:none"/>
+            <select id="intel-source" style="width:100%;margin-bottom:12px">
+              <option>Dark web forum post</option>
+              <option>Pastebin dump</option>
+              <option>Shodan scan result</option>
+              <option>LinkedIn profile</option>
+            </select>
+            <button class="btn" onclick="validateIntel()" style="width:100%">▷ VALIDATE INTELLIGENCE</button>
+            <div id="validation-result" style="margin-top:12px;display:none;padding:12px;background:var(--bg-panel);border-left:3px solid var(--cyan);font-family:var(--font-mono);font-size:11px;color:var(--text-mid);line-height:1.7"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// HONEYPOT DETECTION TRAINING</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Defenders plant fake targets (honeypots) to catch researchers. Learn to identify them:</p>
+            <div style="display:flex;flex-direction:column;gap:8px" id="honeypot-list">
+              <div class="info-card" style="cursor:pointer" onclick="checkHoneypot(this,'true','FTP with "confidential" in every filename, no auth required, logs all accesses')">
+                <div class="info-card-title">💾 Anonymous FTP with "CONFIDENTIAL" files</div>
+                <div class="info-card-text">No authentication, massive file collection, perfectly organized</div>
+              </div>
+              <div class="info-card" style="cursor:pointer" onclick="checkHoneypot(this,'false','This is a real exposed database — legitimate finding')">
+                <div class="info-card-title">🗄 MongoDB on port 27017 no auth</div>
+                <div class="info-card-text">Incomplete database, real-looking customer records, no redirection</div>
+              </div>
+              <div class="info-card" style="cursor:pointer" onclick="checkHoneypot(this,'true','All logins succeed, but all passwords trigger email alerts to the defender')">
+                <div class="info-card-title">🔑 Admin portal accepting all passwords</div>
+                <div class="info-card-text">No lockout, all creds work, very responsive</div>
+              </div>
+            </div>
+            <div id="honeypot-result" style="margin-top:12px;padding:10px;border:1px solid var(--border);border-radius:2px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">Click a target to analyze for honeypot indicators</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA FRESHNESS -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// INTELLIGENCE FRESHNESS TIMELINE</span></div>
+        <div class="panel-body">
+          <canvas id="freshness-canvas" width="700" height="160" style="width:100%;border:1px solid var(--border);border-radius:2px"></canvas>
+          <div style="margin-top:10px;display:flex;gap:20px;flex-wrap:wrap">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--green)">● VALID</span>
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--amber)">● DEGRADING</span>
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--red)">● EXPIRED</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">SECTION 8 COMPLETE — <span style="color:var(--green)">+100 XP EARNED</span></div>
+        <button class="btn btn-green" onclick="nextSection('reporting','◱ REPORTING')">NEXT: REPORTING →</button>
+      </div>
+    </div>
+
+    <!-- =================== SECTION 9: REPORTING =================== -->
+    <div class="section" id="sec-reporting">
+      <div class="section-hero">
+        <div class="section-tag">// MODULE 09 — DOCUMENTATION</div>
+        <h2 class="section-title">REPORTING & DOCUMENTATION</h2>
+        <p class="section-subtitle">Intelligence has no value until it is communicated. A well-structured report transforms raw findings into actionable decisions for executives, defenders, and responders.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// INVESTIGATION NOTEBOOK</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:10px">Document findings in real-time:</p>
+            <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+              <button class="btn" style="font-size:10px;padding:5px 10px" onclick="logEntry('OSINT','Email harvested from LinkedIn')">+ OSINT</button>
+              <button class="btn btn-amber" style="font-size:10px;padding:5px 10px" onclick="logEntry('PORT','Port 22 open, OpenSSH 7.2')">+ PORT</button>
+              <button class="btn btn-red" style="font-size:10px;padding:5px 10px" onclick="logEntry('VULN','Exposed admin panel /admin/login')">+ VULN</button>
+              <button class="btn btn-green" style="font-size:10px;padding:5px 10px" onclick="logEntry('NOTE','Custom note: '+prompt('Enter finding:','Custom finding'))">+ NOTE</button>
+            </div>
+            <div id="report-log" style="min-height:220px">
+              <div style="color:var(--text-dim)"># Investigation notebook — begin logging findings</div>
+            </div>
+            <div style="margin-top:8px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)" id="log-count">0 entries logged</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// TIMELINE RECONSTRUCTION</span></div>
+          <div class="panel-body">
+            <p style="font-size:12px;color:var(--text-mid);margin-bottom:10px">Chronological evidence mapping:</p>
+            <canvas id="timeline-canvas" width="350" height="240" style="width:100%;border:1px solid var(--border);border-radius:2px"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORT GENERATOR -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-header"><span class="panel-title">// INTELLIGENCE REPORT BUILDER</span></div>
+        <div class="panel-body">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+            <div style="flex:1;min-width:180px">
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:4px">CLASSIFICATION</div>
+              <select style="width:100%"><option>TLP:RED (Restricted)</option><option>TLP:AMBER (Limited)</option><option>TLP:GREEN (Community)</option><option>TLP:CLEAR (Public)</option></select>
+            </div>
+            <div style="flex:1;min-width:180px">
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:4px">REPORT TYPE</div>
+              <select style="width:100%"><option>Threat Intelligence Report</option><option>Attack Surface Analysis</option><option>OSINT Findings Brief</option><option>Incident Attribution</option></select>
+            </div>
+            <div style="flex:1;min-width:180px">
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:4px">AUDIENCE</div>
+              <select style="width:100%"><option>Executive / CISO</option><option>SOC Analysts</option><option>Incident Responders</option><option>Law Enforcement</option></select>
+            </div>
+          </div>
+          <button class="btn btn-green" onclick="generateReport()" style="margin-bottom:16px;width:100%">▷ GENERATE INTELLIGENCE REPORT</button>
+          <div id="report-preview" style="display:none;border:1px solid var(--border);border-radius:2px;overflow:hidden">
+            <div style="background:rgba(0,229,255,0.06);padding:12px 16px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:12px;letter-spacing:2px;color:var(--cyan)">INTELLIGENCE REPORT PREVIEW</div>
+            <div id="report-content" style="padding:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-mid);line-height:1.8"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);padding:20px;border-radius:2px;text-align:center">
+        <div style="font-family:var(--font-display);font-size:18px;color:var(--green);margin-bottom:8px">◈ LEVEL 2 COMPLETE</div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-mid);margin-bottom:14px">All 9 modules completed. Intelligence operator certification unlocked.</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--cyan)">TOTAL XP: 900 / 900 — RANK: INTELLIGENCE ANALYST</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// BOOT SEQUENCE
+// ============================================================
+const bootLines = [
+  '[SYS] Initializing cyber intelligence platform...',
+  '[SYS] Loading OSINT databases...',
+  '[NET] Establishing secure channel...',
+  '[AUTH] Verifying operator credentials...',
+  '[DB] IOC feeds synchronized...',
+  '[TI] Threat intelligence loaded...',
+  '[OPSEC] Steganography check passed...',
+  '[SYS] Level 2 modules unlocked...',
+  '[OK] System ready. Welcome, Operator.'
+];
+
+let bootIdx = 0;
+const bootLog = document.getElementById('boot-log');
+const enterBtn = document.getElementById('enter-btn');
+
+function runBoot() {
+  if (bootIdx >= bootLines.length) {
+    enterBtn.style.display = 'inline-block';
+    return;
+  }
+  const div = document.createElement('div');
+  div.className = 'boot-line';
+  div.style.color = bootLines[bootIdx].startsWith('[OK]') ? '#00ff88' :
+                    bootLines[bootIdx].startsWith('[NET]') ? '#00e5ff' : '#8ab4c8';
+  div.textContent = bootLines[bootIdx];
+  bootLog.appendChild(div);
+  bootIdx++;
+  setTimeout(runBoot, 280);
+}
+setTimeout(runBoot, 500);
+
+function enterPlatform() {
+  document.getElementById('landing').classList.add('hidden');
+  document.getElementById('ticker-wrap').style.display = '';
+  document.getElementById('app').style.display = 'flex';
+  initAllCanvases();
+  updateXP(0);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+let totalXP = 0;
+const sectionMap = {
+  'osint': 'sec-osint',
+  'collection': 'sec-collection',
+  'profiling': 'sec-profiling',
+  'attack-surface': 'sec-attack-surface',
+  'threat-intel': 'sec-threat-intel',
+  'attribution': 'sec-attribution',
+  'tradecraft': 'sec-tradecraft',
+  'validation': 'sec-validation',
+  'reporting': 'sec-reporting'
+};
+
+function showSection(key, navEl) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(sectionMap[key]).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  // breadcrumb
+  const labels = {
+    osint:'OSINT FOUNDATIONS', collection:'COLLECTION METHODS', profiling:'TARGET PROFILING',
+    'attack-surface':'ATTACK SURFACE', 'threat-intel':'THREAT INTELLIGENCE',
+    attribution:'ATTRIBUTION & ANALYSIS', tradecraft:'RESEARCH TRADECRAFT',
+    validation:'INTEL VALIDATION', reporting:'REPORTING & DOCS'
+  };
+  document.getElementById('breadcrumb-text').textContent = labels[key] || key.toUpperCase();
+  window.scrollTo(0,0);
+  setTimeout(() => refreshSectionCanvases(key), 100);
+}
+
+function nextSection(key, label) {
+  addXP(100);
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    if (n.textContent.includes(label.replace(/[◎⊙⊕◈⊗◌◫◧◱]\s/,''))) {
+      showSection(key, n);
+    }
+  });
+  // fallback
+  const keys = Object.keys(sectionMap);
+  const idx = keys.indexOf(key);
+  if (idx >= 0) {
+    const navEl = document.querySelectorAll('.nav-item')[idx];
+    showSection(key, navEl);
+  }
+}
+
+function addXP(amount) {
+  totalXP = Math.min(900, totalXP + amount);
+  updateXP(totalXP);
+}
+
+function updateXP(val) {
+  document.getElementById('xp-display').textContent = val + ' / 900';
+  document.getElementById('xp-bar').style.width = (val/900*100) + '%';
+}
+
+// ============================================================
+// CANVAS INITS
+// ============================================================
+function initAllCanvases() {
+  drawOSINTMap();
+  drawRelGraph();
+  drawHeatmap();
+  drawOrgChart();
+  drawAttackCanvas();
+  drawDiamondModel();
+  drawTTPCanvas();
+  drawFreshnessTimeline();
+  drawTimeline();
+}
+
+function refreshSectionCanvases(key) {
+  if (key === 'osint') { drawOSINTMap(); drawRelGraph(); }
+  if (key === 'collection') { drawHeatmap(); }
+  if (key === 'profiling') { drawOrgChart(); }
+  if (key === 'attack-surface') { drawAttackCanvas(); }
+  if (key === 'threat-intel') { drawTTPCanvas(); }
+  if (key === 'attribution') { drawDiamondModel(); }
+  if (key === 'validation') { drawFreshnessTimeline(); }
+  if (key === 'reporting') { drawTimeline(); }
+}
+
+// ============================================================
+// OSINT MAP CANVAS
+// ============================================================
+const osintNodes = [
+  {x:0.5, y:0.15, label:'TARGET\nORGANIZATION', color:'#00e5ff', r:22, info:'Central target entity. All intelligence paths converge here.'},
+  {x:0.15, y:0.45, label:'DNS\nRecords', color:'#00ff88', r:16, info:'A/MX/NS records reveal hosting provider, mail servers, subdomains, and CDN usage.'},
+  {x:0.85, y:0.45, label:'Social\nMedia', color:'#7c4dff', r:16, info:'LinkedIn/Twitter expose employee names, job titles, tech stack, internal project names.'},
+  {x:0.3, y:0.75, label:'Shodan\nCensys', color:'#ffab00', r:14, info:'Internet scanning platforms reveal exposed services, banners, certificate data.'},
+  {x:0.7, y:0.75, label:'GitHub\nRepos', color:'#ff3060', r:14, info:'Public repos may contain API keys, internal hostnames, credentials in commit history.'},
+  {x:0.5, y:0.82, label:'WHOIS\nData', color:'#00e5ff', r:14, info:'Domain registration data: registrant email, org name, registrar, creation date.'},
+  {x:0.08, y:0.75, label:'Job\nPostings', color:'#00ff88', r:12, info:'Job ads reveal technology stack, internal team structure, upcoming projects.'},
+  {x:0.92, y:0.75, label:'Pastebin\nLeaks', color:'#ff3060', r:12, info:'Leaked credentials, API keys, internal configs often surface in paste sites.'},
+];
+
+function drawOSINTMap() {
+  const canvas = document.getElementById('osint-map');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#010810'; ctx.fillRect(0,0,W,H);
+
+  // Draw connections
+  const center = osintNodes[0];
+  osintNodes.slice(1).forEach(node => {
+    ctx.beginPath();
+    ctx.moveTo(center.x*W, center.y*H);
+    ctx.lineTo(node.x*W, node.y*H);
+    ctx.strokeStyle = 'rgba(0,229,255,0.2)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Draw some cross-connections
+  [[1,2],[3,4],[5,6],[2,7]].forEach(([a,b]) => {
+    ctx.beginPath();
+    ctx.moveTo(osintNodes[a].x*W, osintNodes[a].y*H);
+    ctx.lineTo(osintNodes[b].x*W, osintNodes[b].y*H);
+    ctx.strokeStyle = 'rgba(124,77,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Draw nodes
+  osintNodes.forEach(node => {
+    // Glow
+    const grd = ctx.createRadialGradient(node.x*W, node.y*H, 0, node.x*W, node.y*H, node.r*2.5);
+    grd.addColorStop(0, node.color+'40');
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd; ctx.beginPath();
+    ctx.arc(node.x*W, node.y*H, node.r*2.5, 0, Math.PI*2); ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(node.x*W, node.y*H, node.r, 0, Math.PI*2);
+    ctx.fillStyle = '#020a12'; ctx.fill();
+    ctx.strokeStyle = node.color; ctx.lineWidth = 1.5; ctx.stroke();
+
+    ctx.fillStyle = node.color; ctx.font = 'bold 9px "Share Tech Mono"';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const lines = node.label.split('\n');
+    lines.forEach((l, i) => ctx.fillText(l, node.x*W, node.y*H + (i - (lines.length-1)/2) * 11));
+  });
+}
+
+document.getElementById('osint-map') && document.getElementById('osint-map').addEventListener('click', function(e) {
+  const canvas = this;
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const W = canvas.width, H = canvas.height;
+  let found = null;
+  osintNodes.forEach(n => {
+    const dx = mx - n.x*W, dy = my - n.y*H;
+    if (Math.sqrt(dx*dx+dy*dy) < n.r + 8) found = n;
+  });
+  if (found) {
+    document.getElementById('osint-info').innerHTML = `<span style="color:${found.color};font-weight:600">[${found.label.replace('\n',' ')}]</span> — ${found.info}`;
+  }
+});
+
+// ============================================================
+// RELATIONSHIP GRAPH
+// ============================================================
+const relNodes = [
+  {x:0.5, y:0.15, label:'domain.com', color:'#00e5ff', type:'DNS'},
+  {x:0.15, y:0.5, label:'john.doe@domain.com', color:'#00ff88', type:'Employee'},
+  {x:0.85, y:0.5, label:'192.168.1.40', color:'#ffab00', type:'IP'},
+  {x:0.3, y:0.85, label:'pastebin/abc123', color:'#ff3060', type:'Leak'},
+  {x:0.7, y:0.85, label:'*.internal.domain.com', color:'#7c4dff', type:'Certificate'},
+  {x:0.5, y:0.55, label:'S3 bucket leak', color:'#ff3060', type:'Leak'},
+];
+const relEdges = [[0,1],[0,2],[1,3],[2,4],[3,5],[0,4],[1,5]];
+let relAnim = 0;
+
+function drawRelGraph() {
+  const canvas = document.getElementById('rel-graph');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#010810'; ctx.fillRect(0,0,W,H);
+
+  relEdges.forEach(([a,b]) => {
+    const na = relNodes[a], nb = relNodes[b];
+    ctx.beginPath();
+    ctx.moveTo(na.x*W, na.y*H); ctx.lineTo(nb.x*W, nb.y*H);
+    ctx.strokeStyle = 'rgba(0,229,255,0.15)'; ctx.lineWidth=1; ctx.stroke();
+
+    // Animated pulse dot
+    const t = (relAnim * 0.01 + a*0.3) % 1;
+    const px = na.x*W + (nb.x*W - na.x*W)*t;
+    const py = na.y*H + (nb.y*H - na.y*H)*t;
+    ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2);
+    ctx.fillStyle = '#00e5ff'; ctx.fill();
+  });
+
+  relNodes.forEach(n => {
+    const grd = ctx.createRadialGradient(n.x*W, n.y*H, 0, n.x*W, n.y*H, 20);
+    grd.addColorStop(0, n.color+'50'); grd.addColorStop(1, 'transparent');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(n.x*W,n.y*H,20,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(n.x*W,n.y*H,8,0,Math.PI*2);
+    ctx.fillStyle='#020a12'; ctx.fill();
+    ctx.strokeStyle=n.color; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle=n.color; ctx.font='8px "Share Tech Mono"';
+    ctx.textAlign='center'; ctx.fillText(n.label, n.x*W, n.y*H+20);
+  });
+
+  relAnim++;
+  setTimeout(drawRelGraph, 30);
+}
+
+// ============================================================
+// HEATMAP
+// ============================================================
+function drawHeatmap() {
+  const canvas = document.getElementById('heatmap-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#010810'; ctx.fillRect(0,0,W,H);
+
+  const techniques = ['Google Dork','Wayback Machine','WHOIS','DNS Enum','Web Browse','Shodan','Ping Sweep','Port Scan','Dir Fuzz','Nmap -A'];
+  const risks = [5,5,8,10,15,12,65,85,78,95];
+  const barW = (W-80) / techniques.length;
+
+  techniques.forEach((t,i) => {
+    const risk = risks[i];
+    const r = Math.round(risk*2.55), g = Math.round((100-risk)*2.0), b = 50;
+    const color = `rgb(${r},${g},${b})`;
+    const bh = (risk/100) * (H-60);
+    ctx.fillStyle = color+'cc';
+    ctx.fillRect(40 + i*barW + 4, H-30-bh, barW-8, bh);
+    ctx.fillStyle='#00e5ff33';
+    ctx.fillRect(40 + i*barW + 4, H-30-bh-1, barW-8, 2);
+
+    ctx.fillStyle='#4a6a7a'; ctx.font='8px "Share Tech Mono"';
+    ctx.textAlign='center'; ctx.save();
+    ctx.translate(40 + i*barW + barW/2, H-12);
+    ctx.rotate(-0.6); ctx.fillText(t, 0, 0); ctx.restore();
+
+    ctx.fillStyle=color; ctx.font='9px "Share Tech Mono"'; ctx.textAlign='center';
+    ctx.fillText(risk+'%', 40 + i*barW + barW/2, H-32-bh);
+  });
+
+  ctx.fillStyle='#4a6a7a'; ctx.font='10px "Share Tech Mono"';
+  ctx.textAlign='right'; ctx.fillText('Detection Risk', 36, 15);
+
+  // Y axis
+  for(let y=0;y<=100;y+=25) {
+    ctx.fillStyle='#4a6a7a30'; ctx.fillRect(40, H-30-(y/100)*(H-60), W-40, 1);
+    ctx.fillStyle='#4a6a7a'; ctx.font='8px "Share Tech Mono"';
+    ctx.textAlign='right'; ctx.fillText(y+'%', 34, H-28-(y/100)*(H-60));
+  }
+}
+
+// ============================================================
+// ORG CHART
+// ============================================================
+const orgNodes = [
+  {x:0.5, y:0.08, label:'CORP HQ', color:'#00e5ff', w:90, h:28, info:'Main corporate entity — primary target. Owns all subsidiaries.'},
+  {x:0.2, y:0.3, label:'IT Subsidiary', color:'#00ff88', w:80, h:24, info:'Separate IT company. Often has access to HQ systems. Smaller security team = easier target.'},
+  {x:0.5, y:0.3, label:'Cloud: AWS', color:'#ffab00', w:80, h:24, info:'AWS infrastructure. Check S3 buckets, EC2 metadata endpoints, IAM misconfigurations.'},
+  {x:0.8, y:0.3, label:'SaaS Vendor', color:'#7c4dff', w:80, h:24, info:'Third-party CRM/ERP vendor. Supply chain attack vector. May have API access to HQ data.'},
+  {x:0.1, y:0.6, label:'Employees\n(LinkedIn)', color:'#00ff88', w:80, h:30, info:'1,200 employees on LinkedIn. Can find: names, job titles, internal tool names, org structure.'},
+  {x:0.4, y:0.6, label:'Dev Teams\n(GitHub)', color:'#ff3060', w:80, h:30, info:'45 developers. 12 public repos found. 3 contain hardcoded staging credentials.'},
+  {x:0.65, y:0.6, label:'Acquired Co.\n(2022)', color:'#00e5ff', w:80, h:30, info:'Acquisition from 2022. Legacy systems not fully integrated. Likely outdated security posture.'},
+  {x:0.9, y:0.6, label:'Partner\nOrg', color:'#7c4dff', w:80, h:30, info:'Trusted partner with VPN access to HQ network. Third-party risk: weakest link.'},
+];
+const orgEdges = [[0,1],[0,2],[0,3],[1,4],[1,5],[2,6],[3,7]];
+
+function drawOrgChart() {
+  const canvas = document.getElementById('org-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#010810'; ctx.fillRect(0,0,W,H);
+
+  orgEdges.forEach(([a,b]) => {
+    const na=orgNodes[a], nb=orgNodes[b];
+    ctx.beginPath(); ctx.moveTo(na.x*W, na.y*H+na.h/2);
+    ctx.lineTo(nb.x*W, nb.y*H-nb.h/2);
+    ctx.strokeStyle='rgba(0,229,255,0.25)'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  });
+
+  orgNodes.forEach(n => {
+    ctx.fillStyle=n.color+'18'; ctx.strokeStyle=n.color+'80'; ctx.lineWidth=1;
+    ctx.beginPath();
+    const x=n.x*W-n.w/2, y=n.y*H-n.h/2;
+    ctx.roundRect(x,y,n.w,n.h,3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=n.color; ctx.font='bold 9px "Share Tech Mono"';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    n.label.split('\n').forEach((l,i,arr) => ctx.fillText(l, n.x*W, n.y*H + (i-(arr.length-1)/2)*12));
+  });
+}
+
+document.getElementById('org-chart') && document.getElementById('org-chart').addEventListener('click', function(e) {
+  const rect=this.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(this.width/rect.width);
+  const my=(e.clientY-rect.top)*(this.height/rect.height);
+  const W=this.width,H=this.height;
+  let found=null;
+  orgNodes.forEach(n => { if (Math.abs(mx-n.x*W)<n.w/2+6 && Math.abs(my-n.y*H)<n.h/2+6) found=n; });
+  if (found) document.getElementById('org-info').innerHTML = `<span style="color:${found.color}">[${found.label.replace('\n',' ')}]</span> — ${found.info}`;
+});
+
+// ============================================================
+// ATTACK SURFACE CANVAS
+// ============================================================
+const portNodes = [
+  {x:0.5,y:0.12,label:'TARGET',color:'#00e5ff',r:22,port:'',info:''},
+  {x:0.15,y:0.45,label:'SSH\n:22',color:'#ff3060',r:18,port:'22',info:'SSH (Port 22) — Secure Shell. If public: brute-force risk. Check: weak passwords, old keys, outdated version.'},
+  {x:0.35,y:0.75,label:'FTP\n:21',color:'#ff3060',r:16,port:'21',info:'FTP (Port 21) — File Transfer. Often anonymous access enabled. Credentials sent in plaintext.'},
+  {x:0.65,y:0.75,label:'RDP\n:3389',color:'#ff3060',r:16,port:'3389',info:'RDP (Port 3389) — Remote Desktop. High-value target. BlueKeep vuln affected millions of unpatched Windows systems.'},
+  {x:0.85,y:0.45,label:'HTTP\n:80',color:'#ffab00',r:18,port:'80',info:'HTTP (Port 80) — Web traffic. Check for: admin panels, directory listing, outdated CMS, exposed configs.'},
+  {x:0.5,y:0.55,label:'HTTPS\n:443',color:'#00ff88',r:18,port:'443',info:'HTTPS (Port 443) — Encrypted web. Safer but still check: TLS version, API endpoints, subdomains.'},
+  {x:0.25,y:0.3,label:'DB\n:3306',color:'#ff3060',r:14,port:'3306',info:'MySQL (Port 3306) — Database. Should NEVER be public. Exposed MySQL = full data breach risk.'},
+  {x:0.75,y:0.3,label:'SMB\n:445',color:'#ff3060',r:14,port:'445',info:'SMB (Port 445) — Windows file sharing. EternalBlue/WannaCry target. Critical if exposed publicly.'},
+];
+const portEdges = [[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7]];
+let attackAnim=0;
+
+function drawAttackCanvas() {
+  const canvas=document.getElementById('attack-canvas');
+  if (!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#010810'; ctx.fillRect(0,0,W,H);
+
+  portEdges.forEach(([a,b]) => {
+    const na=portNodes[a],nb=portNodes[b];
+    const t=(attackAnim*0.008+b*0.2)%1;
+    ctx.beginPath(); ctx.moveTo(na.x*W,na.y*H); ctx.lineTo(nb.x*W,nb.y*H);
+    ctx.strokeStyle='rgba(255,48,96,0.15)'; ctx.lineWidth=1; ctx.stroke();
+    const px=na.x*W+(nb.x*W-na.x*W)*t, py=na.y*H+(nb.y*H-na.y*H)*t;
+    ctx.beginPath(); ctx.arc(px,py,2,0,Math.PI*2); ctx.fillStyle='#ff306099'; ctx.fill();
+  });
+
+  portNodes.forEach(n => {
+    const grd=ctx.createRadialGradient(n.x*W,n.y*H,0,n.x*W,n.y*H,n.r*2);
+    grd.addColorStop(0,n.color+'30'); grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(n.x*W,n.y*H,n.r*2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(n.x*W,n.y*H,n.r,0,Math.PI*2);
+    ctx.fillStyle='#020a12'; ctx.fill(); ctx.strokeStyle=n.color; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle=n.color; ctx.font='bold 9px "Share Tech Mono"'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    n.label.split('\n').forEach((l,i,arr)=>ctx.fillText(l,n.x*W,n.y*H+(i-(arr.length-1)/2)*12));
+  });
+
+  attackAnim++;
+  requestAnimationFrame(drawAttackCanvas);
+}
+
+document.getElementById('attack-canvas') && document.getElementById('attack-canvas').addEventListener('click', function(e) {
+  const rect=this.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(this.width/rect.width);
+  const my=(e.clientY-rect.top)*(this.height/rect.height);
+  const W=this.width,H=this.height;
+  let found=null;
+  portNodes.forEach(n => { const dx=mx-n.x*W,dy=my-n.y*H; if(Math.sqrt(dx*dx+dy*dy)<n.r+8&&n.info) found=n; });
+  if (found) document.getElementById('port-info').innerHTML=`<span style="color:${found.color}">[PORT ${found.port}]</span> — ${found.info}`;
+});
+
+// ============================================================
+// DIAMOND MODEL
+// ============================================================
+const diamondVerts = [
+  {x:0.5, y:0.08, label:'ADVERSARY', color:'#ff3060', info:'The threat actor — nation state, criminal group, hacktivist. Identified by TTPs, language, tools, infrastructure patterns.'},
+  {x:0.88, y:0.5, label:'CAPABILITY', color:'#ffab00', info:'Malware, exploits, tools. The "HOW". Custom tooling suggests advanced actors. Off-the-shelf tools indicate commodity threats.'},
+  {x:0.5, y:0.92, label:'VICTIM', color:'#00ff88', info:'Target organization, system, or individual. Understanding victim selection helps predict next targets.'},
+  {x:0.12, y:0.5, label:'INFRASTRUCTURE', color:'#7c4dff', info:'C2 servers, bullet-proof hosting, compromised machines. Often the easiest attribution pivot point.'},
+];
+
+function drawDiamondModel() {
+  const canvas=document.getElementById('diamond-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#010810'; ctx.fillRect(0,0,W,H);
+
+  // Diamond shape
+  ctx.beginPath();
+  ctx.moveTo(diamondVerts[0].x*W, diamondVerts[0].y*H);
+  ctx.lineTo(diamondVerts[1].x*W, diamondVerts[1].y*H);
+  ctx.lineTo(diamondVerts[2].x*W, diamondVerts[2].y*H);
+  ctx.lineTo(diamondVerts[3].x*W, diamondVerts[3].y*H);
+  ctx.closePath();
+  ctx.fillStyle='rgba(0,229,255,0.02)'; ctx.fill();
+  ctx.strokeStyle='rgba(0,229,255,0.2)'; ctx.lineWidth=1; ctx.stroke();
+
+  // Cross lines
+  ctx.beginPath(); ctx.moveTo(diamondVerts[0].x*W,diamondVerts[0].y*H);
+  ctx.lineTo(diamondVerts[2].x*W,diamondVerts[2].y*H);
+  ctx.moveTo(diamondVerts[1].x*W,diamondVerts[1].y*H);
+  ctx.lineTo(diamondVerts[3].x*W,diamondVerts[3].y*H);
+  ctx.strokeStyle='rgba(0,229,255,0.1)'; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+
+  diamondVerts.forEach(v => {
+    const grd=ctx.createRadialGradient(v.x*W,v.y*H,0,v.x*W,v.y*H,40);
+    grd.addColorStop(0,v.color+'40'); grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(v.x*W,v.y*H,40,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(v.x*W,v.y*H,18,0,Math.PI*2);
+    ctx.fillStyle='#020a12'; ctx.fill(); ctx.strokeStyle=v.color; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=v.color; ctx.font='bold 9px "Share Tech Mono"'; ctx.textAlign='center';
+    ctx.fillText(v.label, v.x*W, v.y*H+4);
+  });
+
+  // Center label
+  ctx.fillStyle='rgba(0,229,255,0.5)'; ctx.font='11px "Share Tech Mono"'; ctx.textAlign='center';
+  ctx.fillText('DIAMOND', W/2, H/2-6); ctx.fillText('MODEL', W/2, H/2+8);
+}
+
+document.getElementById('diamond-canvas') && document.getElementById('diamond-canvas').addEventListener('click', function(e) {
+  const rect=this.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(this.width/rect.width);
+  const my=(e.clientY-rect.top)*(this.height/rect.height);
+  const W=this.width,H=this.height;
+  let found=null;
+  diamondVerts.forEach(v=>{const dx=mx-v.x*W,dy=my-v.y*H;if(Math.sqrt(dx*dx+dy*dy)<28)found=v;});
+  if(found)document.getElementById('diamond-info').innerHTML=`<span style="color:${found.color}">[${found.label}]</span> — ${found.info}`;
+});
+
+// ============================================================
+// TTP CANVAS
+// ============================================================
+const ttpPhases = [
+  {label:'Recon', color:'#00e5ff', techniques:['OSINT','Shodan','LinkedIn']},
+  {label:'Resource Dev', color:'#7c4dff', techniques:['C2 Setup','Malware Build','Infra Acquire']},
+  {label:'Initial Access', color:'#ff3060', techniques:['Phishing','Exploit Pub','Supply Chain']},
+  {label:'Execution', color:'#ffab00', techniques:['PowerShell','Macro','Script']},
+  {label:'Persistence', color:'#ff3060', techniques:['Reg Key','Scheduled Task','Boot']},
+  {label:'Priv Escalation', color:'#ff3060', techniques:['CVE Exploit','Token Manip','Sudo']},
+  {label:'Exfiltration', color:'#00ff88', techniques:['DNS Tunnel','HTTPS','Cloud']},
+];
+
+function drawTTPCanvas() {
+  const canvas=document.getElementById('ttp-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#010810'; ctx.fillRect(0,0,W,H);
+  const bw=(W-20)/ttpPhases.length, bh=60;
+
+  ttpPhases.forEach((p,i)=>{
+    const x=10+i*bw, y=H/2-bh/2;
+    ctx.fillStyle=p.color+'15'; ctx.strokeStyle=p.color+'60'; ctx.lineWidth=1;
+    ctx.fillRect(x+2,y,bw-4,bh); ctx.strokeRect(x+2,y,bw-4,bh);
+    ctx.fillStyle=p.color; ctx.font='bold 9px "Share Tech Mono"'; ctx.textAlign='center';
+    ctx.fillText(p.label, x+bw/2, y+14);
+    ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='8px "Share Tech Mono"';
+    p.techniques.forEach((t,ti)=>ctx.fillText(t, x+bw/2, y+26+ti*11));
+
+    // Arrow
+    if(i<ttpPhases.length-1){
+      ctx.beginPath(); ctx.moveTo(x+bw-4, H/2);
+      ctx.lineTo(x+bw+4, H/2);
+      ctx.strokeStyle='rgba(0,229,255,0.4)'; ctx.lineWidth=1; ctx.stroke();
+    }
+  });
+}
+
+document.getElementById('ttp-canvas') && document.getElementById('ttp-canvas').addEventListener('click',function(e){
+  const rect=this.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(this.width/rect.width);
+  const W=this.width,H=this.height;
+  const bw=(W-20)/ttpPhases.length;
+  const idx=Math.floor((mx-10)/bw);
+  if(idx>=0&&idx<ttpPhases.length){
+    const p=ttpPhases[idx];
+    document.getElementById('ttp-info').innerHTML=`<span style="color:${p.color}">[${p.label.toUpperCase()}]</span> Techniques: ${p.techniques.join(', ')} — MITRE ATT&CK Phase ${idx+1}`;
+  }
+});
+
+// ============================================================
+// FRESHNESS TIMELINE
+// ============================================================
+function drawFreshnessTimeline() {
+  const canvas=document.getElementById('freshness-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#010810'; ctx.fillRect(0,0,W,H);
+
+  const items=[
+    {label:'Live Port Scan',age:0,life:7,color:'#00ff88'},
+    {label:'Employee List',age:3,life:30,color:'#00ff88'},
+    {label:'SSL Certificate',age:15,life:90,color:'#ffab00'},
+    {label:'Leaked Credentials',age:45,life:60,color:'#ff3060'},
+    {label:'WHOIS Record',age:120,life:365,color:'#00ff88'},
+    {label:'Old Job Postings',age:200,life:90,color:'#ff3060'},
+  ];
+
+  const maxAge=365, barH=18, startY=20;
+  items.forEach((item,i)=>{
+    const y=startY+i*(barH+8);
+    // Background bar
+    ctx.fillStyle='rgba(255,255,255,0.04)';
+    ctx.fillRect(100,y,W-120,barH);
+    // Valid range
+    const validW=Math.min(item.life/maxAge*(W-120), W-120);
+    const ageW=Math.min(item.age/maxAge*(W-120), W-120);
+    const freshW=Math.max(0, validW-ageW);
+    ctx.fillStyle=item.color+'80';
+    ctx.fillRect(100+ageW, y, Math.min(freshW, W-120-ageW), barH);
+    // Age marker
+    ctx.fillStyle='rgba(255,255,255,0.6)';
+    ctx.fillRect(100+ageW-1, y-2, 2, barH+4);
+    // Label
+    ctx.fillStyle='#8ab4c8'; ctx.font='9px "Share Tech Mono"'; ctx.textAlign='right';
+    ctx.fillText(item.label, 96, y+barH/2+3);
+    // Status
+    const expired=item.age>item.life;
+    ctx.fillStyle=expired?'#ff3060':'#00ff88'; ctx.font='8px "Share Tech Mono"'; ctx.textAlign='left';
+    ctx.fillText(expired?'EXPIRED':'VALID', W-16, y+barH/2+3);
+  });
+
+  // Time axis
+  ctx.fillStyle='rgba(0,229,255,0.3)'; ctx.fillRect(100,H-20,W-120,1);
+  ['0d','90d','180d','270d','365d'].forEach((l,i)=>{
+    const x=100+i/4*(W-120);
+    ctx.fillStyle='#4a6a7a'; ctx.font='8px "Share Tech Mono"'; ctx.textAlign='center';
+    ctx.fillText(l, x, H-8);
+    ctx.fillStyle='rgba(0,229,255,0.15)'; ctx.fillRect(x,H-22,1,6);
+  });
+}
+
+// ============================================================
+// INVESTIGATION TIMELINE
+// ============================================================
+let timelineEntries = [];
+let logCount = 0;
+
+function drawTimeline() {
+  const canvas=document.getElementById('timeline-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#010810'; ctx.fillRect(0,0,W,H);
+
+  const events=[
+    {t:'T+00:00',label:'Passive OSINT begun',color:'#00e5ff'},
+    {t:'T+01:30',label:'Subdomain enum complete',color:'#00ff88'},
+    {t:'T+02:15',label:'3 exposed services found',color:'#ffab00'},
+    {t:'T+03:00',label:'Credential leak discovered',color:'#ff3060'},
+    {t:'T+04:00',label:'Attack surface mapped',color:'#7c4dff'},
+    {t:'T+05:30',label:'Report drafted',color:'#00ff88'},
+  ];
+
+  const lineX=40;
+  ctx.fillStyle='rgba(0,229,255,0.3)'; ctx.fillRect(lineX,20,1,H-40);
+
+  events.forEach((ev,i)=>{
+    const y=20+i*(H-40)/(events.length-1);
+    ctx.beginPath(); ctx.arc(lineX,y,5,0,Math.PI*2);
+    ctx.fillStyle=ev.color; ctx.fill();
+    const grd=ctx.createRadialGradient(lineX,y,0,lineX,y,12);
+    grd.addColorStop(0,ev.color+'40'); grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(lineX,y,12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#4a6a7a'; ctx.font='8px "Share Tech Mono"'; ctx.textAlign='left';
+    ctx.fillText(ev.t, lineX+12, y-4);
+    ctx.fillStyle=ev.color; ctx.font='8px "Share Tech Mono"';
+    ctx.fillText(ev.label, lineX+12, y+8);
+  });
+}
+
+// ============================================================
+// THREAT MAP
+// ============================================================
+let threatMapActive=false;
+function startThreatMap() {
+  if(threatMapActive)return;
+  threatMapActive=true;
+  const map=document.getElementById('threat-map');
+  map.innerHTML='<canvas id="tmap" style="width:100%;height:100%;border-radius:2px"></canvas>';
+  const canvas=document.getElementById('tmap');
+  canvas.width=700; canvas.height=200;
+  let dots=[];
+
+  function createDot() {
+    dots.push({x:Math.random()*700,y:Math.random()*200,life:60,color:Math.random()<0.3?'#ff3060':Math.random()<0.5?'#ffab00':'#00e5ff',r:Math.random()*4+2});
+  }
+
+  function animateMap() {
+    if(!threatMapActive)return;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='rgba(1,8,16,0.15)'; ctx.fillRect(0,0,700,200);
+    if(Math.random()<0.3)createDot();
+    dots=dots.filter(d=>{
+      d.life--;
+      const alpha=d.life/60;
+      const grd=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*3);
+      grd.addColorStop(0,d.color+Math.round(alpha*255).toString(16).padStart(2,'0'));
+      grd.addColorStop(1,'transparent');
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(d.x,d.y,d.r*3,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+      ctx.fillStyle=d.color+Math.round(alpha*255).toString(16).padStart(2,'0'); ctx.fill();
+      return d.life>0;
+    });
+    requestAnimationFrame(animateMap);
+  }
+  animateMap();
+}
+
+// ============================================================
+// SIMULATIONS
+// ============================================================
+function typeLines(containerId, lines, delay=80) {
+  const el=document.getElementById(containerId);
+  el.innerHTML='';
+  lines.forEach((line,i)=>{
+    setTimeout(()=>{
+      const div=document.createElement('div');
+      div.className='sim-line visible';
+      div.style.color=line.color||'#00ff88';
+      div.textContent=line.text||line;
+      el.appendChild(div);
+      el.scrollTop=el.scrollHeight;
+    }, i*delay);
+  });
+}
+
+function runTechOSINT() {
+  const target=document.getElementById('osint-target').value||'target.com';
+  typeLines('tech-osint-output',[
+    {text:`[DNS] Resolving ${target}...`, color:'#4a6a7a'},
+    {text:`[DNS] A Record → 104.21.33.88`, color:'#00ff88'},
+    {text:`[DNS] MX → mail.${target} (10)`, color:'#00ff88'},
+    {text:`[DNS] NS → ns1.cloudflare.com`, color:'#00e5ff'},
+    {text:`[CERT] Checking SSL certificate...`, color:'#4a6a7a'},
+    {text:`[CERT] *.${target} — expires 2025-08-12`, color:'#00ff88'},
+    {text:`[CERT] SAN: ${target}, www.${target}, api.${target}, stage.${target}`, color:'#ffab00'},
+    {text:`[WHOIS] Registrant: [Privacy Protected]`, color:'#7c4dff'},
+    {text:`[WHOIS] Registrar: GoDaddy — Created 2015-04-02`, color:'#7c4dff'},
+    {text:`[SHODAN] 3 hosts found on this netblock`, color:'#ff3060'},
+    {text:`[SHODAN] Port 80,443,22 open on primary IP`, color:'#ff3060'},
+    {text:`[OK] Technical OSINT complete — 11 findings`, color:'#00e5ff'},
+  ]);
+}
+
+function runSOCMINT(platform) {
+  const outputs = {
+    linkedin:[
+      {text:'[LINKEDIN] Searching employees...', color:'#4a6a7a'},
+      {text:'[LINKEDIN] 847 employees identified', color:'#00ff88'},
+      {text:'[LINKEDIN] Key roles: 12 DevOps, 34 Dev, 8 Security', color:'#00ff88'},
+      {text:'[LINKEDIN] Technology mentions: AWS, Kubernetes, React, PostgreSQL', color:'#ffab00'},
+      {text:'[LINKEDIN] Recent hire: "Senior AWS Architect" — expanding cloud', color:'#ffab00'},
+      {text:'[LINKEDIN] Job post reveals: "migrating to microservices"', color:'#ff3060'},
+      {text:'[OPSEC] Employee posted: "Finally fixed the staging env SSL issue"', color:'#ff3060'},
+    ],
+    github:[
+      {text:'[GITHUB] Searching org repositories...', color:'#4a6a7a'},
+      {text:'[GITHUB] 23 repositories found (8 public)', color:'#00ff88'},
+      {text:'[GITHUB] Found: internal-tools, api-docs, deployment-scripts', color:'#ffab00'},
+      {text:'[LEAK] deployment-scripts/README: "staging.internal.corp.com"', color:'#ff3060'},
+      {text:'[LEAK] Commit history: AWS key exposed 2023-01-08 (now revoked)', color:'#ff3060'},
+      {text:'[LEAK] .env.example contains real variable names + prod hints', color:'#ff3060'},
+      {text:'[OK] GitHub OSINT: 2 active leads, 1 historical credential', color:'#00e5ff'},
+    ],
+    twitter:[
+      {text:'[TWITTER] Searching company mentions...', color:'#4a6a7a'},
+      {text:'[TWITTER] Official account found @target_corp', color:'#00ff88'},
+      {text:'[TWITTER] Employee tweets reveal: office locations, team events', color:'#ffab00'},
+      {text:'[TWITTER] Support tickets visible in @mentions — user IDs exposed', color:'#ff3060'},
+      {text:'[TWITTER] CEO tweeted tech stack during conference: "all in on GCP now"', color:'#ff3060'},
+      {text:'[OK] SOCMINT complete — 4 intelligence leads', color:'#00e5ff'},
+    ]
+  };
+  typeLines('socmint-output', outputs[platform]||[]);
+}
+
+function simRecon(technique) {
+  const data = {
+    google: {yield:'7/10', stealth:'99', detect:'1%', yieldColor:'#00e5ff', stealthColor:'#00ff88', detectColor:'#00ff88',
+      log:[{text:'[GOOGLE] site:target.com filetype:pdf', color:'#00ff88'},{text:'[GOOGLE] 42 results — includes internal docs', color:'#00ff88'},{text:'[GOOGLE] intitle:"index of" site:target.com', color:'#ffab00'},{text:'[GOOGLE] Found /backup/ directory listing', color:'#ff3060'}],
+      siem:[{text:'# No events — passive dork is invisible', color:'#4a6a7a'}]},
+    wayback: {yield:'5/10', stealth:'99', detect:'0%', yieldColor:'#00e5ff', stealthColor:'#00ff88', detectColor:'#00ff88',
+      log:[{text:'[WAYBACK] Fetching snapshots for target.com...', color:'#4a6a7a'},{text:'[WAYBACK] 847 snapshots from 2010-2024', color:'#00ff88'},{text:'[WAYBACK] Found old login page with different tech (2019)', color:'#ffab00'},{text:'[WAYBACK] Exposed /api/v1/ path before it was removed', color:'#ff3060'}],
+      siem:[{text:'# No events — archive.org traffic not logged', color:'#4a6a7a'}]},
+    whois: {yield:'4/10', stealth:'99', detect:'0%', yieldColor:'#00e5ff', stealthColor:'#00ff88', detectColor:'#00ff88',
+      log:[{text:'[WHOIS] querying whois.iana.org...', color:'#4a6a7a'},{text:'[WHOIS] Registrant: Redacted for Privacy', color:'#ffab00'},{text:'[WHOIS] Registrar: Namecheap — Created 2015', color:'#00ff88'},{text:'[WHOIS] Name servers: ns1.cloudflare.com', color:'#00e5ff'}],
+      siem:[{text:'# No events — WHOIS query via public registry', color:'#4a6a7a'}]},
+    ping: {yield:'2/10', stealth:'60', detect:'35%', yieldColor:'#ffab00', stealthColor:'#ffab00', detectColor:'#ffab00',
+      log:[{text:'[PING] ICMP echo request to 104.21.33.88', color:'#ffab00'},{text:'[PING] Reply from 104.21.33.88 TTL=58', color:'#00ff88'},{text:'[PING] Host is up (avg latency: 23ms)', color:'#00ff88'}],
+      siem:[{text:'[WARN] ICMP echo from 203.0.113.42 detected', color:'#ffab00'},{text:'[LOG] Firewall: ICMP allowed from external', color:'#ffab00'}]},
+    nmap: {yield:'10/10', stealth:'15', detect:'90%', yieldColor:'#00ff88', stealthColor:'#ff3060', detectColor:'#ff3060',
+      log:[{text:'[NMAP] Starting Nmap 7.94 scan...', color:'#4a6a7a'},{text:'[NMAP] PORT   STATE  SERVICE  VERSION', color:'#4a6a7a'},{text:'[NMAP] 22/tcp  open   ssh      OpenSSH 7.2', color:'#00ff88'},{text:'[NMAP] 80/tcp  open   http     nginx 1.14', color:'#00ff88'},{text:'[NMAP] 443/tcp open   https    nginx 1.14', color:'#00ff88'},{text:'[NMAP] 3306/tcp open  mysql    MySQL 5.7', color:'#ff3060'}],
+      siem:[{text:'[ALERT] Port scan detected from 203.0.113.42!', color:'#ff3060'},{text:'[ALERT] 6 ports probed in 2.3 seconds', color:'#ff3060'},{text:'[ACTION] IDS Rule triggered: ET SCAN NMAP', color:'#ff3060'},{text:'[ACTION] IP added to block list', color:'#ff3060'},{text:'[NOTIFY] SOC alert email sent to security@target.com', color:'#ffab00'}]},
+    browse: {yield:'3/10', stealth:'80', detect:'20%', yieldColor:'#00e5ff', stealthColor:'#00ff88', detectColor:'#00ff88',
+      log:[{text:'[HTTP] GET / HTTP/1.1 → 200 OK', color:'#00ff88'},{text:'[HTTP] Server: nginx/1.14.0 (Ubuntu)', color:'#ffab00'},{text:'[HTTP] X-Powered-By: PHP/7.2.24', color:'#ffab00'},{text:'[HTTP] /robots.txt → Disallow: /admin', color:'#ff3060'},{text:'[HTTP] /admin → 302 Redirect to /admin/login', color:'#ff3060'}],
+      siem:[{text:'[LOG] HTTP GET / from 203.0.113.42 — normal', color:'#4a6a7a'},{text:'[LOG] HTTP GET /robots.txt — normal', color:'#4a6a7a'},{text:'[WARN] HTTP GET /admin from external IP', color:'#ffab00'}]},
+  };
+  const d=data[technique];
+  if(!d)return;
+  document.getElementById('recon-metrics').style.display='block';
+  document.getElementById('metric-yield').textContent=d.yield;
+  document.getElementById('metric-yield').style.color=d.yieldColor;
+  document.getElementById('metric-stealth').textContent=d.stealth+'%';
+  document.getElementById('metric-stealth').style.color=d.stealthColor;
+  document.getElementById('metric-detect').textContent=d.detect;
+  document.getElementById('metric-detect').style.color=d.detectColor;
+  typeLines('recon-sim-output', d.log);
+  typeLines('siem-log', d.siem);
+}
+
+function analyzeStack() {
+  const target=document.getElementById('stack-target').value;
+  const stacks={
+    'E-Commerce Company':[
+      {text:'[DETECT] Frontend: React 18 (Webpack bundle fingerprint)', color:'#00e5ff'},
+      {text:'[DETECT] CDN: Cloudflare (CNAME resolution)', color:'#00ff88'},
+      {text:'[DETECT] Backend: Node.js (X-Powered-By header)', color:'#ffab00'},
+      {text:'[DETECT] Database: PostgreSQL (error page leak)', color:'#ffab00'},
+      {text:'[DETECT] Payment: Stripe API (JavaScript includes)', color:'#7c4dff'},
+      {text:'[DETECT] Hosting: AWS (IP range lookup)', color:'#00e5ff'},
+      {text:'[RISK] Stripe JS version outdated — check CVEs', color:'#ff3060'},
+    ],
+    'Healthcare Provider':[
+      {text:'[DETECT] Platform: Epic EHR (login page fingerprint)', color:'#00e5ff'},
+      {text:'[DETECT] OS: Windows Server (IIS headers)', color:'#ffab00'},
+      {text:'[DETECT] WAF: F5 BIG-IP (cookie pattern)', color:'#00ff88'},
+      {text:'[DETECT] Portal: ASP.NET (error pages)', color:'#ffab00'},
+      {text:'[DETECT] Hosting: On-premise + Azure hybrid', color:'#7c4dff'},
+      {text:'[RISK] IIS version exposed — patch status unknown', color:'#ff3060'},
+    ],
+    'FinTech Startup':[
+      {text:'[DETECT] Frontend: Next.js (page meta tags)', color:'#00e5ff'},
+      {text:'[DETECT] API: GraphQL (introspection enabled!)', color:'#ff3060'},
+      {text:'[DETECT] Auth: Auth0 (login redirect URL)', color:'#00ff88'},
+      {text:'[DETECT] Hosting: Vercel + AWS Lambda', color:'#00e5ff'},
+      {text:'[DETECT] Monitoring: Sentry (JS source maps)', color:'#ffab00'},
+      {text:'[RISK] GraphQL introspection leaks full API schema', color:'#ff3060'},
+    ],
+    'Government Portal':[
+      {text:'[DETECT] Platform: Drupal 9 (meta generator tag)', color:'#00e5ff'},
+      {text:'[DETECT] OS: CentOS (Apache error pages)', color:'#ffab00'},
+      {text:'[DETECT] CDN: Akamai (response headers)', color:'#00ff88'},
+      {text:'[DETECT] Auth: SAML SSO (SSO redirect)', color:'#7c4dff'},
+      {text:'[DETECT] Hosting: On-premise datacenter', color:'#ffab00'},
+      {text:'[RISK] Drupal version detected — check SA advisories', color:'#ff3060'},
+    ]
+  };
+  const out=document.getElementById('stack-output');
+  out.innerHTML='';
+  (stacks[target]||[]).forEach((line,i)=>{
+    setTimeout(()=>{
+      const div=document.createElement('div');
+      div.style.fontFamily='var(--font-mono)';
+      div.style.fontSize='11px';
+      div.style.color=line.color;
+      div.style.marginBottom='4px';
+      div.textContent=line.text;
+      out.appendChild(div);
+    }, i*120);
+  });
+}
+
+function discoverSubdomains() {
+  typeLines('subdomain-output',[
+    {text:'[ENUM] Starting passive subdomain enumeration...', color:'#4a6a7a'},
+    {text:'[CRTSH] Querying certificate transparency logs...', color:'#4a6a7a'},
+    {text:'[FOUND] www.target.com → 104.21.33.88', color:'#00ff88'},
+    {text:'[FOUND] api.target.com → 104.21.33.89', color:'#00ff88'},
+    {text:'[FOUND] mail.target.com → 209.85.220.41', color:'#00ff88'},
+    {text:'[FOUND] stage.target.com → 52.14.88.12 [AWS]', color:'#ffab00'},
+    {text:'[FOUND] old.target.com → 45.23.11.90 [UNKNOWN]', color:'#ff3060'},
+    {text:'[FOUND] dev-internal.target.com → 10.0.1.45 [INTERNAL?]', color:'#ff3060'},
+    {text:'[FOUND] backup.target.com → 52.14.88.13 [AWS]', color:'#ff3060'},
+    {text:'[ALERT] stage/dev/backup/old subdomains likely unpatched!', color:'#ff3060'},
+    {text:`[OK] 7 subdomains discovered — 4 require investigation`, color:'#00e5ff'},
+  ]);
+}
+
+function loadIOCs(type) {
+  const iocData = {
+    ip:[
+      {ind:'185.220.101.45', t:'IP Address', actor:'APT29', conf:'HIGH', sev:'threat-high'},
+      {ind:'91.218.114.5', t:'IP Address', actor:'FIN7', conf:'MEDIUM', sev:'threat-med'},
+      {ind:'45.33.32.156', t:'IP Address', actor:'Unknown', conf:'LOW', sev:'threat-low'},
+    ],
+    hash:[
+      {ind:'d4f6764...a8e9', t:'MD5 Hash', actor:'Lazarus Group', conf:'HIGH', sev:'threat-high'},
+      {ind:'a94a8fe5...e989', t:'SHA256', actor:'APT28', conf:'HIGH', sev:'threat-high'},
+      {ind:'2fd4e1c6...33a0', t:'SHA1', actor:'Sandworm', conf:'MEDIUM', sev:'threat-med'},
+    ],
+    domain:[
+      {ind:'update-secure-cdn.ru', t:'Domain', actor:'APT29', conf:'HIGH', sev:'threat-high'},
+      {ind:'microsoft-update-kb.xyz', t:'Domain', actor:'Unknown', conf:'MEDIUM', sev:'threat-med'},
+      {ind:'cdn-fast-delivery.net', t:'Domain', actor:'FIN7', conf:'HIGH', sev:'threat-high'},
+    ],
+    all:[
+      {ind:'185.220.101.45', t:'IP', actor:'APT29', conf:'HIGH', sev:'threat-high'},
+      {ind:'d4f6764...a8e9', t:'MD5', actor:'Lazarus', conf:'HIGH', sev:'threat-high'},
+      {ind:'update-secure-cdn.ru', t:'Domain', actor:'APT29', conf:'HIGH', sev:'threat-high'},
+      {ind:'91.218.114.5', t:'IP', actor:'FIN7', conf:'MEDIUM', sev:'threat-med'},
+      {ind:'2fd4e1c6...33a0', t:'SHA1', actor:'Sandworm', conf:'MEDIUM', sev:'threat-med'},
+      {ind:'cdn-fast-delivery.net', t:'Domain', actor:'FIN7', conf:'HIGH', sev:'threat-high'},
+    ]
+  };
+  const rows=(iocData[type]||[]).map(r=>`<tr><td class="threat-high" style="font-family:var(--font-mono)">${r.ind}</td><td>${r.t}</td><td style="color:var(--amber)">${r.actor}</td><td>${r.conf}</td><td class="${r.sev}">${r.sev==='threat-high'?'CRITICAL':r.sev==='threat-med'?'MEDIUM':'LOW'}</td></tr>`).join('');
+  document.getElementById('ioc-body').innerHTML=rows||'<tr><td colspan="5" style="color:var(--text-dim);text-align:center">No data</td></tr>';
+}
+
+function evaluatePath(el, desc, score) {
+  document.querySelectorAll('#plor-candidates .info-card').forEach(c=>c.style.borderColor='');
+  el.style.borderColor='var(--red)';
+  const col=score>80?'var(--red)':score>60?'var(--amber)':'var(--green)';
+  document.getElementById('path-result').innerHTML=`<span style="color:${col}">EXPLOITABILITY: ${score}%</span><br>Reason: ${desc}<br><span style="color:var(--text-dim)">Priority: ${score>80?'ATTACK IMMEDIATELY':'INVESTIGATE FURTHER'}</span>`;
+}
+
+function attributeAttack(choice) {
+  const results={
+    china:{color:'var(--red)', text:'INCORRECT. Chinese-language artifacts are a classic false flag — trivially planted. The US-based APT code is the strongest evidence. The real actor likely used multiple proxy layers. Over-attribution to adversary language is a known analytical failure mode.'},
+    russia:{color:'var(--red)', text:'PARTIALLY CORRECT but dangerous. Russian C2 forum usage could be planted. The overlap with US APT tooling is suspicious. This shows the danger of single-source attribution — conflicting indicators suggest deliberate misdirection.'},
+    unknown:{color:'var(--green)', text:'CORRECT. The contradictory evidence (Chinese language, North Korean IPs, Russian forums, US-based tooling) is a textbook false flag campaign. No nation matches all indicators. The correct assessment is "UNKNOWN with HIGH confidence of false flagging." File as unattributed with a note on deception indicators.'},
+  };
+  const r=results[choice];
+  const el=document.getElementById('attribution-result');
+  el.style.display='block';
+  el.style.borderColor=r.color;
+  el.style.color=r.color;
+  el.style.background='rgba(0,0,0,0.3)';
+  el.textContent=r.text;
+}
+
+function updatePersonaRisk() {
+  const email=parseInt(document.getElementById('pp-email').value);
+  const net=parseInt(document.getElementById('pp-network').value);
+  const dev=parseInt(document.getElementById('pp-device').value);
+  const risk=Math.round((email+net+dev)/3);
+  const bar=document.getElementById('persona-risk-bar');
+  const label=document.getElementById('persona-risk-label');
+  bar.style.width=risk+'%';
+  if(risk<30){bar.style.background='var(--green)';label.textContent='LOW';label.style.color='var(--green)';}
+  else if(risk<60){bar.style.background='var(--amber)';label.textContent='MEDIUM';label.style.color='var(--amber)';}
+  else{bar.style.background='var(--red)';label.textContent='HIGH — ABORT';label.style.color='var(--red)';}
+}
+
+function validateIntel() {
+  const type=document.getElementById('intel-type').value;
+  const date=document.getElementById('intel-date').value||'Unknown';
+  const source=document.getElementById('intel-source').value;
+  const results=[
+    {score:35,issues:'Age unknown — possible stale data. Dark web sources require cross-reference with at least 2 independent sources. Cannot verify authenticity without hash comparison.'},
+    {score:60,issues:'LinkedIn data degrades quickly as employees change. Verify against company website. Check for honeypot markers (too clean, too complete).'},
+    {score:70,issues:'Shodan results are time-stamped but scan data may be cached up to 30 days. Verify against certificate transparency and DNS for consistency.'},
+    {score:45,issues:'Pastebin dumps are frequently seeded with false credentials to identify researchers. Cross-reference against HaveIBeenPwned and verify at least 3 samples.'},
+  ];
+  const r=results[Math.floor(Math.random()*results.length)];
+  const el=document.getElementById('validation-result');
+  const col=r.score>60?'var(--green)':r.score>40?'var(--amber)':'var(--red)';
+  el.style.display='block';
+  el.style.borderColor=col;
+  el.innerHTML=`<span style="color:${col}">CONFIDENCE SCORE: ${r.score}%</span><br>Source: ${source}<br>Collection date: ${date}<br><br>${r.issues}`;
+}
+
+function checkHoneypot(el, isHoney, explanation) {
+  document.querySelectorAll('#honeypot-list .info-card').forEach(c=>c.style.borderColor='');
+  el.style.borderColor=isHoney==='true'?'var(--red)':'var(--green)';
+  const res=document.getElementById('honeypot-result');
+  res.textContent=`${isHoney==='true'?'⚠ HONEYPOT DETECTED':'✓ REAL TARGET'}: ${explanation}`;
+  res.style.color=isHoney==='true'?'var(--red)':'var(--green)';
+}
+
+let logEntries=[];
+function logEntry(type, text) {
+  if(!text||text==='null')return;
+  logEntries.push({type,text,time:new Date().toISOString().substr(11,8)});
+  const log=document.getElementById('report-log');
+  const div=document.createElement('div');
+  const colors={OSINT:'#00e5ff',PORT:'#ffab00',VULN:'#ff3060',NOTE:'#00ff88'};
+  div.style.cssText=`font-family:var(--font-mono);font-size:11px;margin-bottom:4px;color:${colors[type]||'#8ab4c8'}`;
+  div.textContent=`[${new Date().toISOString().substr(11,8)}] [${type}] ${text}`;
+  log.appendChild(div);
+  log.scrollTop=log.scrollHeight;
+  document.getElementById('log-count').textContent=logEntries.length+' entries logged';
+}
+
+function generateReport() {
+  const el=document.getElementById('report-preview');
+  const content=document.getElementById('report-content');
+  el.style.display='block';
+  const timestamp=new Date().toISOString().substr(0,19).replace('T',' ');
+  content.innerHTML=`
+<div style="color:var(--cyan);margin-bottom:12px">CLASSIFIED INTELLIGENCE REPORT — ${timestamp}</div>
+<div style="color:var(--text-dim);margin-bottom:8px">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+<div style="color:var(--amber);margin-bottom:4px">EXECUTIVE SUMMARY</div>
+<div style="color:var(--text-mid);margin-bottom:10px;line-height:1.6">Reconnaissance assessment of target organization identified ${5+Math.floor(Math.random()*8)} attack surface exposures, ${2+Math.floor(Math.random()*4)} leaked credentials, and ${3+Math.floor(Math.random()*6)} vulnerable subdomains. Primary risk: unpatched staging environment with direct database access.</div>
+<div style="color:var(--amber);margin-bottom:4px">KEY FINDINGS (PRIORITY ORDER)</div>
+${logEntries.length>0?logEntries.slice(-5).map(e=>`<div style="color:var(--text-mid)">[${e.type}] ${e.text}</div>`).join(''):'<div style="color:var(--text-dim)">[No findings logged — use the notebook above]</div>'}
+<div style="color:var(--text-dim);margin-top:10px">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+<div style="color:var(--green);margin-top:6px">TLP:AMBER — Share with need-to-know recipients only</div>`;
+}
+
+// EXPANDABLE TOGGLE
+function toggleExpand(header) {
+  const body=header.nextElementSibling;
+  const arrow=header.querySelector('.expandable-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+</script>
+</body>
+</html>

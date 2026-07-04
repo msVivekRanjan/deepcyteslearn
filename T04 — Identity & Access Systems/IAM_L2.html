@@ -1,0 +1,2672 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAM Training Academy – Identity & Access Management Learning Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── CSS VARIABLES ─────────────────────────────────── */
+:root {
+  --bg-primary: #0a0f1e;
+  --bg-secondary: #0e1628;
+  --bg-card: rgba(15,24,50,0.85);
+  --bg-glass: rgba(255,255,255,0.04);
+  --bg-glass-hover: rgba(255,255,255,0.07);
+  --border: rgba(99,179,237,0.15);
+  --border-glow: rgba(99,179,237,0.4);
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-purple: #8b5cf6;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-pink: #ec4899;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --glow-blue: 0 0 20px rgba(59,130,246,0.3);
+  --glow-cyan: 0 0 20px rgba(6,182,212,0.3);
+  --glow-purple: 0 0 20px rgba(139,92,246,0.3);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --sidebar-w: 280px;
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg-primary: #f0f4ff;
+  --bg-secondary: #e8edf9;
+  --bg-card: rgba(255,255,255,0.9);
+  --bg-glass: rgba(0,0,0,0.03);
+  --bg-glass-hover: rgba(0,0,0,0.06);
+  --border: rgba(59,130,246,0.2);
+  --border-glow: rgba(59,130,246,0.5);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --glow-blue: 0 4px 20px rgba(59,130,246,0.15);
+}
+
+/* ─── RESET & BASE ──────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden;transition:background var(--transition),color var(--transition)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg-secondary)}
+::-webkit-scrollbar-thumb{background:var(--accent-blue);border-radius:3px}
+button{cursor:pointer;border:none;outline:none;font-family:inherit}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+
+/* ─── PARTICLE CANVAS ───────────────────────────────── */
+#particle-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.4}
+
+/* ─── LAYOUT ────────────────────────────────────────── */
+.app-wrapper{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* ─── SIDEBAR ───────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  background:var(--bg-secondary);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;position:fixed;left:0;top:0;
+  z-index:100;overflow-y:auto;
+  transition:transform var(--transition);
+}
+.sidebar-header{
+  padding:20px;
+  background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(139,92,246,0.1));
+  border-bottom:1px solid var(--border);
+}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.logo-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;box-shadow:var(--glow-blue);
+  flex-shrink:0;
+}
+.logo-text{font-family:var(--font-display);font-weight:700;font-size:0.85rem;line-height:1.2}
+.logo-text span{color:var(--accent-cyan);display:block;font-size:0.7rem;font-weight:500;opacity:0.8}
+
+/* XP Bar in sidebar */
+.xp-widget{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-top:4px}
+.xp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.xp-level{font-size:0.7rem;font-weight:700;color:var(--accent-cyan);letter-spacing:0.05em;text-transform:uppercase}
+.xp-pts{font-size:0.7rem;color:var(--text-secondary);font-family:var(--font-mono)}
+.xp-bar-track{height:6px;background:var(--bg-glass);border-radius:3px;overflow:hidden}
+.xp-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan));transition:width 0.6s ease;width:0%}
+.xp-next{font-size:0.65rem;color:var(--text-muted);margin-top:4px;text-align:right}
+
+/* Nav */
+.nav-section{padding:16px 12px 8px;font-size:0.65rem;font-weight:700;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px;margin:2px 8px;
+  border-radius:8px;cursor:pointer;
+  font-size:0.82rem;font-weight:500;color:var(--text-secondary);
+  transition:all var(--transition);position:relative;
+}
+.nav-item:hover{background:var(--bg-glass-hover);color:var(--text-primary)}
+.nav-item.active{background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(139,92,246,0.1));color:var(--accent-cyan);border-left:3px solid var(--accent-cyan);padding-left:13px}
+.nav-item .nav-icon{width:20px;text-align:center;font-size:1rem;flex-shrink:0}
+.nav-item .nav-badge{margin-left:auto;background:var(--accent-blue);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:10px;font-weight:600}
+.nav-item .lock-icon{margin-left:auto;opacity:0.4;font-size:0.75rem}
+
+/* Module subnav */
+.mod-group{}
+.mod-header{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 16px;margin:2px 8px;
+  border-radius:8px;cursor:pointer;
+  font-size:0.8rem;font-weight:600;color:var(--text-secondary);
+  transition:all var(--transition);
+}
+.mod-header:hover{background:var(--bg-glass-hover);color:var(--text-primary)}
+.mod-header .mod-icon{font-size:0.9rem;flex-shrink:0}
+.mod-header .mod-arrow{margin-left:auto;transition:transform 0.2s;font-size:0.65rem}
+.mod-header.open .mod-arrow{transform:rotate(90deg)}
+.mod-children{display:none;padding-left:8px}
+.mod-header.open + .mod-children{display:block}
+.mod-child{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 16px;margin:1px 8px;
+  border-radius:6px;cursor:pointer;
+  font-size:0.77rem;color:var(--text-muted);
+  transition:all var(--transition);
+}
+.mod-child:hover{background:var(--bg-glass-hover);color:var(--text-secondary)}
+.mod-child.done::after{content:'✓';color:var(--accent-green);margin-left:auto;font-size:0.7rem;font-weight:700}
+.mod-child.active{color:var(--accent-cyan)}
+
+/* Sidebar bottom */
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
+.theme-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;background:var(--bg-glass);border-radius:8px;
+  font-size:0.8rem;color:var(--text-secondary);cursor:pointer;
+  border:1px solid var(--border);
+  transition:all var(--transition);
+}
+.theme-toggle:hover{border-color:var(--border-glow);color:var(--text-primary)}
+.toggle-switch{width:36px;height:20px;background:var(--bg-primary);border-radius:10px;position:relative;border:1px solid var(--border)}
+.toggle-knob{width:14px;height:14px;background:var(--accent-blue);border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s}
+[data-theme="light"] .toggle-knob{left:18px;background:var(--accent-orange)}
+
+/* ─── MAIN CONTENT ──────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;transition:margin var(--transition)}
+
+/* ─── TOPBAR ────────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:90;
+  background:rgba(10,15,30,0.85);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:60px;
+  display:flex;align-items:center;gap:16px;
+}
+[data-theme="light"] .topbar{background:rgba(240,244,255,0.9)}
+.topbar-title{font-family:var(--font-display);font-weight:700;font-size:1rem;flex:1}
+.topbar-title span{color:var(--accent-cyan)}
+.search-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-glass);border:1px solid var(--border);
+  border-radius:8px;padding:6px 12px;
+  transition:border-color var(--transition);
+}
+.search-box:focus-within{border-color:var(--border-glow)}
+.search-box input{background:none;border:none;outline:none;color:var(--text-primary);font-size:0.82rem;width:180px;font-family:var(--font-body)}
+.search-box input::placeholder{color:var(--text-muted)}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.topbar-btn{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--bg-glass);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;color:var(--text-secondary);cursor:pointer;
+  transition:all var(--transition);position:relative;
+}
+.topbar-btn:hover{border-color:var(--border-glow);color:var(--text-primary)}
+.topbar-notif{font-size:0.6rem;background:var(--accent-red);color:#fff;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:absolute;top:-4px;right:-4px;font-weight:700}
+.hamburger{display:none;flex-direction:column;gap:4px;padding:8px;cursor:pointer}
+.hamburger span{width:20px;height:2px;background:var(--text-secondary);border-radius:1px;transition:all 0.3s}
+.xp-topbar{display:flex;align-items:center;gap:8px;font-size:0.78rem}
+.xp-topbar .xp-val{font-family:var(--font-mono);font-weight:700;color:var(--accent-cyan)}
+.xp-topbar .xp-icon{font-size:1rem}
+
+/* ─── PAGE SECTIONS ─────────────────────────────────── */
+.page{display:none;padding:24px;animation:fadeIn 0.3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── HERO / DASHBOARD ──────────────────────────────── */
+.hero{
+  background:linear-gradient(135deg,rgba(59,130,246,0.12) 0%,rgba(139,92,246,0.08) 50%,rgba(6,182,212,0.06) 100%);
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:32px;margin-bottom:24px;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 70% 50%,rgba(59,130,246,0.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);
+  color:var(--accent-cyan);border-radius:20px;padding:4px 12px;
+  font-size:0.72rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+  margin-bottom:16px;
+}
+.hero-badge::before{content:'●';animation:pulse 2s infinite;color:var(--accent-green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.4rem);font-weight:800;line-height:1.2;margin-bottom:12px}
+.hero h1 .grad{background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{color:var(--text-secondary);font-size:0.92rem;line-height:1.6;max-width:560px;margin-bottom:20px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 20px;border-radius:10px;font-size:0.84rem;font-weight:600;
+  transition:all var(--transition);cursor:pointer;border:none;font-family:var(--font-body);
+}
+.btn-primary{background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));color:#fff;box-shadow:var(--glow-blue)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(59,130,246,0.5)}
+.btn-secondary{background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary)}
+.btn-secondary:hover{border-color:var(--border-glow);background:var(--bg-glass-hover)}
+.btn-sm{padding:7px 14px;font-size:0.78rem;border-radius:8px}
+.btn-danger{background:linear-gradient(135deg,var(--accent-red),#dc2626);color:#fff}
+.btn-success{background:linear-gradient(135deg,var(--accent-green),#059669);color:#fff}
+
+/* ─── STAT CARDS ────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;backdrop-filter:blur(12px);
+  transition:all var(--transition);position:relative;overflow:hidden;
+}
+.stat-card::after{content:'';position:absolute;inset:0;border-radius:var(--radius);background:linear-gradient(135deg,var(--card-grad-a,rgba(59,130,246,0.05)),var(--card-grad-b,transparent));pointer-events:none}
+.stat-card:hover{transform:translateY(-3px);border-color:var(--border-glow);box-shadow:var(--glow-blue)}
+.stat-icon{font-size:1.6rem;margin-bottom:10px}
+.stat-val{font-family:var(--font-display);font-size:1.8rem;font-weight:800;line-height:1;margin-bottom:4px}
+.stat-label{font-size:0.75rem;color:var(--text-secondary);font-weight:500}
+.stat-change{font-size:0.7rem;margin-top:6px;display:flex;align-items:center;gap:4px}
+.stat-change.up{color:var(--accent-green)}.stat-change.down{color:var(--accent-red)}
+
+/* ─── CARDS GRID ────────────────────────────────────── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:24px}
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px;backdrop-filter:blur(12px);
+  transition:all var(--transition);cursor:pointer;
+}
+.card:hover{transform:translateY(-4px);border-color:var(--border-glow);box-shadow:0 20px 40px rgba(0,0,0,0.3)}
+.card-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+.card-icon{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;flex-shrink:0;
+}
+.card-meta{flex:1}
+.card-tag{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;opacity:0.8}
+.card-title{font-family:var(--font-display);font-weight:700;font-size:1rem;line-height:1.3}
+.card-desc{font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:16px}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.card-progress-bar{height:4px;background:var(--bg-glass);border-radius:2px;overflow:hidden;flex:1;margin-right:12px}
+.card-progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan));transition:width 0.6s ease}
+.card-xp{font-size:0.72rem;font-weight:700;color:var(--accent-cyan);font-family:var(--font-mono);white-space:nowrap}
+
+/* ─── MODULE PAGE ───────────────────────────────────── */
+.module-layout{display:grid;grid-template-columns:1fr 320px;gap:24px}
+@media(max-width:1100px){.module-layout{grid-template-columns:1fr}}
+.module-content{}
+.module-sidebar-panel{display:flex;flex-direction:column;gap:16px}
+.section-block{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px;margin-bottom:20px;backdrop-filter:blur(12px);
+}
+.section-title{
+  font-family:var(--font-display);font-weight:700;font-size:1.1rem;
+  margin-bottom:16px;display:flex;align-items:center;gap:10px;
+}
+.section-title::before{content:'';width:3px;height:1.1em;background:linear-gradient(var(--accent-blue),var(--accent-cyan));border-radius:2px;flex-shrink:0}
+.info-text{font-size:0.88rem;line-height:1.8;color:var(--text-secondary)}
+.info-text p{margin-bottom:12px}
+.info-text strong{color:var(--text-primary)}
+.highlight-box{
+  background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(139,92,246,0.06));
+  border:1px solid rgba(59,130,246,0.25);border-radius:10px;
+  padding:16px;margin:16px 0;
+}
+.highlight-box p{font-size:0.85rem;color:var(--text-secondary);margin:0;line-height:1.6}
+.highlight-box strong{color:var(--accent-cyan)}
+
+/* ─── FLOW DIAGRAMS ─────────────────────────────────── */
+.flow-diagram{display:flex;flex-direction:column;align-items:center;gap:0;padding:8px 0}
+.flow-node{
+  background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(139,92,246,0.1));
+  border:1px solid rgba(99,179,237,0.3);border-radius:10px;
+  padding:10px 24px;font-size:0.82rem;font-weight:600;
+  text-align:center;min-width:200px;
+  transition:all var(--transition);cursor:default;
+}
+.flow-node:hover{border-color:var(--accent-cyan);box-shadow:var(--glow-cyan);transform:scale(1.02)}
+.flow-node.highlight{background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(59,130,246,0.15));border-color:var(--accent-cyan);color:var(--accent-cyan)}
+.flow-arrow{font-size:1.2rem;color:var(--accent-blue);padding:4px 0;opacity:0.7}
+.flow-branch{display:flex;gap:16px;align-items:flex-start;justify-content:center;width:100%}
+.flow-branch-col{display:flex;flex-direction:column;align-items:center;gap:0}
+.flow-branch-label{font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em}
+
+/* ─── SVG DIAGRAMS ──────────────────────────────────── */
+.svg-container{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:20px;overflow:auto;
+}
+.svg-container svg{max-width:100%;height:auto}
+
+/* ─── QUIZ / KNOWLEDGE CHECK ────────────────────────── */
+.quiz-container{padding:8px 0}
+.quiz-q{font-size:0.9rem;font-weight:600;margin-bottom:14px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;border-radius:10px;
+  border:1px solid var(--border);background:var(--bg-glass);
+  cursor:pointer;font-size:0.83rem;color:var(--text-secondary);
+  transition:all var(--transition);
+}
+.quiz-opt:hover{border-color:var(--accent-blue);background:var(--bg-glass-hover);color:var(--text-primary)}
+.quiz-opt.correct{border-color:var(--accent-green);background:rgba(16,185,129,0.12);color:var(--accent-green)}
+.quiz-opt.wrong{border-color:var(--accent-red);background:rgba(239,68,68,0.1);color:var(--accent-red)}
+.quiz-opt.selected{border-color:var(--accent-blue);background:rgba(59,130,246,0.12);color:var(--accent-cyan)}
+.quiz-opt-letter{
+  width:24px;height:24px;border-radius:6px;
+  background:var(--bg-primary);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:0.72rem;font-weight:700;flex-shrink:0;
+}
+.quiz-feedback{
+  margin-top:12px;padding:12px;border-radius:8px;font-size:0.82rem;line-height:1.5;
+  display:none;
+}
+.quiz-feedback.show{display:block}
+.quiz-feedback.ok{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--accent-green)}
+.quiz-feedback.fail{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:var(--accent-red)}
+.quiz-next{margin-top:12px}
+
+/* ─── XP POPUP ──────────────────────────────────────── */
+.xp-popup{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:linear-gradient(135deg,rgba(6,182,212,0.95),rgba(59,130,246,0.95));
+  border-radius:14px;padding:14px 20px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.4),var(--glow-cyan);
+  transform:translateX(120%);transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events:none;
+}
+.xp-popup.show{transform:translateX(0)}
+.xp-popup-icon{font-size:2rem}
+.xp-popup-text{font-size:0.8rem;color:rgba(255,255,255,0.85)}
+.xp-popup-val{font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:#fff}
+
+/* ─── BADGE POPUP ───────────────────────────────────── */
+.badge-popup{
+  position:fixed;top:80px;right:24px;z-index:999;
+  background:linear-gradient(135deg,rgba(139,92,246,0.95),rgba(236,72,153,0.9));
+  border-radius:14px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.4),var(--glow-purple);
+  transform:translateX(120%);transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events:none;max-width:280px;
+}
+.badge-popup.show{transform:translateX(0)}
+.badge-popup-icon{font-size:2.5rem;flex-shrink:0}
+.badge-popup-body{}
+.badge-popup-title{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:2px}
+.badge-popup-name{font-family:var(--font-display);font-weight:700;font-size:0.95rem;color:#fff}
+
+/* ─── LABS ──────────────────────────────────────────── */
+.lab-container{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px;backdrop-filter:blur(12px);
+}
+.lab-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.lab-badge{
+  padding:4px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;
+  background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(139,92,246,0.15));
+  border:1px solid rgba(99,179,237,0.3);color:var(--accent-cyan);
+}
+.lab-title{font-family:var(--font-display);font-weight:700;font-size:1.1rem}
+
+/* Drag & Drop */
+.drag-zone{
+  min-height:120px;background:var(--bg-glass);border:2px dashed var(--border);
+  border-radius:10px;padding:16px;transition:all var(--transition);
+}
+.drag-zone.drag-over{border-color:var(--accent-cyan);background:rgba(6,182,212,0.05)}
+.drag-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;margin:4px;cursor:grab;
+  font-size:0.8rem;font-weight:600;user-select:none;
+  transition:all var(--transition);
+}
+.drag-chip:active{cursor:grabbing;transform:scale(0.96)}
+.drag-chip-user{background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:var(--accent-blue)}
+.drag-chip-role{background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:var(--accent-purple)}
+
+/* ─── DIRECTORY TREE ────────────────────────────────── */
+.dir-tree{font-family:var(--font-mono);font-size:0.82rem;line-height:1.9;padding:4px 0}
+.dir-item{
+  display:flex;align-items:center;gap:8px;padding:3px 8px;border-radius:6px;
+  cursor:pointer;transition:background var(--transition);
+}
+.dir-item:hover{background:var(--bg-glass-hover)}
+.dir-item.selected{background:rgba(59,130,246,0.12);color:var(--accent-cyan)}
+.dir-indent{padding-left:24px}
+.dir-indent-2{padding-left:48px}
+.dir-icon{font-size:0.9rem;flex-shrink:0}
+
+/* ─── AD SIMULATOR ──────────────────────────────────── */
+.ad-tree{padding:8px 0}
+.ad-node{
+  background:var(--bg-glass);border:1px solid var(--border);border-radius:8px;
+  padding:8px 14px;margin:4px 0;cursor:pointer;
+  font-size:0.82rem;transition:all var(--transition);
+  display:flex;align-items:center;gap:8px;
+}
+.ad-node:hover{border-color:var(--accent-blue);background:var(--bg-glass-hover)}
+.ad-node.ad-selected{border-color:var(--accent-cyan);background:rgba(6,182,212,0.08);color:var(--accent-cyan)}
+.ad-children{padding-left:24px;border-left:1px dashed var(--border);margin-left:12px}
+
+/* ─── KERBEROS ANIMATOR ─────────────────────────────── */
+.kerb-actors{display:flex;justify-content:space-around;align-items:flex-start;gap:8px;padding:16px 0}
+.kerb-actor{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  min-width:80px;
+}
+.kerb-actor-icon{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+  border:2px solid var(--border);transition:all var(--transition);
+}
+.kerb-actor-label{font-size:0.72rem;font-weight:600;text-align:center;color:var(--text-secondary)}
+.kerb-msg-box{
+  background:var(--bg-glass);border:1px solid var(--border);border-radius:8px;
+  padding:12px;font-size:0.78rem;color:var(--text-secondary);min-height:50px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  transition:all var(--transition);
+}
+.kerb-msg-box.active{border-color:var(--accent-cyan);color:var(--accent-cyan);background:rgba(6,182,212,0.06)}
+.kerb-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+/* ─── PASSWORD METER ────────────────────────────────── */
+.pw-input{
+  width:100%;padding:12px 16px;border-radius:10px;
+  background:var(--bg-primary);border:1px solid var(--border);
+  color:var(--text-primary);font-family:var(--font-mono);font-size:0.9rem;
+  outline:none;transition:border-color var(--transition);
+}
+.pw-input:focus{border-color:var(--border-glow)}
+.strength-bars{display:flex;gap:4px;margin:10px 0}
+.strength-bar{height:6px;flex:1;border-radius:3px;background:var(--bg-glass);transition:background 0.3s}
+.strength-label{font-size:0.8rem;font-weight:700;margin-bottom:4px}
+.crack-time{font-family:var(--font-mono);font-size:0.82rem;color:var(--text-muted);margin:4px 0}
+
+/* ─── MFA WIZARD ────────────────────────────────────── */
+.mfa-steps{display:flex;gap:0;margin-bottom:24px}
+.mfa-step{
+  flex:1;text-align:center;padding:8px;position:relative;
+  font-size:0.75rem;color:var(--text-muted);font-weight:600;
+}
+.mfa-step::after{content:'';position:absolute;top:50%;right:0;width:100%;height:2px;background:var(--border);transform:translateY(-50%);z-index:-1}
+.mfa-step:last-child::after{display:none}
+.mfa-step-num{width:28px;height:28px;border-radius:50%;background:var(--bg-primary);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-family:var(--font-mono);font-size:0.75rem;font-weight:700;position:relative;z-index:1}
+.mfa-step.active .mfa-step-num{border-color:var(--accent-blue);background:rgba(59,130,246,0.2);color:var(--accent-cyan)}
+.mfa-step.done .mfa-step-num{background:var(--accent-green);border-color:var(--accent-green);color:#fff}
+.mfa-step.active,.mfa-step.done{color:var(--text-primary)}
+.qr-placeholder{
+  width:120px;height:120px;border:2px solid var(--border);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:4rem;margin:16px auto;background:var(--bg-glass);
+}
+
+/* ─── COMPLIANCE SIMULATOR ──────────────────────────── */
+.audit-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  border-radius:8px;margin-bottom:8px;
+  background:var(--bg-glass);border:1px solid var(--border);
+  transition:all var(--transition);
+}
+.audit-item.resolved{border-color:var(--accent-green);background:rgba(16,185,129,0.06)}
+.audit-item.critical{border-color:var(--accent-red);background:rgba(239,68,68,0.06)}
+.audit-severity{font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.sev-critical{background:rgba(239,68,68,0.2);color:var(--accent-red)}
+.sev-high{background:rgba(245,158,11,0.2);color:var(--accent-orange)}
+.sev-medium{background:rgba(59,130,246,0.2);color:var(--accent-blue)}
+.audit-text{flex:1;font-size:0.83rem}
+.audit-resolve-btn{padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:600;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:var(--accent-green);cursor:pointer;transition:all var(--transition);white-space:nowrap}
+.audit-resolve-btn:hover{background:rgba(16,185,129,0.25)}
+
+/* ─── CHATBOT ───────────────────────────────────────── */
+.chat-container{display:flex;flex-direction:column;height:420px}
+.chat-messages{
+  flex:1;overflow-y:auto;padding:12px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.chat-msg{display:flex;gap:10px;align-items:flex-start}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+}
+.chat-avatar.user-av{background:linear-gradient(135deg,var(--accent-cyan),var(--accent-green))}
+.chat-bubble{
+  max-width:80%;padding:10px 14px;border-radius:12px;
+  font-size:0.82rem;line-height:1.6;
+  background:var(--bg-glass);border:1px solid var(--border);
+}
+.chat-msg.user .chat-bubble{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.25);color:var(--accent-cyan)}
+.chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.chat-input{
+  flex:1;padding:10px 14px;border-radius:10px;
+  background:var(--bg-glass);border:1px solid var(--border);
+  color:var(--text-primary);font-family:var(--font-body);font-size:0.83rem;outline:none;
+}
+.chat-input:focus{border-color:var(--border-glow)}
+.chat-send{
+  padding:10px 16px;border-radius:10px;background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  color:#fff;font-size:0.9rem;border:none;cursor:pointer;transition:all var(--transition);
+}
+.chat-send:hover{transform:scale(1.05)}
+.typing-indicator{display:flex;gap:3px;align-items:center;padding:4px 0}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:typing 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+
+/* ─── CERTIFICATE ───────────────────────────────────── */
+.cert{
+  background:linear-gradient(135deg,#0a0f1e 0%,#0e1628 40%,#131a35 100%);
+  border:2px solid;border-image:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan),var(--accent-purple)) 1;
+  border-radius:var(--radius-lg);padding:40px;text-align:center;
+  position:relative;overflow:hidden;max-width:680px;margin:0 auto;
+}
+[data-theme="light"] .cert{background:linear-gradient(135deg,#f0f4ff 0%,#e8edf9 100%)}
+.cert::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 50%,rgba(59,130,246,0.05) 0%,transparent 70%);
+}
+.cert-watermark{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:8rem;opacity:0.03;font-family:var(--font-display);font-weight:900;
+  pointer-events:none;
+}
+.cert-logo{font-size:2.5rem;margin-bottom:8px}
+.cert-issuer{font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px}
+.cert-headline{font-family:var(--font-display);font-size:0.9rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-secondary);margin-bottom:8px}
+.cert-name{font-family:var(--font-display);font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.cert-course{font-size:0.85rem;color:var(--text-secondary);margin-bottom:24px;line-height:1.5}
+.cert-stats{display:flex;justify-content:center;gap:32px;margin:20px 0;padding:16px;background:var(--bg-glass);border-radius:12px}
+.cert-stat{text-align:center}
+.cert-stat-val{font-family:var(--font-display);font-size:1.2rem;font-weight:800;color:var(--accent-cyan);display:block}
+.cert-stat-label{font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em}
+.cert-id{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);margin-top:20px}
+
+/* ─── SKILL TREE ────────────────────────────────────── */
+.skill-tree-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px}
+.skill-node{
+  background:var(--bg-glass);border:1px solid var(--border);border-radius:12px;
+  padding:16px;text-align:center;transition:all var(--transition);cursor:pointer;
+}
+.skill-node:hover{border-color:var(--border-glow);transform:translateY(-2px)}
+.skill-node.unlocked{border-color:var(--accent-green);background:rgba(16,185,129,0.08)}
+.skill-node.locked{opacity:0.4;cursor:not-allowed}
+.skill-node.locked:hover{transform:none}
+.skill-node-icon{font-size:1.8rem;margin-bottom:8px}
+.skill-node-name{font-size:0.75rem;font-weight:600;line-height:1.3}
+.skill-node-xp{font-size:0.65rem;color:var(--text-muted);margin-top:4px;font-family:var(--font-mono)}
+
+/* ─── PROGRESS / CHARTS ─────────────────────────────── */
+.progress-ring-svg{overflow:visible}
+.progress-ring-track{fill:none;stroke:var(--border)}
+.progress-ring-fill{fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.chart-bar-wrap{display:flex;flex-direction:column;gap:10px}
+.chart-bar-row{display:flex;align-items:center;gap:10px}
+.chart-bar-label{font-size:0.75rem;color:var(--text-secondary);width:110px;flex-shrink:0;text-align:right}
+.chart-bar-track{flex:1;height:10px;background:var(--bg-glass);border-radius:5px;overflow:hidden}
+.chart-bar-fill{height:100%;border-radius:5px;transition:width 1s ease}
+.chart-bar-val{font-size:0.72rem;font-family:var(--font-mono);color:var(--text-muted);width:36px;flex-shrink:0}
+
+/* ─── BADGES GALLERY ────────────────────────────────── */
+.badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:14px}
+.badge-card{
+  background:var(--bg-glass);border:1px solid var(--border);border-radius:12px;
+  padding:16px 8px;text-align:center;transition:all var(--transition);
+}
+.badge-card.earned{border-color:var(--accent-purple);background:rgba(139,92,246,0.08)}
+.badge-card.earned:hover{transform:scale(1.05);box-shadow:var(--glow-purple)}
+.badge-card.locked{opacity:0.3}
+.badge-emoji{font-size:2rem;margin-bottom:6px}
+.badge-name{font-size:0.7rem;font-weight:600;line-height:1.3;color:var(--text-secondary)}
+
+/* ─── RESPONSIVE ────────────────────────────────────── */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hamburger{display:flex}
+  .hero{padding:20px}
+  .hero h1{font-size:1.5rem}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .cards-grid{grid-template-columns:1fr}
+  .module-layout{grid-template-columns:1fr}
+  .kerb-actors{flex-wrap:wrap;gap:12px}
+  .cert{padding:24px 16px}
+  .cert-stats{gap:16px}
+  .cert-name{font-size:1.5rem}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .page{padding:16px}
+  .topbar{padding:0 12px}
+}
+
+/* ─── OVERLAY ───────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;display:none}
+.overlay.show{display:block}
+
+/* ─── MISC UTILS ────────────────────────────────────── */
+.flex{display:flex}.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}
+.items-center{align-items:center}.justify-between{justify-content:space-between}
+.w-full{width:100%}.text-center{text-align:center}
+.text-muted{color:var(--text-muted)}.text-secondary{color:var(--text-secondary)}
+.text-accent{color:var(--accent-cyan)}.text-green{color:var(--accent-green)}
+.text-red{color:var(--accent-red)}.text-mono{font-family:var(--font-mono)}
+.font-bold{font-weight:700}.font-display{font-family:var(--font-display)}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:600;letter-spacing:0.05em}
+.tag-blue{background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:var(--accent-blue)}
+.tag-green{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:var(--accent-green)}
+.tag-purple{background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:var(--accent-purple)}
+.tag-orange{background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:var(--accent-orange)}
+.tag-red{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:var(--accent-red)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.input-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.input-field{
+  flex:1;min-width:160px;padding:9px 14px;border-radius:8px;
+  background:var(--bg-glass);border:1px solid var(--border);
+  color:var(--text-primary);font-family:var(--font-body);font-size:0.83rem;outline:none;
+  transition:border-color var(--transition);
+}
+.input-field:focus{border-color:var(--border-glow)}
+select.input-field option{background:var(--bg-secondary);color:var(--text-primary)}
+.notification-list{display:flex;flex-direction:column;gap:8px}
+.notif-item{
+  display:flex;gap:10px;align-items:flex-start;padding:10px 12px;
+  border-radius:8px;background:var(--bg-glass);border:1px solid var(--border);
+  font-size:0.8rem;
+}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.page-title{font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.page-subtitle{font-size:0.85rem;color:var(--text-secondary);margin-bottom:24px}
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<!-- ─── SIDEBAR ─────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">🛡️</div>
+      <div class="logo-text">IAM Academy<span>Identity &amp; Access Management</span></div>
+    </div>
+    <div class="xp-widget">
+      <div class="xp-top">
+        <div class="xp-level" id="sb-level">Level 1 — IAM Beginner</div>
+        <div class="xp-pts text-mono" id="sb-xp">0 XP</div>
+      </div>
+      <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-bar-fill"></div></div>
+      <div class="xp-next" id="xp-next">0 / 200 XP to next level</div>
+    </div>
+  </div>
+
+  <div class="nav-section">Navigation</div>
+  <nav>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+    <div class="nav-item" onclick="showPage('labs')"><span class="nav-icon">🧪</span>Hands-On Labs</div>
+    <div class="nav-item" onclick="showPage('scenarios')"><span class="nav-icon">⚔️</span>Scenarios<span class="nav-badge">20</span></div>
+    <div class="nav-item" onclick="showPage('phishing')"><span class="nav-icon">🎣</span>Phishing Trainer</div>
+    <div class="nav-item" onclick="showPage('password')"><span class="nav-icon">🔐</span>Password Security</div>
+    <div class="nav-item" onclick="showPage('mfa')"><span class="nav-icon">📱</span>MFA Training</div>
+    <div class="nav-item" onclick="showPage('compliance')"><span class="nav-icon">📋</span>Compliance Audit</div>
+    <div class="nav-item" onclick="showPage('chatbot')"><span class="nav-icon">🤖</span>AI Assistant</div>
+    <div class="nav-item" onclick="showPage('badges')"><span class="nav-icon">🏅</span>Badges &amp; Skills</div>
+    <div class="nav-item" onclick="showPage('certificate')"><span class="nav-icon">🎓</span>Certificate</div>
+  </nav>
+
+  <div class="nav-section">Modules</div>
+  <!-- Module Groups -->
+  <div class="mod-group">
+    <div class="mod-header open" onclick="toggleMod(this)"><span class="mod-icon">🌐</span>Foundations<span class="mod-arrow">▶</span></div>
+    <div class="mod-children">
+      <div class="mod-child done" onclick="loadModule('iam')">🔑 What is IAM</div>
+      <div class="mod-child" onclick="loadModule('identity')">👤 Enterprise Identity</div>
+      <div class="mod-child" onclick="loadModule('directory')">📁 Directory Services</div>
+    </div>
+  </div>
+  <div class="mod-group">
+    <div class="mod-header" onclick="toggleMod(this)"><span class="mod-icon">🏢</span>Active Directory<span class="mod-arrow">▶</span></div>
+    <div class="mod-children">
+      <div class="mod-child" onclick="loadModule('ad')">🖥️ Active Directory</div>
+      <div class="mod-child" onclick="loadModule('ldap')">🔍 LDAP</div>
+      <div class="mod-child" onclick="loadModule('kerberos')">🎟️ Kerberos</div>
+      <div class="mod-child" onclick="loadModule('ntlm')">🔒 NTLM</div>
+      <div class="mod-child" onclick="loadModule('gpo')">📜 Group Policy</div>
+      <div class="mod-child" onclick="loadModule('trusts')">🤝 Trusts</div>
+    </div>
+  </div>
+  <div class="mod-group">
+    <div class="mod-header" onclick="toggleMod(this)"><span class="mod-icon">☁️</span>Modern IAM<span class="mod-arrow">▶</span></div>
+    <div class="mod-children">
+      <div class="mod-child" onclick="loadModule('sso')">🔗 Single Sign-On</div>
+      <div class="mod-child" onclick="loadModule('entra')">☁️ Microsoft Entra ID</div>
+      <div class="mod-child" onclick="loadModule('ecosystem')">🗺️ IAM Ecosystem</div>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <span>🌙 Dark Mode</span>
+      <div class="toggle-switch"><div class="toggle-knob"></div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ─── MAIN ─────────────────────────────────────────── -->
+<main class="main" id="main">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="topbar-title"><span>IAM</span> Training Academy</div>
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Search topics..." id="search-input" oninput="handleSearch(this.value)">
+    </div>
+    <div class="topbar-actions">
+      <div class="xp-topbar"><span class="xp-icon">⚡</span><span class="xp-val" id="top-xp">0</span></div>
+      <div class="topbar-btn" onclick="showPage('badges')" title="Notifications">🔔<span class="topbar-notif" id="notif-badge">3</span></div>
+      <div class="topbar-btn" onclick="showPage('dashboard')" title="Profile">👤</div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════ DASHBOARD -->
+  <section class="page active" id="page-dashboard">
+    <div class="hero">
+      <div class="hero-badge">🛡️ Enterprise Learning Platform</div>
+      <h1>Master <span class="grad">Identity &amp; Access Management</span></h1>
+      <p class="hero-desc">Learn IAM from fundamentals to enterprise architecture. 12 modules, hands-on labs, gamified scenarios, and real-world simulations to build expertise.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="loadModule('iam')">▶ Start Learning</button>
+        <button class="btn btn-secondary" onclick="showPage('labs')">🧪 Explore Labs</button>
+        <button class="btn btn-secondary" onclick="showPage('scenarios')">⚔️ Challenges</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card" style="--card-grad-a:rgba(59,130,246,0.08)">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-val text-accent" id="dash-xp">0</div>
+        <div class="stat-label">Total XP Earned</div>
+        <div class="stat-change up">↑ Keep earning!</div>
+      </div>
+      <div class="stat-card" style="--card-grad-a:rgba(139,92,246,0.08)">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-val" style="color:var(--accent-purple)" id="dash-level">1</div>
+        <div class="stat-label">Current Level</div>
+        <div class="stat-change" id="dash-level-name">IAM Beginner</div>
+      </div>
+      <div class="stat-card" style="--card-grad-a:rgba(16,185,129,0.08)">
+        <div class="stat-icon">📚</div>
+        <div class="stat-val" style="color:var(--accent-green)" id="dash-topics">1</div>
+        <div class="stat-label">Topics Completed</div>
+        <div class="stat-change up">of 12 modules</div>
+      </div>
+      <div class="stat-card" style="--card-grad-a:rgba(245,158,11,0.08)">
+        <div class="stat-icon">🧪</div>
+        <div class="stat-val" style="color:var(--accent-orange)" id="dash-labs">0</div>
+        <div class="stat-label">Labs Completed</div>
+        <div class="stat-change">Hands-on practice</div>
+      </div>
+      <div class="stat-card" style="--card-grad-a:rgba(236,72,153,0.08)">
+        <div class="stat-icon">🏅</div>
+        <div class="stat-val" style="color:var(--accent-pink)" id="dash-badges">0</div>
+        <div class="stat-label">Badges Earned</div>
+        <div class="stat-change">9 available</div>
+      </div>
+      <div class="stat-card" style="--card-grad-a:rgba(239,68,68,0.08)">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-val" style="color:var(--accent-red)" id="dash-score">-</div>
+        <div class="stat-label">Quiz Score</div>
+        <div class="stat-change">Average %</div>
+      </div>
+    </div>
+
+    <!-- Progress Chart -->
+    <div class="section-block">
+      <div class="section-title">Learning Progress</div>
+      <div class="chart-bar-wrap" id="progress-chart">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- Module Cards -->
+    <div class="page-title">All Modules</div>
+    <div class="page-subtitle">12 comprehensive modules covering the full IAM landscape</div>
+    <div class="cards-grid" id="module-cards">
+      <!-- Filled by JS -->
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ MODULE VIEWER -->
+  <section class="page" id="page-module">
+    <div id="module-content"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ LABS -->
+  <section class="page" id="page-labs">
+    <div class="page-title">🧪 Hands-On Labs</div>
+    <div class="page-subtitle">Practical exercises to reinforce your IAM knowledge</div>
+    <div class="cards-grid">
+      <div class="card" onclick="loadLab('rbac')">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(59,130,246,0.15)">🎭</div>
+          <div class="card-meta">
+            <div class="card-tag" style="color:var(--accent-blue)">Lab 1</div>
+            <div class="card-title">RBAC Practice Lab</div>
+          </div>
+        </div>
+        <div class="card-desc">Drag and drop users into roles. Practice Role-Based Access Control assignments with instant feedback.</div>
+        <div class="card-footer"><div class="card-progress-bar"><div class="card-progress-fill" style="width:0%"></div></div><div class="card-xp">+50 XP</div></div>
+      </div>
+      <div class="card" onclick="loadLab('provisioning')">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(16,185,129,0.15)">⚙️</div>
+          <div class="card-meta">
+            <div class="card-tag" style="color:var(--accent-green)">Lab 2</div>
+            <div class="card-title">Provisioning Simulator</div>
+          </div>
+        </div>
+        <div class="card-desc">Walk through the full user provisioning workflow: create, assign, enable MFA, with animated steps.</div>
+        <div class="card-footer"><div class="card-progress-bar"><div class="card-progress-fill" style="width:0%"></div></div><div class="card-xp">+50 XP</div></div>
+      </div>
+      <div class="card" onclick="loadLab('deprovisioning')">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(239,68,68,0.15)">🗑️</div>
+          <div class="card-meta">
+            <div class="card-tag" style="color:var(--accent-red)">Lab 3</div>
+            <div class="card-title">Deprovisioning Simulator</div>
+          </div>
+        </div>
+        <div class="card-desc">Practice secure offboarding: disable, revoke, remove. Learn risks of skipping steps.</div>
+        <div class="card-footer"><div class="card-progress-bar"><div class="card-progress-fill" style="width:0%"></div></div><div class="card-xp">+50 XP</div></div>
+      </div>
+      <div class="card" onclick="loadLab('adlab')">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(139,92,246,0.15)">🖥️</div>
+          <div class="card-meta">
+            <div class="card-tag" style="color:var(--accent-purple)">Lab 4</div>
+            <div class="card-title">Active Directory Lab</div>
+          </div>
+        </div>
+        <div class="card-desc">Create OUs, groups, and users in a visual AD simulator. Hierarchy updates dynamically.</div>
+        <div class="card-footer"><div class="card-progress-bar"><div class="card-progress-fill" style="width:0%"></div></div><div class="card-xp">+50 XP</div></div>
+      </div>
+      <div class="card" onclick="loadLab('ldaplab')">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(6,182,212,0.15)">🔍</div>
+          <div class="card-meta">
+            <div class="card-tag" style="color:var(--accent-cyan)">Lab 5</div>
+            <div class="card-title">LDAP Search Lab</div>
+          </div>
+        </div>
+        <div class="card-desc">Run interactive LDAP queries, view directory results, and understand DN structures.</div>
+        <div class="card-footer"><div class="card-progress-bar"><div class="card-progress-fill" style="width:0%"></div></div><div class="card-xp">+50 XP</div></div>
+      </div>
+    </div>
+    <div id="lab-content"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ SCENARIOS -->
+  <section class="page" id="page-scenarios">
+    <div class="page-title">⚔️ Security Scenarios</div>
+    <div class="page-subtitle">20 real-world IAM challenges. Choose the right action.</div>
+    <div id="scenario-container" class="section-block"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ PHISHING -->
+  <section class="page" id="page-phishing">
+    <div class="page-title">🎣 Phishing Awareness Trainer</div>
+    <div class="page-subtitle">Identify phishing attempts before they steal credentials</div>
+    <div id="phishing-container" class="section-block"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ PASSWORD -->
+  <section class="page" id="page-password">
+    <div class="page-title">🔐 Password Security Center</div>
+    <div class="page-subtitle">Understand password strength, hashing, and brute force</div>
+    <div class="section-block">
+      <div class="section-title">Password Strength Analyzer</div>
+      <input class="pw-input" type="password" id="pw-input" placeholder="Type a password to analyze..." oninput="analyzePW(this.value)">
+      <div class="strength-bars" id="strength-bars">
+        <div class="strength-bar"></div><div class="strength-bar"></div>
+        <div class="strength-bar"></div><div class="strength-bar"></div><div class="strength-bar"></div>
+      </div>
+      <div class="strength-label" id="pw-strength-label">Enter a password above</div>
+      <div class="crack-time" id="pw-crack">⏱ Estimated crack time: —</div>
+      <div class="mt-16" id="pw-tips"></div>
+    </div>
+    <div class="section-block">
+      <div class="section-title">🧂 Hashing &amp; Salting Visualizer</div>
+      <div class="input-row">
+        <input class="input-field" type="text" id="hash-input" placeholder="Enter text to hash..." oninput="updateHash(this.value)">
+      </div>
+      <div id="hash-output" style="font-family:var(--font-mono);font-size:0.78rem;color:var(--accent-cyan);word-break:break-all;padding:10px;background:var(--bg-glass);border-radius:8px;border:1px solid var(--border);min-height:40px"></div>
+      <div class="mt-8 text-muted" style="font-size:0.78rem">💡 Even a 1-character change produces a completely different hash (avalanche effect)</div>
+      <div class="mt-12" id="salt-demo">
+        <div class="tag tag-blue mb-8" style="display:inline-block">Salt Demo</div>
+        <div id="salt-output" style="font-size:0.8rem;line-height:1.8;font-family:var(--font-mono);color:var(--text-secondary)"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ MFA -->
+  <section class="page" id="page-mfa">
+    <div class="page-title">📱 MFA Training Module</div>
+    <div class="page-subtitle">Set up Multi-Factor Authentication step by step</div>
+    <div id="mfa-container" class="section-block">
+      <!-- Filled by JS -->
+    </div>
+    <div class="section-block mt-16">
+      <div class="section-title">MFA Methods Explained</div>
+      <div class="cards-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+        <div class="card" style="cursor:default">
+          <div class="card-header"><div class="card-icon" style="background:rgba(59,130,246,0.15)">⏱️</div><div class="card-meta"><div class="card-title">TOTP</div></div></div>
+          <div class="card-desc" style="font-size:0.8rem">Time-based One-Time Password. Changes every 30 seconds. Google Authenticator, Authy.</div>
+        </div>
+        <div class="card" style="cursor:default">
+          <div class="card-header"><div class="card-icon" style="background:rgba(16,185,129,0.15)">📲</div><div class="card-meta"><div class="card-title">Push Notification</div></div></div>
+          <div class="card-desc" style="font-size:0.8rem">Approve or deny login on your phone. Microsoft Authenticator, Duo Security.</div>
+        </div>
+        <div class="card" style="cursor:default">
+          <div class="card-header"><div class="card-icon" style="background:rgba(245,158,11,0.15)">🔑</div><div class="card-meta"><div class="card-title">Hardware Token</div></div></div>
+          <div class="card-desc" style="font-size:0.8rem">Physical device that generates OTPs. YubiKey, RSA SecurID. Highest security.</div>
+        </div>
+        <div class="card" style="cursor:default">
+          <div class="card-header"><div class="card-icon" style="background:rgba(139,92,246,0.15)">👆</div><div class="card-meta"><div class="card-title">Biometrics</div></div></div>
+          <div class="card-desc" style="font-size:0.8rem">Fingerprint, face, iris recognition. Convenient and secure on modern devices.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ COMPLIANCE -->
+  <section class="page" id="page-compliance">
+    <div class="page-title">📋 Compliance Audit Simulator</div>
+    <div class="page-subtitle">Find and resolve IAM compliance gaps</div>
+    <div id="compliance-container"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ CHATBOT -->
+  <section class="page" id="page-chatbot">
+    <div class="page-title">🤖 AI IAM Assistant</div>
+    <div class="page-subtitle">Ask anything about Identity &amp; Access Management</div>
+    <div class="section-block">
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-msg">
+            <div class="chat-avatar">🛡️</div>
+            <div class="chat-bubble">Hello! I'm your IAM Assistant. Ask me anything about Identity & Access Management — LDAP, Kerberos, RBAC, Zero Trust, SSO, PAM, and more!</div>
+          </div>
+          <div class="chat-msg">
+            <div class="chat-avatar">🛡️</div>
+            <div class="chat-bubble">
+              Try asking:<br>
+              • What is RBAC?<br>
+              • Explain Kerberos<br>
+              • What is Zero Trust?<br>
+              • SAML vs OAuth?<br>
+              • What is PAM?
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chat-input" type="text" placeholder="Ask about IAM..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="chat-send" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ BADGES -->
+  <section class="page" id="page-badges">
+    <div class="page-title">🏅 Badges &amp; Skill Tree</div>
+    <div class="page-subtitle">Your earned achievements and learning path progress</div>
+
+    <div class="section-block">
+      <div class="section-title">Badge Gallery</div>
+      <div class="badges-grid" id="badges-gallery"></div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-title">🌳 IAM Skill Tree</div>
+      <div class="skill-tree-grid" id="skill-tree"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ CERTIFICATE -->
+  <section class="page" id="page-certificate">
+    <div class="page-title">🎓 Certificate of Completion</div>
+    <div class="page-subtitle">Complete all modules to unlock your certificate</div>
+    <div id="cert-container"></div>
+  </section>
+
+</main>
+
+<!-- XP POPUP -->
+<div class="xp-popup" id="xp-popup">
+  <div class="xp-popup-icon">⚡</div>
+  <div><div class="xp-popup-text">XP Earned!</div><div class="xp-popup-val" id="xp-popup-val">+20 XP</div></div>
+</div>
+
+<!-- BADGE POPUP -->
+<div class="badge-popup" id="badge-popup">
+  <div class="badge-popup-icon" id="badge-popup-icon">🏅</div>
+  <div class="badge-popup-body">
+    <div class="badge-popup-title">Badge Unlocked!</div>
+    <div class="badge-popup-name" id="badge-popup-name">Authentication Expert</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PARTICLE BACKGROUND
+// ═══════════════════════════════════════════════════════════
+(function(){
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+  resize();
+  window.addEventListener('resize',resize);
+  
+  class Particle{
+    constructor(){this.reset()}
+    reset(){
+      this.x=Math.random()*canvas.width;
+      this.y=Math.random()*canvas.height;
+      this.vx=(Math.random()-0.5)*0.3;
+      this.vy=(Math.random()-0.5)*0.3;
+      this.r=Math.random()*1.5+0.5;
+      this.alpha=Math.random()*0.5+0.1;
+      this.color=Math.random()>0.5?'59,130,246':'6,182,212';
+    }
+    update(){
+      this.x+=this.vx;this.y+=this.vy;
+      if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height)this.reset();
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${this.color},${this.alpha})`;
+      ctx.fill();
+    }
+  }
+  
+  for(let i=0;i<80;i++)particles.push(new Particle());
+  
+  function drawLines(){
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x;
+        const dy=particles[i].y-particles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(59,130,246,${0.08*(1-dist/120)})`;
+          ctx.lineWidth=0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawLines();
+    particles.forEach(p=>{p.update();p.draw()});
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ═══════════════════════════════════════════════════════════
+// STATE MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+const STATE = {
+  xp: 0,
+  level: 1,
+  completedTopics: new Set(['iam']),
+  completedLabs: new Set(),
+  badges: new Set(),
+  quizScores: [],
+  currentModule: null,
+};
+
+const LEVELS = [
+  {name:'IAM Beginner',xp:0},{name:'IAM Learner',xp:200},
+  {name:'IAM Analyst',xp:500},{name:'IAM Specialist',xp:1000},
+  {name:'IAM Engineer',xp:2000},{name:'IAM Expert',xp:3500},
+  {name:'IAM Architect',xp:5000},
+];
+
+function saveState(){
+  localStorage.setItem('iam-state',JSON.stringify({
+    xp:STATE.xp,level:STATE.level,
+    completedTopics:[...STATE.completedTopics],
+    completedLabs:[...STATE.completedLabs],
+    badges:[...STATE.badges],
+    quizScores:STATE.quizScores
+  }));
+}
+
+function loadState(){
+  const saved = localStorage.getItem('iam-state');
+  if(saved){
+    const s = JSON.parse(saved);
+    STATE.xp = s.xp||0;
+    STATE.level = s.level||1;
+    STATE.completedTopics = new Set(s.completedTopics||['iam']);
+    STATE.completedLabs = new Set(s.completedLabs||[]);
+    STATE.badges = new Set(s.badges||[]);
+    STATE.quizScores = s.quizScores||[];
+  }
+}
+loadState();
+
+function addXP(amount, label){
+  STATE.xp += amount;
+  updateLevel();
+  updateUI();
+  saveState();
+  showXPPopup(amount, label);
+}
+
+function updateLevel(){
+  let newLevel = 1;
+  LEVELS.forEach((l,i)=>{ if(STATE.xp>=l.xp) newLevel=i+1; });
+  const oldLevel = STATE.level;
+  STATE.level = Math.min(newLevel, LEVELS.length);
+  if(STATE.level > oldLevel) celebrateLevel();
+}
+
+function celebrateLevel(){
+  const lvl = LEVELS[STATE.level-1];
+  showBadgePopup('🏆', `Level ${STATE.level}: ${lvl.name}`);
+}
+
+function updateUI(){
+  const lvl = LEVELS[STATE.level-1];
+  const nextLvl = LEVELS[STATE.level] || LEVELS[LEVELS.length-1];
+  const prev = LEVELS[STATE.level-1].xp;
+  const next = nextLvl.xp;
+  const pct = STATE.level>=LEVELS.length ? 100 : Math.min(100,((STATE.xp-prev)/(next-prev))*100);
+  
+  document.getElementById('sb-level').textContent = `Level ${STATE.level} — ${lvl.name}`;
+  document.getElementById('sb-xp').textContent = `${STATE.xp} XP`;
+  document.getElementById('xp-bar-fill').style.width = pct+'%';
+  document.getElementById('xp-next').textContent = STATE.level>=LEVELS.length ? 'Max Level!' : `${STATE.xp} / ${next} XP to next level`;
+  document.getElementById('top-xp').textContent = STATE.xp;
+  document.getElementById('dash-xp').textContent = STATE.xp;
+  document.getElementById('dash-level').textContent = STATE.level;
+  document.getElementById('dash-level-name').textContent = lvl.name;
+  document.getElementById('dash-topics').textContent = STATE.completedTopics.size;
+  document.getElementById('dash-labs').textContent = STATE.completedLabs.size;
+  document.getElementById('dash-badges').textContent = STATE.badges.size;
+  const avgScore = STATE.quizScores.length ? Math.round(STATE.quizScores.reduce((a,b)=>a+b,0)/STATE.quizScores.length) : null;
+  document.getElementById('dash-score').textContent = avgScore ? avgScore+'%' : '—';
+}
+updateUI();
+
+// ═══════════════════════════════════════════════════════════
+// POPUP SYSTEM
+// ═══════════════════════════════════════════════════════════
+let xpPopupTimer = null;
+function showXPPopup(amount, label){
+  const popup = document.getElementById('xp-popup');
+  document.getElementById('xp-popup-val').textContent = `+${amount} XP`;
+  popup.classList.add('show');
+  clearTimeout(xpPopupTimer);
+  xpPopupTimer = setTimeout(()=>popup.classList.remove('show'), 2500);
+}
+
+let badgePopupTimer = null;
+function showBadgePopup(icon, name){
+  const popup = document.getElementById('badge-popup');
+  document.getElementById('badge-popup-icon').textContent = icon;
+  document.getElementById('badge-popup-name').textContent = name;
+  popup.classList.add('show');
+  clearTimeout(badgePopupTimer);
+  badgePopupTimer = setTimeout(()=>popup.classList.remove('show'), 3500);
+}
+
+function earnBadge(key){
+  const BADGES = {
+    'auth-expert':{icon:'🔐',name:'Authentication Expert'},
+    'authz-expert':{icon:'🛂',name:'Authorization Expert'},
+    'rbac-master':{icon:'🎭',name:'RBAC Master'},
+    'mfa-champion':{icon:'📱',name:'MFA Champion'},
+    'federation':{icon:'🔗',name:'Federation Specialist'},
+    'pam':{icon:'🛡️',name:'PAM Defender'},
+    'zero-trust':{icon:'🚫',name:'Zero Trust Champion'},
+    'explorer':{icon:'🔭',name:'IAM Explorer'},
+    'expert':{icon:'🏆',name:'IAM Expert'},
+  };
+  if(!STATE.badges.has(key) && BADGES[key]){
+    STATE.badges.add(key);
+    saveState();
+    updateUI();
+    setTimeout(()=>showBadgePopup(BADGES[key].icon, BADGES[key].name), 600);
+    renderBadges();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  closeSidebar();
+  
+  // Init pages lazily
+  if(id==='scenarios') initScenarios();
+  if(id==='phishing') initPhishing();
+  if(id==='compliance') initCompliance();
+  if(id==='mfa') initMFA();
+  if(id==='badges') renderBadges();
+  if(id==='certificate') renderCertificate();
+  if(id==='dashboard') renderDashboardModuleCards();
+  if(id==='password') updateHash('');
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function toggleMod(el){
+  el.classList.toggle('open');
+}
+
+function toggleTheme(){
+  const theme = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', theme==='dark'?'light':'dark');
+  document.querySelector('.theme-toggle span').textContent = theme==='dark'?'☀️ Light Mode':'🌙 Dark Mode';
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODULE DATA
+// ═══════════════════════════════════════════════════════════
+const MODULES = {
+  iam:{
+    icon:'🔑',tag:'Module 1',title:'What is IAM?',color:'var(--accent-blue)',
+    sections:['intro','theory','example','diagram','quiz'],
+    theory:`<p><strong>Identity and Access Management (IAM)</strong> is the discipline of managing digital identities and controlling access to resources in an organization.</p>
+    <p>IAM answers three fundamental questions: <strong>Who are you?</strong> (Identity), <strong>Are you really you?</strong> (Authentication), and <strong>What can you do?</strong> (Authorization).</p>
+    <p>A complete IAM system also tracks <strong>Auditing</strong> — every access event is logged — and manages the full <strong>User Lifecycle</strong> from onboarding to offboarding.</p>`,
+    example:`
+      <div class="highlight-box"><strong>Real World:</strong> Employee Joins TechCorp</div>
+      <div class="flow-diagram">
+        ${flow(['👤 Employee Joins','🆔 Identity Created in HR','⚙️ Provisioning (AD + Apps)','🔐 Authentication Setup','✅ Authorization Assigned','📋 Access Reviews (Quarterly)','🗑️ Deprovisioning on Exit'])}
+      </div>`,
+    quiz:[
+      {q:'What does the "A" in IAM stand for?',opts:['Access','Authentication','Administration','Audit'],correct:1,exp:'IAM = Identity and Access Management. The A stands for Access.'},
+      {q:'Which IAM function answers "What can you do?"',opts:['Authentication','Identity','Authorization','Auditing'],correct:2,exp:'Authorization determines what resources and actions a verified user is allowed to perform.'},
+    ]
+  },
+  identity:{
+    icon:'👤',tag:'Module 2',title:'Enterprise Identity',color:'var(--accent-cyan)',
+    theory:`<p><strong>Digital Identity</strong> is a digital representation of a person or entity in an IT system. It consists of <strong>identity attributes</strong> — data points that uniquely describe someone.</p>
+    <p>An enterprise identity record contains: Employee ID, Full Name, Department, Role, Manager, Email, Location, and more. This data lives in <strong>Identity Stores</strong> such as Active Directory or cloud directories.</p>`,
+    example:`
+      <div class="highlight-box"><strong>Example Identity Record</strong></div>
+      <div style="background:var(--bg-glass);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:0.83rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${idRow('👤 Name','Rahul Sharma')}${idRow('🆔 Employee ID','EMP-4872')}
+          ${idRow('🏢 Department','Engineering')}${idRow('💼 Role','Senior Developer')}
+          ${idRow('👔 Manager','Anita Patel')}${idRow('📧 Email','rahul@techcorp.com')}
+          ${idRow('📍 Location','Pune, India')}${idRow('📅 Joined','2022-03-15')}
+        </div>
+      </div>
+      <div class="flow-diagram mt-16">
+        ${flow(['🏢 HR System','📊 Employee Data','🆔 Identity Creation','📁 Directory Storage','🖥️ Application Usage'])}
+      </div>`,
+    quiz:[
+      {q:'Where are enterprise identities typically stored?',opts:['Email servers','Identity Stores / Directories','Print servers','File servers'],correct:1,exp:'Identity Stores like Active Directory, LDAP directories, or cloud directories are the authoritative source for enterprise identities.'},
+    ]
+  },
+  directory:{
+    icon:'📁',tag:'Module 3',title:'Directory Services',color:'var(--accent-green)',
+    theory:`<p>A <strong>Directory Service</strong> is a centralized repository that stores and manages information about network resources and users. Think of it as a phonebook for your entire organization.</p>
+    <p>Directories organize entries in a <strong>hierarchical tree structure</strong>. Applications query the directory to look up users, groups, computers, and printers without needing their own user databases.</p>`,
+    example:`
+      <div class="highlight-box"><strong>Directory Tree Structure</strong></div>
+      <div class="section-block" style="padding:16px">
+        <div class="dir-tree" id="dir-tree-demo">
+          <div class="dir-item" onclick="selectDir(this,'company')"><span class="dir-icon">🏢</span> DC=techcorp,DC=com</div>
+          <div class="dir-indent">
+            <div class="dir-item" onclick="selectDir(this,'users')"><span class="dir-icon">📂</span> OU=Users</div>
+            <div class="dir-indent-2">
+              <div class="dir-item" onclick="selectDir(this,'u1')"><span class="dir-icon">👤</span> CN=Rahul Sharma</div>
+              <div class="dir-item" onclick="selectDir(this,'u2')"><span class="dir-icon">👤</span> CN=Priya Singh</div>
+            </div>
+            <div class="dir-item" onclick="selectDir(this,'groups')"><span class="dir-icon">📂</span> OU=Groups</div>
+            <div class="dir-indent-2">
+              <div class="dir-item" onclick="selectDir(this,'g1')"><span class="dir-icon">👥</span> CN=HR-Team</div>
+              <div class="dir-item" onclick="selectDir(this,'g2')"><span class="dir-icon">👥</span> CN=Finance-Team</div>
+            </div>
+            <div class="dir-item" onclick="selectDir(this,'computers')"><span class="dir-icon">📂</span> OU=Computers</div>
+            <div class="dir-item" onclick="selectDir(this,'servers')"><span class="dir-icon">📂</span> OU=Servers</div>
+          </div>
+        </div>
+        <div class="mt-12" id="dir-info" style="font-size:0.8rem;color:var(--text-muted);padding:10px;background:var(--bg-glass);border-radius:8px;border:1px solid var(--border)">Click any item above to see details</div>
+      </div>`,
+    quiz:[
+      {q:'What is the primary purpose of a Directory Service?',opts:['Run applications','Centrally store identity data','Back up files','Send emails'],correct:1,exp:'Directory Services provide a centralized repository for identity and resource information that can be queried by applications.'},
+    ]
+  },
+  ad:{
+    icon:'🖥️',tag:'Module 4',title:'Active Directory',color:'var(--accent-purple)',
+    theory:`<p><strong>Active Directory (AD)</strong> is Microsoft's directory service for Windows domain networks. Introduced in Windows 2000, it's the most widely deployed enterprise identity platform.</p>
+    <p>Key concepts: <strong>Domain</strong> — a logical grouping of network objects. <strong>Domain Controller (DC)</strong> — the server that hosts AD. <strong>Organizational Unit (OU)</strong> — container for organizing objects. <strong>Groups</strong> — collections of users for access management.</p>
+    <p>AD handles both <strong>Authentication</strong> (via Kerberos) and <strong>Authorization</strong> (via Group Policy and ACLs).</p>`,
+    example:`<div id="ad-simulator"><!-- rendered by JS --></div>`,
+    quiz:[
+      {q:'What does DC stand for in Active Directory?',opts:['Data Center','Domain Controller','Directory Component','Domain Container'],correct:1,exp:'DC stands for Domain Controller — the server that runs Active Directory and authenticates users in the domain.'},
+      {q:'What is an Organizational Unit (OU)?',opts:['A type of user account','A network share','A container to organize AD objects','A domain trust'],correct:2,exp:'An OU is a container within Active Directory used to organize users, groups, computers, and other OUs for easier management.'},
+    ]
+  },
+  ldap:{
+    icon:'🔍',tag:'Module 5',title:'LDAP',color:'var(--accent-cyan)',
+    theory:`<p><strong>LDAP (Lightweight Directory Access Protocol)</strong> is the protocol used to query and modify directory services. When an application needs to look up a user, it sends an LDAP query to the directory.</p>
+    <p>Key terms: <strong>DN (Distinguished Name)</strong> — unique address of an entry. <strong>CN (Common Name)</strong> — the object's name. <strong>OU (Organizational Unit)</strong> — container. <strong>DC (Domain Component)</strong> — domain parts.</p>
+    <p>Example DN: <code>CN=Rahul Sharma,OU=Engineering,DC=techcorp,DC=com</code></p>`,
+    example:`<div id="ldap-simulator"><!-- rendered by JS --></div>`,
+    quiz:[
+      {q:'What does LDAP stand for?',opts:['Local Directory Access Protocol','Lightweight Directory Access Protocol','Linked Data Access Protocol','Logical Directory Authentication Protocol'],correct:1,exp:'LDAP = Lightweight Directory Access Protocol. It\'s the standard protocol for accessing directory services.'},
+      {q:'What does DN stand for in LDAP?',opts:['Domain Name','Distinguished Name','Directory Node','Data Name'],correct:1,exp:'DN stands for Distinguished Name — the unique identifier for an entry in the LDAP directory tree.'},
+    ]
+  },
+  kerberos:{
+    icon:'🎟️',tag:'Module 6',title:'Kerberos',color:'var(--accent-orange)',
+    theory:`<p><strong>Kerberos</strong> is a network authentication protocol that uses secret-key cryptography and a trusted third party — the <strong>Key Distribution Center (KDC)</strong> — to authenticate users to services without sending passwords over the network.</p>
+    <p>The flow: User authenticates to KDC → gets a <strong>Ticket Granting Ticket (TGT)</strong> → uses TGT to request <strong>Service Tickets</strong> → presents service ticket to access applications. Passwords never leave the client.</p>`,
+    example:`<div id="kerb-simulator"><!-- rendered by JS --></div>`,
+    quiz:[
+      {q:'What does KDC stand for in Kerberos?',opts:['Key Data Controller','Kerberos Distribution Center','Key Distribution Center','Kernel Domain Controller'],correct:2,exp:'KDC = Key Distribution Center. It\'s the trusted third party that issues tickets in Kerberos authentication.'},
+      {q:'What is a TGT in Kerberos?',opts:['Trusted Gateway Token','Ticket Granting Ticket','Token for Group Transfer','Time-Gated Token'],correct:1,exp:'TGT = Ticket Granting Ticket. It\'s the initial ticket you get after authenticating to the KDC, used to request service tickets.'},
+    ]
+  },
+  ntlm:{
+    icon:'🔒',tag:'Module 7',title:'NTLM',color:'var(--accent-red)',
+    theory:`<p><strong>NTLM (NT LAN Manager)</strong> is a Microsoft authentication protocol that uses a <strong>challenge-response</strong> mechanism. It's the legacy alternative to Kerberos.</p>
+    <p>NTLM flow: Server sends a <strong>challenge</strong> → Client hashes their password with the challenge → Sends the <strong>response</strong> → Server verifies. The password is never sent, but NTLM has known vulnerabilities (Pass-the-Hash, relay attacks).</p>
+    <p>Kerberos is preferred, but NTLM is still used as a fallback in many environments.</p>`,
+    example:`
+      <div class="highlight-box"><strong>NTLM vs Kerberos Comparison</strong></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px">
+        <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px">
+          <div style="font-weight:700;color:var(--accent-red);margin-bottom:10px">⚠️ NTLM</div>
+          ${kRow('Protocol','Challenge-Response')}${kRow('Mutual Auth','No')}
+          ${kRow('Ticket System','No')}${kRow('Vulnerabilities','Pass-the-Hash, Relay')}
+          ${kRow('Use Case','Legacy fallback')}
+        </div>
+        <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:14px">
+          <div style="font-weight:700;color:var(--accent-green);margin-bottom:10px">✅ Kerberos</div>
+          ${kRow('Protocol','Ticket-based')}${kRow('Mutual Auth','Yes')}
+          ${kRow('Ticket System','TGT + Service Ticket')}${kRow('Vulnerabilities','Pass-the-Ticket, Kerberoasting')}
+          ${kRow('Use Case','Preferred in AD')}
+        </div>
+      </div>`,
+    quiz:[
+      {q:'What mechanism does NTLM use for authentication?',opts:['Certificate exchange','Challenge-response','Ticket-based','Token-based'],correct:1,exp:'NTLM uses a challenge-response mechanism where the server sends a challenge and the client responds with a hash.'},
+    ]
+  },
+  gpo:{
+    icon:'📜',tag:'Module 8',title:'Group Policy',color:'var(--accent-green)',
+    theory:`<p><strong>Group Policy</strong> is a feature of Active Directory that allows administrators to define and enforce security and configuration settings across all computers and users in the domain.</p>
+    <p>A <strong>Group Policy Object (GPO)</strong> is a collection of settings. GPOs are linked to <strong>Sites, Domains, or OUs</strong> and are automatically applied to all objects within. Common uses: password policies, software installation, desktop restrictions, and USB blocking.</p>`,
+    example:`<div id="gpo-simulator"><!-- rendered by JS --></div>`,
+    quiz:[
+      {q:'What does GPO stand for?',opts:['General Policy Options','Group Policy Object','Global Permission Operator','Group Permission Override'],correct:1,exp:'GPO = Group Policy Object — a collection of policy settings in Active Directory that can be applied to users and computers.'},
+    ]
+  },
+  trusts:{
+    icon:'🤝',tag:'Module 9',title:'Domain Trusts',color:'var(--accent-pink)',
+    theory:`<p><strong>Domain Trusts</strong> define trust relationships between AD domains, allowing users in one domain to access resources in another.</p>
+    <p><strong>One-Way Trust:</strong> Domain A trusts Domain B — B's users can access A's resources, not vice versa. <strong>Two-Way Trust:</strong> Both domains trust each other. <strong>Transitive Trust:</strong> If A trusts B and B trusts C, then A trusts C. <strong>Non-Transitive:</strong> Trust doesn't extend beyond the explicit relationship.</p>`,
+    example:`
+      <div id="trust-diagram" style="padding:16px">
+        <svg viewBox="0 0 500 280" style="width:100%;max-width:500px;display:block;margin:0 auto">
+          <!-- Domain A -->
+          <rect x="30" y="100" width="120" height="60" rx="10" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.5)" stroke-width="1.5"/>
+          <text x="90" y="128" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="600">Domain A</text>
+          <text x="90" y="147" text-anchor="middle" fill="#94a3b8" font-size="10">techcorp.com</text>
+          <!-- Domain B -->
+          <rect x="190" y="40" width="120" height="60" rx="10" fill="rgba(139,92,246,0.15)" stroke="rgba(139,92,246,0.5)" stroke-width="1.5"/>
+          <text x="250" y="68" text-anchor="middle" fill="#8b5cf6" font-size="12" font-weight="600">Domain B</text>
+          <text x="250" y="87" text-anchor="middle" fill="#94a3b8" font-size="10">subsidiary.com</text>
+          <!-- Domain C -->
+          <rect x="350" y="100" width="120" height="60" rx="10" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.5)" stroke-width="1.5"/>
+          <text x="410" y="128" text-anchor="middle" fill="#10b981" font-size="12" font-weight="600">Domain C</text>
+          <text x="410" y="147" text-anchor="middle" fill="#94a3b8" font-size="10">partner.com</text>
+          <!-- Arrows -->
+          <defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/></marker><marker id="arr2" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto"><polygon points="8 0, 0 3, 8 6" fill="#3b82f6"/></marker></defs>
+          <!-- A-B Two-way -->
+          <line x1="150" y1="125" x2="190" y2="95" stroke="rgba(59,130,246,0.6)" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="190" y1="100" x2="150" y2="130" stroke="rgba(139,92,246,0.6)" stroke-width="2" marker-end="url(#arr2)"/>
+          <text x="162" y="105" fill="#94a3b8" font-size="9" text-anchor="middle">2-way</text>
+          <!-- B-C One-way -->
+          <line x1="310" y1="85" x2="350" y2="115" stroke="rgba(16,185,129,0.6)" stroke-width="2" marker-end="url(#arr)"/>
+          <text x="338" y="96" fill="#94a3b8" font-size="9" text-anchor="middle">1-way</text>
+          <!-- Transitive label -->
+          <text x="250" y="200" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600">↕ Transitive: A can access C via B</text>
+          <rect x="120" y="225" width="260" height="28" rx="6" fill="rgba(245,158,11,0.1)" stroke="rgba(245,158,11,0.3)" stroke-width="1"/>
+          <text x="250" y="244" text-anchor="middle" fill="#f59e0b" font-size="10">If trust is transitive, A trusts C automatically</text>
+        </svg>
+      </div>`,
+    quiz:[
+      {q:'If Domain A trusts B (transitive) and B trusts C, what happens?',opts:['A trusts C automatically','No automatic trust','C trusts A only','B is removed'],correct:0,exp:'With transitive trust, if A trusts B and B trusts C, then A automatically trusts C.'},
+    ]
+  },
+  sso:{
+    icon:'🔗',tag:'Module 10',title:'Single Sign-On',color:'var(--accent-blue)',
+    theory:`<p><strong>Single Sign-On (SSO)</strong> allows users to authenticate once and gain access to multiple applications without re-entering credentials. It relies on <strong>federation</strong> — sharing identity across trusted systems.</p>
+    <p>Key protocols: <strong>SAML</strong> — XML-based, enterprise SSO. <strong>OAuth 2.0</strong> — authorization framework for delegated access. <strong>OIDC (OpenID Connect)</strong> — identity layer on top of OAuth 2.0.</p>`,
+    example:`
+      <div class="highlight-box"><strong>SSO Flow: Login Once, Access Everything</strong></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div>
+          <div class="flow-diagram">
+            ${flow(['👤 User Logs In Once','🔐 Identity Provider (IdP)','🎫 Token Issued','✅ Access Granted'])}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;justify-content:center">
+          ${appAccess('💼','HR Portal','Workday')}
+          ${appAccess('💰','Finance Portal','SAP')}
+          ${appAccess('👥','CRM','Salesforce')}
+          ${appAccess('🎫','Ticketing','ServiceNow')}
+        </div>
+      </div>
+      <div class="mt-16 section-block" style="background:var(--bg-glass)">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          ${protoCard('SAML','XML-based','Enterprise SSO, used by on-prem apps')}
+          ${protoCard('OAuth 2.0','JSON-based','Delegated authorization, API access')}
+          ${protoCard('OIDC','JWT-based','Identity layer over OAuth, modern apps')}
+        </div>
+      </div>`,
+    quiz:[
+      {q:'What does SSO stand for?',opts:['Secure Service Operation','Single Sign-On','Shared Security Object','System Sign-On'],correct:1,exp:'SSO = Single Sign-On. It allows one login to grant access to multiple applications.'},
+      {q:'Which protocol is XML-based and used for enterprise SSO?',opts:['OAuth 2.0','OIDC','SAML','JWT'],correct:2,exp:'SAML (Security Assertion Markup Language) is XML-based and widely used for enterprise SSO, especially with on-premises applications.'},
+    ]
+  },
+  entra:{
+    icon:'☁️',tag:'Module 11',title:'Microsoft Entra ID',color:'var(--accent-blue)',
+    theory:`<p><strong>Microsoft Entra ID</strong> (formerly Azure Active Directory) is Microsoft's cloud-based identity platform. It provides cloud IAM for Microsoft 365, Azure, and thousands of third-party SaaS applications.</p>
+    <p>Key features: <strong>MFA</strong> — multi-factor authentication. <strong>Conditional Access</strong> — policy-based access control. <strong>Identity Governance</strong> — access reviews, entitlement management. <strong>Hybrid Identity</strong> — connect on-premises AD with the cloud.</p>`,
+    example:`
+      <div class="highlight-box"><strong>Cloud Login Flow with Entra ID</strong></div>
+      <div class="flow-diagram mt-12">
+        ${flow(['👤 User Attempts Login','☁️ Entra ID Evaluates','🔍 Conditional Access Check','📱 MFA Challenge','🎫 Token Issued (JWT)','🖥️ Access Cloud App'])}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:16px">
+        ${cloudApp('📊','Microsoft 365')}${cloudApp('☁️','Azure Portal')}
+        ${cloudApp('👥','Salesforce')}${cloudApp('🌐','AWS')}
+        ${cloudApp('🎫','ServiceNow')}${cloudApp('📁','Google Workspace')}
+      </div>`,
+    quiz:[
+      {q:'What was Microsoft Entra ID previously called?',opts:['Active Directory','Azure Active Directory','Microsoft Identity Manager','Windows Identity Foundation'],correct:1,exp:'Microsoft Entra ID was previously called Azure Active Directory (Azure AD), rebranded in 2023.'},
+    ]
+  },
+  ecosystem:{
+    icon:'🗺️',tag:'Module 12',title:'IAM Ecosystem',color:'var(--accent-purple)',
+    theory:`<p>The <strong>complete IAM ecosystem</strong> connects people, processes, and technology across on-premises and cloud environments. Understanding how all components interconnect is essential for designing secure identity architectures.</p>`,
+    example:`<div id="ecosystem-diagram"><!-- rendered by JS --></div>`,
+    quiz:[
+      {q:'Which component is the authoritative source for enterprise identity in most organizations?',opts:['Microsoft 365','Active Directory / Entra ID','Salesforce','ServiceNow'],correct:1,exp:'Active Directory (on-premises) or Entra ID (cloud) serves as the authoritative identity store in most Microsoft-centric organizations.'},
+    ]
+  }
+};
+
+// Helper functions for HTML fragments
+function flow(steps){
+  return steps.map((s,i)=>
+    `<div class="flow-node${i===0?' highlight':''}">${s}</div>${i<steps.length-1?'<div class="flow-arrow">↓</div>':''}`
+  ).join('');
+}
+function idRow(label,val){return`<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:0.68rem;color:var(--text-muted)">${label}</span><span style="font-weight:600;font-size:0.82rem">${val}</span></div>`}
+function kRow(k,v){return`<div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:6px"><span style="color:var(--text-muted)">${k}</span><span style="font-weight:600">${v}</span></div>`}
+function appAccess(icon,label,tool){return`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px"><span>${icon}</span><div><div style="font-size:0.8rem;font-weight:600">${label}</div><div style="font-size:0.7rem;color:var(--text-muted)">${tool}</div></div><span style="margin-left:auto;font-size:0.7rem;color:var(--accent-green);font-weight:700">✓ AUTO</span></div>`}
+function protoCard(name,type,desc){return`<div style="background:var(--bg-glass);border:1px solid var(--border);border-radius:10px;padding:12px"><div style="font-weight:700;margin-bottom:4px">${name}</div><div style="font-size:0.7rem;color:var(--accent-cyan);margin-bottom:6px">${type}</div><div style="font-size:0.75rem;color:var(--text-muted)">${desc}</div></div>`}
+function cloudApp(icon,name){return`<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;background:var(--bg-glass);border:1px solid var(--border);border-radius:10px;font-size:0.78rem;font-weight:600"><span style="font-size:1.4rem">${icon}</span>${name}</div>`}
+
+// ═══════════════════════════════════════════════════════════
+// MODULE RENDERER
+// ═══════════════════════════════════════════════════════════
+function loadModule(key){
+  const mod = MODULES[key];
+  if(!mod) return;
+  STATE.currentModule = key;
+  showPage('module');
+  
+  if(!STATE.completedTopics.has(key)){
+    addXP(10,'Opening topic');
+  }
+  
+  const container = document.getElementById('module-content');
+  const quizHTML = renderQuizHTML(mod.quiz||[], key);
+  
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <button class="btn btn-secondary btn-sm" onclick="showPage('dashboard')">← Back</button>
+      <span class="tag" style="background:rgba(99,179,237,0.12);border:1px solid rgba(99,179,237,0.25);color:${mod.color}">${mod.tag}</span>
+      <h2 style="font-family:var(--font-display);font-weight:800;font-size:1.3rem">${mod.icon} ${mod.title}</h2>
+    </div>
+    <div class="module-layout">
+      <div class="module-content">
+        ${mod.theory ? `<div class="section-block"><div class="section-title">Theory</div><div class="info-text">${mod.theory}</div></div>` : ''}
+        ${mod.example ? `<div class="section-block"><div class="section-title">Real World Example</div>${mod.example}</div>` : ''}
+        ${quizHTML}
+        <div class="section-block">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div><span style="font-size:1.1rem">🏁</span> Mark as Complete</div>
+            <button class="btn btn-success btn-sm" onclick="completeModule('${key}')">Complete Module +20 XP</button>
+          </div>
+        </div>
+      </div>
+      <div class="module-sidebar-panel">
+        <div class="section-block">
+          <div class="section-title" style="font-size:0.9rem">📊 Module Progress</div>
+          <div style="text-align:center">
+            <svg class="progress-ring-svg" width="100" height="100" viewBox="0 0 100 100">
+              <circle class="progress-ring-track" cx="50" cy="50" r="40" stroke-width="6"/>
+              <circle class="progress-ring-fill" cx="50" cy="50" r="40" stroke-width="6"
+                stroke="${mod.color}" stroke-dasharray="251" stroke-dashoffset="${STATE.completedTopics.has(key)?0:188}"
+                transform="rotate(-90 50 50)" id="mod-ring-${key}"/>
+              <text x="50" y="55" text-anchor="middle" fill="${mod.color}" font-size="14" font-weight="700">${STATE.completedTopics.has(key)?'100':'25'}%</text>
+            </svg>
+          </div>
+          <div style="font-size:0.78rem;color:var(--text-secondary);text-align:center">${STATE.completedTopics.has(key)?'✅ Completed':'In Progress'}</div>
+        </div>
+        <div class="section-block">
+          <div class="section-title" style="font-size:0.9rem">⚡ XP Rewards</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:0.78rem">
+            <div style="display:flex;justify-content:space-between"><span>Open Topic</span><span class="text-mono text-accent">+10 XP</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Complete Module</span><span class="text-mono text-accent">+20 XP</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Quiz Pass</span><span class="text-mono text-accent">+50 XP</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Init interactive components
+  setTimeout(()=>{
+    if(key==='ad') initADSimulator();
+    if(key==='ldap') initLDAPSimulator();
+    if(key==='kerberos') initKerberosSimulator();
+    if(key==='gpo') initGPOSimulator();
+    if(key==='ecosystem') initEcosystemDiagram();
+  }, 100);
+}
+
+function completeModule(key){
+  if(!STATE.completedTopics.has(key)){
+    STATE.completedTopics.add(key);
+    addXP(20,'Module completed');
+    saveState();
+    updateDashboardChart();
+    
+    // Award badges based on topic
+    const badgeMap = {iam:'explorer',kerberos:'auth-expert',sso:'federation',mfa:'mfa-champion',ad:'auth-expert',entra:'auth-expert'};
+    if(badgeMap[key]) earnBadge(badgeMap[key]);
+    if(STATE.completedTopics.size>=6) earnBadge('authz-expert');
+    if(STATE.completedTopics.size>=12) earnBadge('expert');
+  } else {
+    showXPPopup(0,'Already completed!');
+  }
+}
+
+function renderQuizHTML(questions, modKey){
+  if(!questions.length) return '';
+  return `<div class="section-block">
+    <div class="section-title">📝 Knowledge Check</div>
+    ${questions.map((q,qi)=>`
+      <div class="quiz-container" id="quiz-${modKey}-${qi}">
+        <div class="quiz-q">Q${qi+1}: ${q.q}</div>
+        <div class="quiz-options">
+          ${q.opts.map((opt,oi)=>`
+            <div class="quiz-opt" onclick="answerQuiz('${modKey}',${qi},${oi},${q.correct},'${q.exp.replace(/'/g,'&#39;')}')">
+              <span class="quiz-opt-letter">${String.fromCharCode(65+oi)}</span>${opt}
+            </div>`).join('')}
+        </div>
+        <div class="quiz-feedback" id="qfb-${modKey}-${qi}"></div>
+      </div>
+    `).join('<div class="divider"></div>')}
+  </div>`;
+}
+
+function answerQuiz(modKey, qi, selectedIdx, correctIdx, explanation){
+  const container = document.getElementById(`quiz-${modKey}-${qi}`);
+  const feedback = document.getElementById(`qfb-${modKey}-${qi}`);
+  const opts = container.querySelectorAll('.quiz-opt');
+  
+  opts.forEach(o=>o.style.pointerEvents='none');
+  opts[correctIdx].classList.add('correct');
+  if(selectedIdx !== correctIdx) opts[selectedIdx].classList.add('wrong');
+  
+  const correct = selectedIdx === correctIdx;
+  feedback.className = 'quiz-feedback show ' + (correct?'ok':'fail');
+  feedback.innerHTML = (correct?'✅ Correct! ':'❌ Incorrect. ') + explanation;
+  
+  if(correct){
+    addXP(50,'Quiz correct answer');
+    STATE.quizScores.push(100);
+    saveState();
+    earnBadge('auth-expert');
+  } else {
+    STATE.quizScores.push(0);
+    saveState();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AD SIMULATOR
+// ═══════════════════════════════════════════════════════════
+function initADSimulator(){
+  const el = document.getElementById('ad-simulator');
+  if(!el) return;
+  let adData = {
+    domain: 'techcorp.com',
+    ous: [{name:'Engineering',users:['John Smith','Alice Chen'],groups:['Dev-Team']},
+          {name:'Finance',users:['Bob Kumar'],groups:['Finance-All']},
+          {name:'HR',users:['Priya Nair'],groups:['HR-Managers']}]
+  };
+  
+  function render(){
+    el.innerHTML = `
+      <div class="section-block" style="background:var(--bg-glass)">
+        <div class="flex gap-8 mb-12" style="flex-wrap:wrap">
+          <input class="input-field" id="ad-ou-name" placeholder="OU Name">
+          <button class="btn btn-primary btn-sm" onclick="adAddOU()">+ Add OU</button>
+          <input class="input-field" id="ad-user-name" placeholder="User Name">
+          <select class="input-field" id="ad-user-ou">${adData.ous.map(o=>`<option>${o.name}</option>`).join('')}</select>
+          <button class="btn btn-secondary btn-sm" onclick="adAddUser()">+ Add User</button>
+        </div>
+        <div class="ad-tree">
+          <div class="ad-node" style="background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.4)">🌐 ${adData.domain} (Root Domain)</div>
+          ${adData.ous.map(ou=>`
+            <div class="ad-children">
+              <div class="ad-node" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+                📁 OU=${ou.name}
+                <span style="margin-left:auto;font-size:0.7rem;color:var(--text-muted)">${ou.users.length} users</span>
+              </div>
+              <div class="ad-children" style="display:block">
+                ${ou.users.map(u=>`<div class="ad-node" style="background:rgba(16,185,129,0.05)">👤 ${u}</div>`).join('')}
+                ${ou.groups.map(g=>`<div class="ad-node" style="background:rgba(139,92,246,0.05)">👥 ${g}</div>`).join('')}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    
+    window.adAddOU = ()=>{
+      const name = document.getElementById('ad-ou-name').value.trim();
+      if(name){adData.ous.push({name,users:[],groups:[]});render();addXP(5,'AD action')}
+    };
+    window.adAddUser = ()=>{
+      const name = document.getElementById('ad-user-name').value.trim();
+      const ou = document.getElementById('ad-user-ou').value;
+      if(name){
+        const target = adData.ous.find(o=>o.name===ou);
+        if(target){target.users.push(name);render();addXP(5,'AD action')}
+      }
+    };
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════
+// LDAP SIMULATOR
+// ═══════════════════════════════════════════════════════════
+function initLDAPSimulator(){
+  const el = document.getElementById('ldap-simulator');
+  if(!el) return;
+  const ldapDB = {
+    'rahul.kumar':{cn:'Rahul Kumar',dept:'Engineering',email:'rahul.kumar@techcorp.com',manager:'Anita Patel',role:'Developer',dn:'CN=Rahul Kumar,OU=Engineering,DC=techcorp,DC=com'},
+    'priya.singh':{cn:'Priya Singh',dept:'HR',email:'priya.singh@techcorp.com',manager:'Ravi Sharma',role:'HR Manager',dn:'CN=Priya Singh,OU=HR,DC=techcorp,DC=com'},
+    'amit.patel':{cn:'Amit Patel',dept:'Finance',email:'amit.patel@techcorp.com',manager:'CFO Office',role:'Finance Analyst',dn:'CN=Amit Patel,OU=Finance,DC=techcorp,DC=com'},
+    'sunita.rao':{cn:'Sunita Rao',dept:'IT',email:'sunita.rao@techcorp.com',manager:'CTO Office',role:'Sysadmin',dn:'CN=Sunita Rao,OU=IT,DC=techcorp,DC=com'},
+  };
+  
+  el.innerHTML = `
+    <div class="section-block" style="background:var(--bg-glass)">
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px">Try: rahul.kumar, priya.singh, amit.patel, sunita.rao</div>
+      <div class="input-row">
+        <input class="input-field" id="ldap-search" placeholder="Search username (e.g. rahul.kumar)" style="flex:2">
+        <button class="btn btn-primary btn-sm" onclick="runLDAPSearch()">🔍 Search</button>
+      </div>
+      <div id="ldap-result" style="font-family:var(--font-mono);font-size:0.78rem;min-height:100px;padding:12px;background:var(--bg-primary);border-radius:8px;border:1px solid var(--border);color:var(--text-secondary)">
+        Enter a username and click Search...
+      </div>
+    </div>`;
+  
+  window.runLDAPSearch = ()=>{
+    const q = document.getElementById('ldap-search').value.trim().toLowerCase();
+    const res = document.getElementById('ldap-result');
+    const user = ldapDB[q];
+    if(user){
+      res.innerHTML = `<span style="color:var(--accent-green)">dn: ${user.dn}</span>
+<span style="color:var(--accent-cyan)">cn: ${user.cn}</span>
+<span style="color:var(--text-primary)">department: ${user.dept}</span>
+<span style="color:var(--text-primary)">mail: ${user.email}</span>
+<span style="color:var(--text-primary)">manager: ${user.manager}</span>
+<span style="color:var(--text-primary)">title: ${user.role}</span>
+<span style="color:var(--text-muted)">objectClass: person, organizationalPerson, user</span>
+<span style="color:var(--accent-green)">✓ 1 result returned</span>`;
+      addXP(5,'LDAP search');
+    } else {
+      res.innerHTML = `<span style="color:var(--accent-red)">Search failed: No object found for "${q}"</span>
+<span style="color:var(--text-muted)">LDAP: 32 No Such Object</span>`;
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// KERBEROS SIMULATOR
+// ═══════════════════════════════════════════════════════════
+function initKerberosSimulator(){
+  const el = document.getElementById('kerb-simulator');
+  if(!el) return;
+  let step = 0;
+  const steps = [
+    {msg:'User enters username + password',actors:[1,0,0,0],status:'1. Authentication Request'},
+    {msg:'KDC verifies credentials in AD',actors:[0,1,0,0],status:'2. Credential Verification'},
+    {msg:'KDC issues Ticket Granting Ticket (TGT)',actors:[0,1,1,0],status:'3. TGT Issued'},
+    {msg:'User requests Service Ticket using TGT',actors:[1,0,1,0],status:'4. Service Ticket Request'},
+    {msg:'KDC issues Service Ticket',actors:[0,1,0,1],status:'5. Service Ticket Issued'},
+    {msg:'User presents Service Ticket to Application',actors:[1,0,0,1],status:'6. Access Granted ✅'},
+  ];
+  
+  function render(){
+    const s = steps[step];
+    el.innerHTML = `
+      <div class="section-block" style="background:var(--bg-glass)">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--accent-cyan);margin-bottom:12px;text-align:center">${s.status}</div>
+        <div class="kerb-actors">
+          ${['👤 User','🏛️ KDC','🎟️ TGT','🖥️ App'].map((a,i)=>`
+            <div class="kerb-actor">
+              <div class="kerb-actor-icon" style="${s.actors[i]?'border-color:var(--accent-cyan);background:rgba(6,182,212,0.12);transform:scale(1.1)':''}">${a.split(' ')[0]}</div>
+              <div class="kerb-actor-label">${a.split(' ').slice(1).join(' ')}</div>
+            </div>`).join('')}
+        </div>
+        <div class="kerb-msg-box active" style="margin:8px 0">${s.msg}</div>
+        <div class="kerb-controls">
+          <button class="btn btn-secondary btn-sm" onclick="kerbStep(-1)" ${step===0?'disabled':''}>← Prev</button>
+          <button class="btn btn-primary btn-sm" onclick="kerbStep(1)" ${step===steps.length-1?'disabled':''}>Next →</button>
+          <button class="btn btn-secondary btn-sm" onclick="kerbReset()">↺ Reset</button>
+          <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;line-height:2">Step ${step+1}/${steps.length}</span>
+        </div>
+      </div>`;
+    window.kerbStep=(d)=>{ step=Math.max(0,Math.min(steps.length-1,step+d));if(d>0)addXP(2,'Kerberos step');render(); };
+    window.kerbReset=()=>{ step=0;render(); };
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════
+// GPO SIMULATOR
+// ═══════════════════════════════════════════════════════════
+function initGPOSimulator(){
+  const el = document.getElementById('gpo-simulator');
+  if(!el) return;
+  const policies = [
+    {name:'Password Min Length',type:'Security',val:'12 characters',icon:'🔐'},
+    {name:'USB Drive Block',type:'Device Control',val:'Enabled',icon:'🚫'},
+    {name:'Screen Lock Timeout',type:'Security',val:'5 minutes',icon:'🖥️'},
+    {name:'Audit Logon Events',type:'Auditing',val:'Success + Failure',icon:'📋'},
+    {name:'Windows Update',type:'Software',val:'Auto-download',icon:'⬇️'},
+  ];
+  let applied = new Set();
+  
+  function render(){
+    el.innerHTML = `
+      <div class="section-block" style="background:var(--bg-glass)">
+        <div style="font-size:0.85rem;font-weight:700;margin-bottom:12px">Group Policy Editor — GPO: Default Domain Policy</div>
+        ${policies.map((p,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:6px;background:${applied.has(i)?'rgba(16,185,129,0.08)':'var(--bg-glass)'};border:1px solid ${applied.has(i)?'rgba(16,185,129,0.3)':'var(--border)'}">
+            <span style="font-size:1.1rem">${p.icon}</span>
+            <div style="flex:1">
+              <div style="font-size:0.82rem;font-weight:600">${p.name}</div>
+              <div style="font-size:0.72rem;color:var(--text-muted)">${p.type} · Value: <span style="color:var(--accent-cyan)">${p.val}</span></div>
+            </div>
+            <button onclick="applyPolicy(${i})" class="btn btn-sm" style="background:${applied.has(i)?'rgba(16,185,129,0.15)':'rgba(59,130,246,0.15)'};border:1px solid ${applied.has(i)?'rgba(16,185,129,0.3)':'rgba(59,130,246,0.3)'};color:${applied.has(i)?'var(--accent-green)':'var(--accent-blue)'}">
+              ${applied.has(i)?'✓ Applied':'Apply'}
+            </button>
+          </div>`).join('')}
+        <div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);font-size:0.8rem">
+          📊 Policies Applied: <strong style="color:var(--accent-cyan)">${applied.size}</strong> / ${policies.length} · 
+          Devices Affected: <strong style="color:var(--accent-green)">${applied.size * 47}</strong>
+        </div>
+      </div>`;
+    window.applyPolicy=(i)=>{if(!applied.has(i)){applied.add(i);addXP(5,'GPO applied');render();}};
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ECOSYSTEM DIAGRAM
+// ═══════════════════════════════════════════════════════════
+function initEcosystemDiagram(){
+  const el = document.getElementById('ecosystem-diagram');
+  if(!el) return;
+  const nodes = [
+    {id:'hr',x:50,y:20,label:'HR System',icon:'🏢',color:'#3b82f6'},
+    {id:'identity',x:50,y:33,label:'Enterprise Identity',icon:'👤',color:'#06b6d4'},
+    {id:'ad',x:50,y:46,label:'Active Directory',icon:'🖥️',color:'#8b5cf6'},
+    {id:'ldap',x:20,y:60,label:'LDAP',icon:'🔍',color:'#10b981'},
+    {id:'kerb',x:50,y:60,label:'Kerberos',icon:'🎟️',color:'#f59e0b'},
+    {id:'gpo',x:80,y:60,label:'Group Policy',icon:'📜',color:'#ef4444'},
+    {id:'sso',x:50,y:73,label:'SSO / Federation',icon:'🔗',color:'#ec4899'},
+    {id:'entra',x:50,y:86,label:'Entra ID',icon:'☁️',color:'#3b82f6'},
+  ];
+  const apps = ['Microsoft 365','Salesforce','AWS','ServiceNow'];
+  
+  el.innerHTML = `
+    <div style="position:relative;background:var(--bg-glass);border:1px solid var(--border);border-radius:14px;padding:20px;overflow:auto">
+      <svg viewBox="0 0 500 380" style="width:100%;max-width:600px;display:block;margin:0 auto">
+        <defs>
+          <marker id="eco-arr" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto">
+            <polygon points="0 0, 6 2.5, 0 5" fill="rgba(99,179,237,0.5)"/>
+          </marker>
+        </defs>
+        <!-- Connections -->
+        <line x1="250" y1="55" x2="250" y2="105" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="250" y1="130" x2="250" y2="165" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="230" y1="195" x2="110" y2="218" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="250" y1="195" x2="250" y2="218" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="270" y1="195" x2="390" y2="218" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="110" y1="250" x2="200" y2="273" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="250" y1="250" x2="250" y2="273" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="390" y1="250" x2="300" y2="273" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <line x1="250" y1="300" x2="250" y2="323" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" marker-end="url(#eco-arr)"/>
+        <!-- Nodes -->
+        <g onclick="ecoClick('hr')"><rect x="190" y="20" width="120" height="36" rx="8" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.4)" stroke-width="1.5"/><text x="250" y="38" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="700">🏢 HR System</text><text x="250" y="50" text-anchor="middle" fill="#94a3b8" font-size="9">Source of Truth</text></g>
+        <g onclick="ecoClick('identity')"><rect x="190" y="105" width="120" height="36" rx="8" fill="rgba(6,182,212,0.15)" stroke="rgba(6,182,212,0.4)" stroke-width="1.5"/><text x="250" y="123" text-anchor="middle" fill="#06b6d4" font-size="11" font-weight="700">👤 Enterprise Identity</text><text x="250" y="135" text-anchor="middle" fill="#94a3b8" font-size="9">IDM Platform</text></g>
+        <g onclick="ecoClick('ad')"><rect x="190" y="165" width="120" height="36" rx="8" fill="rgba(139,92,246,0.15)" stroke="rgba(139,92,246,0.4)" stroke-width="1.5"/><text x="250" y="183" text-anchor="middle" fill="#8b5cf6" font-size="11" font-weight="700">🖥️ Active Directory</text><text x="250" y="195" text-anchor="middle" fill="#94a3b8" font-size="9">Domain Controller</text></g>
+        <g onclick="ecoClick('ldap')"><rect x="50" y="218" width="100" height="34" rx="8" fill="rgba(16,185,129,0.12)" stroke="rgba(16,185,129,0.35)" stroke-width="1.5"/><text x="100" y="236" text-anchor="middle" fill="#10b981" font-size="10" font-weight="700">🔍 LDAP</text><text x="100" y="247" text-anchor="middle" fill="#94a3b8" font-size="9">Directory Query</text></g>
+        <g onclick="ecoClick('kerb')"><rect x="195" y="218" width="110" height="34" rx="8" fill="rgba(245,158,11,0.12)" stroke="rgba(245,158,11,0.35)" stroke-width="1.5"/><text x="250" y="236" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="700">🎟️ Kerberos</text><text x="250" y="247" text-anchor="middle" fill="#94a3b8" font-size="9">Auth Protocol</text></g>
+        <g onclick="ecoClick('gpo')"><rect x="340" y="218" width="110" height="34" rx="8" fill="rgba(239,68,68,0.12)" stroke="rgba(239,68,68,0.35)" stroke-width="1.5"/><text x="395" y="236" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="700">📜 Group Policy</text><text x="395" y="247" text-anchor="middle" fill="#94a3b8" font-size="9">Policy Engine</text></g>
+        <g onclick="ecoClick('sso')"><rect x="185" y="273" width="130" height="34" rx="8" fill="rgba(236,72,153,0.12)" stroke="rgba(236,72,153,0.35)" stroke-width="1.5"/><text x="250" y="291" text-anchor="middle" fill="#ec4899" font-size="10" font-weight="700">🔗 SSO / Federation</text><text x="250" y="302" text-anchor="middle" fill="#94a3b8" font-size="9">SAML · OAuth · OIDC</text></g>
+        <g onclick="ecoClick('entra')"><rect x="190" y="323" width="120" height="36" rx="8" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.5)" stroke-width="1.5"/><text x="250" y="341" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="700">☁️ Entra ID</text><text x="250" y="353" text-anchor="middle" fill="#94a3b8" font-size="9">Cloud IAM</text></g>
+      </svg>
+      <div id="eco-info" style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:8px">Click any node to learn more</div>
+    </div>`;
+  
+  const info = {
+    hr:'HR System is the source of truth — employee data flows from here into the identity system.',
+    identity:'Enterprise Identity Management (IDM) aggregates and normalizes identity data from HR and other sources.',
+    ad:'Active Directory is the on-premises identity store and authentication authority for Windows environments.',
+    ldap:'LDAP is the protocol applications use to query Active Directory for user and group information.',
+    kerb:'Kerberos handles secure authentication in AD environments using tickets instead of passwords.',
+    gpo:'Group Policy Objects enforce security settings, software installations, and configurations across all domain computers.',
+    sso:'SSO/Federation allows users to authenticate once and access cloud and on-premises applications seamlessly.',
+    entra:'Microsoft Entra ID extends identity to the cloud, providing MFA, Conditional Access, and cloud app SSO.'
+  };
+  window.ecoClick=(id)=>{
+    document.getElementById('eco-info').innerHTML = `<strong style="color:var(--accent-cyan)">${id.toUpperCase()}</strong> — ${info[id]}`;
+    addXP(2,'Ecosystem click');
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// DIRECTORY CLICK
+// ═══════════════════════════════════════════════════════════
+const dirInfo = {
+  company:'Root of the directory tree. Contains all objects in the techcorp.com domain.',
+  users:'OU=Users: Container for all user accounts in the organization.',
+  u1:'CN=Rahul Sharma: Distinguished Name = CN=Rahul Sharma,OU=Users,DC=techcorp,DC=com',
+  u2:'CN=Priya Singh: Distinguished Name = CN=Priya Singh,OU=Users,DC=techcorp,DC=com',
+  groups:'OU=Groups: Container for security and distribution groups.',
+  g1:'CN=HR-Team: Security group for HR department members.',
+  g2:'CN=Finance-Team: Security group for Finance department members.',
+  computers:'OU=Computers: Container for computer accounts joined to the domain.',
+  servers:'OU=Servers: Container for server computer accounts.',
+};
+window.selectDir=(el,key)=>{
+  document.querySelectorAll('.dir-item').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+  const info = document.getElementById('dir-info');
+  if(info) info.textContent = dirInfo[key] || 'No info available.';
+};
+
+// ═══════════════════════════════════════════════════════════
+// LABS
+// ═══════════════════════════════════════════════════════════
+function loadLab(key){
+  const container = document.getElementById('lab-content');
+  if(key==='rbac') renderRBACLab(container);
+  else if(key==='provisioning') renderProvisioningLab(container);
+  else if(key==='deprovisioning') renderDeprovisioningLab(container);
+  else if(key==='adlab') renderADLab(container);
+  else if(key==='ldaplab') renderLDAPLab(container);
+  container.scrollIntoView({behavior:'smooth'});
+}
+
+function renderRBACLab(container){
+  const users = ['Raj Mehta','Priya Sharma','Amit Singh','Sunita Rao'];
+  const roles = ['HR Manager','Finance Manager','IT Administrator','Developer'];
+  const correct = {'Raj Mehta':'HR Manager','Priya Sharma':'Finance Manager','Amit Singh':'IT Administrator','Sunita Rao':'Developer'};
+  const assigned = {};
+  
+  container.innerHTML = `
+    <div class="lab-container mt-20">
+      <div class="lab-header">
+        <div class="lab-badge">Lab 1</div>
+        <div><div class="lab-title">🎭 RBAC Practice Lab</div><div style="font-size:0.8rem;color:var(--text-muted)">Drag users to their correct roles</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Users</div>
+          <div id="rbac-users">
+            ${users.map(u=>`<div class="drag-chip drag-chip-user" draggable="true" id="rbac-u-${u.replace(/ /g,'-')}" ondragstart="rbacDragStart(event,'${u}')">${u}</div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Roles</div>
+          ${roles.map(r=>`
+            <div class="drag-zone mb-8" id="rbac-zone-${r.replace(/ /g,'-')}" ondragover="event.preventDefault()" ondrop="rbacDrop(event,'${r}')">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);margin-bottom:4px">${r}</div>
+              <div id="rbac-dropped-${r.replace(/ /g,'-')}" style="min-height:28px"></div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="flex gap-8 mt-16">
+        <button class="btn btn-primary btn-sm" onclick="checkRBAC()">✓ Check Assignment</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadLab('rbac')">↺ Reset</button>
+      </div>
+      <div id="rbac-feedback" class="mt-12"></div>
+    </div>`;
+  
+  window.rbacDragStart=(e,user)=>e.dataTransfer.setData('text',user);
+  window.rbacDrop=(e,role)=>{
+    const user=e.dataTransfer.getData('text');
+    assigned[user]=role;
+    const dropEl = document.getElementById(`rbac-dropped-${role.replace(/ /g,'-')}`);
+    dropEl.innerHTML = `<div class="drag-chip drag-chip-user" style="margin:2px 0">${user}</div>`;
+    // Remove from users panel
+    const userEl = document.getElementById(`rbac-u-${user.replace(/ /g,'-')}`);
+    if(userEl) userEl.style.display='none';
+  };
+  window.checkRBAC=()=>{
+    let correct_count=0;
+    Object.entries(assigned).forEach(([u,r])=>{ if(correct[u]===r) correct_count++; });
+    const total=users.length, pct=Math.round((correct_count/total)*100);
+    const fb = document.getElementById('rbac-feedback');
+    fb.innerHTML = `
+      <div style="padding:12px;border-radius:8px;background:${pct===100?'rgba(16,185,129,0.1)':'rgba(245,158,11,0.1)'};border:1px solid ${pct===100?'rgba(16,185,129,0.3)':'rgba(245,158,11,0.3)'}">
+        <div style="font-weight:700;color:${pct===100?'var(--accent-green)':'var(--accent-orange)'}">
+          ${pct===100?'✅ Perfect RBAC Assignment!':'⚠️ Some roles are incorrect'}
+        </div>
+        <div style="font-size:0.8rem;margin-top:6px;color:var(--text-secondary)">Score: ${correct_count}/${total} · ${pct}%</div>
+        ${pct<100?`<div style="font-size:0.78rem;margin-top:8px;color:var(--text-muted)">Correct: ${users.map(u=>`${u} → ${correct[u]}`).join(', ')}</div>`:''}
+      </div>`;
+    if(pct===100){ addXP(50,'RBAC Lab completed'); earnBadge('rbac-master'); STATE.completedLabs.add('rbac'); updateUI(); saveState(); }
+  };
+}
+
+function renderProvisioningLab(container){
+  let currentStep = 0;
+  const steps = [
+    {title:'1. Create User Account',icon:'👤',desc:'Enter user details and create account in Active Directory.',action:'Create User',field:'Username',placeholder:'e.g. john.smith'},
+    {title:'2. Assign to Group',icon:'👥',desc:'Assign user to appropriate security group for their department.',action:'Assign Group',field:'Group',placeholder:'e.g. IT-Department'},
+    {title:'3. Assign Role',icon:'🎭',desc:'Set RBAC role to define access permissions.',action:'Assign Role',field:'Role',placeholder:'e.g. Developer'},
+    {title:'4. Enable MFA',icon:'📱',desc:'Enforce multi-factor authentication for security.',action:'Enable MFA',field:'MFA Method',placeholder:'TOTP / Push / Hardware'},
+    {title:'5. Send Welcome Email',icon:'📧',desc:'Notify user of credentials and onboarding instructions.',action:'Send Email',field:'Email',placeholder:'user@company.com'},
+  ];
+  
+  function render(){
+    const s = steps[currentStep];
+    container.innerHTML = `
+      <div class="lab-container mt-20">
+        <div class="lab-header">
+          <div class="lab-badge">Lab 2</div>
+          <div><div class="lab-title">⚙️ Provisioning Simulator</div><div style="font-size:0.8rem;color:var(--text-muted)">Step ${currentStep+1} of ${steps.length}</div></div>
+        </div>
+        <!-- Steps indicator -->
+        <div style="display:flex;gap:0;margin-bottom:20px">
+          ${steps.map((_,i)=>`<div style="flex:1;height:4px;background:${i<=currentStep?'var(--accent-blue)':'var(--border)'};border-radius:${i===0?'2px 0 0 2px':i===steps.length-1?'0 2px 2px 0':''};transition:background 0.3s"></div>`).join('')}
+        </div>
+        <div style="text-align:center;padding:20px">
+          <div style="font-size:3rem;margin-bottom:8px">${s.icon}</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin-bottom:8px">${s.title}</div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:20px">${s.desc}</div>
+          <div class="input-row" style="justify-content:center;max-width:320px;margin:0 auto 16px">
+            <input class="input-field" id="prov-field" placeholder="${s.placeholder}">
+          </div>
+          <button class="btn btn-primary" onclick="provNext()">
+            ${currentStep<steps.length-1?s.action+' →':'🎉 Provisioning Complete!'}
+          </button>
+        </div>
+        ${currentStep>0?`<div style="padding:10px 14px;background:rgba(16,185,129,0.06);border-radius:8px;border:1px solid rgba(16,185,129,0.2)">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--accent-green);margin-bottom:6px">✓ Completed Steps</div>
+          ${steps.slice(0,currentStep).map(s=>`<div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:2px">✓ ${s.title}</div>`).join('')}
+        </div>`:''}
+      </div>`;
+    
+    window.provNext=()=>{
+      if(currentStep<steps.length-1){
+        currentStep++;addXP(5,'Provisioning step');render();
+      } else {
+        addXP(50,'Provisioning lab complete');STATE.completedLabs.add('provisioning');updateUI();saveState();
+        container.querySelector('.lab-container').innerHTML += `<div style="text-align:center;padding:16px;margin-top:16px;background:rgba(16,185,129,0.1);border-radius:10px;border:1px solid rgba(16,185,129,0.3)"><div style="font-size:2rem">🎉</div><div style="font-weight:700;color:var(--accent-green)">User Successfully Provisioned!</div><div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">+50 XP earned</div></div>`;
+      }
+    };
+  }
+  render();
+}
+
+function renderDeprovisioningLab(container){
+  const steps = [
+    {label:'Disable Active Directory Account',risk:'If skipped: User can still log in',icon:'🚫'},
+    {label:'Remove All Group Memberships',risk:'If skipped: User retains access to shared resources',icon:'👥'},
+    {label:'Revoke All Active Sessions & Tokens',risk:'If skipped: Existing sessions remain valid for hours/days',icon:'🎫'},
+    {label:'Remove Application Access (SaaS)',risk:'If skipped: User can access business apps externally',icon:'🔓'},
+    {label:'Transfer / Archive Data',risk:'If skipped: Critical data may be lost',icon:'📁'},
+    {label:'Document & Close Ticket',risk:'If skipped: No audit trail, compliance violation',icon:'📋'},
+  ];
+  let done = new Set();
+  
+  function render(){
+    container.innerHTML = `
+      <div class="lab-container mt-20">
+        <div class="lab-header">
+          <div class="lab-badge">Lab 3</div>
+          <div><div class="lab-title">🗑️ Deprovisioning Simulator</div><div style="font-size:0.8rem;color:var(--text-muted)">Complete offboarding — don't skip steps!</div></div>
+        </div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px">Employee Rahul Sharma has resigned. Complete secure offboarding:</div>
+        ${steps.map((s,i)=>`
+          <div class="audit-item ${done.has(i)?'resolved':''}">
+            <span style="font-size:1.2rem">${s.icon}</span>
+            <div style="flex:1">
+              <div style="font-size:0.83rem;font-weight:600">${s.label}</div>
+              <div style="font-size:0.72rem;color:${done.has(i)?'var(--text-muted)':'var(--accent-red)'}">${done.has(i)?'✓ Completed':s.risk}</div>
+            </div>
+            ${done.has(i)?'<span style="color:var(--accent-green);font-weight:700">✓</span>':
+            `<button class="audit-resolve-btn" onclick="deprovStep(${i})">Execute</button>`}
+          </div>`).join('')}
+        <div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);font-size:0.8rem">
+          Progress: ${done.size}/${steps.length} · Security Risk: 
+          <strong style="color:${done.size===steps.length?'var(--accent-green)':done.size>3?'var(--accent-orange)':'var(--accent-red)'}">${done.size===steps.length?'ZERO — Fully Secure':done.size>3?'LOW':'HIGH'}</strong>
+        </div>
+      </div>`;
+    window.deprovStep=(i)=>{done.add(i);addXP(5,'Deprov step');if(done.size===steps.length){STATE.completedLabs.add('deprovisioning');updateUI();saveState();addXP(25,'Deprovisioning complete');}render();};
+  }
+  render();
+}
+
+function renderADLab(container){
+  container.innerHTML = `<div class="lab-container mt-20"><div class="lab-header"><div class="lab-badge">Lab 4</div><div class="lab-title">🖥️ Active Directory Lab</div></div><div id="ad-lab-inner"></div></div>`;
+  const inner = document.getElementById('ad-lab-inner');
+  inner.innerHTML = '<div id="ad-simulator"></div>';
+  setTimeout(()=>initADSimulator(),50);
+  addXP(10,'AD Lab opened');STATE.completedLabs.add('adlab');updateUI();saveState();
+}
+
+function renderLDAPLab(container){
+  container.innerHTML = `<div class="lab-container mt-20"><div class="lab-header"><div class="lab-badge">Lab 5</div><div class="lab-title">🔍 LDAP Search Lab</div></div><div id="ldap-simulator"></div></div>`;
+  setTimeout(()=>initLDAPSimulator(),50);
+  addXP(10,'LDAP Lab opened');STATE.completedLabs.add('ldaplab');updateUI();saveState();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENARIOS
+// ═══════════════════════════════════════════════════════════
+const SCENARIOS = [
+  {id:1,title:'Suspicious Login Attempt',cat:'Authentication',icon:'🚨',scenario:'An employee account shows 50 failed logins from an IP in Russia at 3 AM. What do you do?',options:['Ignore — probably just a typo','Lock the account and alert the SOC team','Allow — employee might be traveling','Disable all logins temporarily'],correct:1,exp:'Locking the account and alerting the SOC team is the correct response. This pattern indicates a brute-force attack. Time is critical.'},
+  {id:2,title:'Excessive Permissions',cat:'Authorization',icon:'🔓',scenario:'During an access review, you notice a developer has Admin access to the Finance module. They say they needed it 6 months ago.',options:['Keep the access — they may need it again','Remove access immediately','Ask manager and remove if not needed','Ignore — they haven\'t used it'],correct:2,exp:'Follow the Principle of Least Privilege. Access should be removed unless there\'s a current, approved business need.'},
+  {id:3,title:'MFA Bypass Request',cat:'MFA',icon:'📱',scenario:'A senior executive asks you to disable MFA for their account because it\'s "inconvenient". What do you do?',options:['Disable MFA — executives get exceptions','Explain security risks, offer alternatives','Send an email and wait','Escalate to CEO'],correct:1,exp:'No account should be exempt from MFA. Offer alternatives like push notifications or hardware tokens that are less disruptive.'},
+  {id:4,title:'Orphaned Accounts',cat:'User Lifecycle',icon:'👻',scenario:'A quarterly review shows 15 active accounts of employees who left 6 months ago. What is the immediate action?',options:['Archive the accounts for records','Disable accounts immediately and audit access logs','Delete all accounts right away','Send emails to the accounts'],correct:1,exp:'Disable (not delete) immediately to prevent unauthorized access while preserving logs. Then conduct a full audit to determine if any were misused.'},
+  {id:5,title:'Shared Service Account',cat:'PAM',icon:'🔐',scenario:'You discover 8 developers are sharing one privileged service account password. What should you do?',options:['Change the password annually','Implement individual accounts with PAM solution','Create 2 shared accounts instead','Document who knows the password'],correct:1,exp:'Shared accounts eliminate accountability and auditability. Implement a PAM solution to manage privileged access individually with full audit trails.'},
+  {id:6,title:'LDAP Injection Risk',cat:'LDAP',icon:'🔍',scenario:'A developer shows you code that builds LDAP queries using raw user input without sanitization. What is the risk?',options:['No risk — LDAP is internal only','LDAP injection attack can expose all directory data','Slightly slower performance','It might break on special characters only'],correct:1,exp:'LDAP injection can allow attackers to extract all directory data or bypass authentication. Input must be sanitized and parameterized queries used.'},
+  {id:7,title:'Kerberoasting Alert',cat:'Active Directory',icon:'🎟️',scenario:'Your SIEM alerts that a user account is requesting service tickets for 20 SPNs in 2 minutes. What is happening?',options:['Normal behavior — user is multi-tasking','Kerberoasting attack — extract and crack tickets offline','System bug in Kerberos','User is running audit scripts'],correct:1,exp:'Kerberoasting is an attack where an attacker requests many service tickets to crack offline and compromise service accounts. Alert, isolate, and investigate immediately.'},
+  {id:8,title:'Conditional Access Gap',cat:'Cloud IAM',icon:'☁️',scenario:'An Entra ID report shows users can access M365 from any country, any device, with no MFA. Headquarters is India only. What policy should be applied?',options:['No change needed','Block all non-India IPs completely','Require MFA for non-compliant devices and untrusted locations','Disable cloud access entirely'],correct:2,exp:'Conditional Access should enforce MFA for logins from unmanaged devices or unexpected locations while keeping productivity intact.'},
+  {id:9,title:'Zero Trust Violation',cat:'Zero Trust',icon:'🚫',scenario:'Internal systems automatically trust all traffic from the corporate network. An attacker gets inside via VPN. What is the risk?',options:['No risk — VPN is secure','Attacker can move laterally unrestricted','Only the VPN server is exposed','Firewall will block internal movement'],correct:1,exp:'Implicit trust of internal network is the opposite of Zero Trust. With Zero Trust, every request must be verified regardless of origin.'},
+  {id:10,title:'SSO Token Theft',cat:'SSO',icon:'🔗',scenario:'An attacker steals a valid SAML assertion token from a user\'s session. What can they do with it?',options:['Nothing — tokens are encrypted','Access all apps the user has SSO access to','Access only the specific app the token was for','Reset the user\'s password'],correct:1,exp:'A stolen valid SAML assertion allows an attacker to impersonate the victim across ALL applications covered by that IdP\'s SSO. Implement short token lifetimes and anomaly detection.'},
+  {id:11,title:'Password Hash Exposure',cat:'Authentication',icon:'🔑',scenario:'A database breach exposes MD5-hashed passwords. How serious is this?',options:['Not serious — hashes can\'t be reversed','Very serious — MD5 is broken and rainbow tables crack most passwords instantly','Moderately serious — need time to crack','Not serious — add salt and it\'s fine'],correct:1,exp:'MD5 is cryptographically broken. Rainbow table attacks and fast GPU cracking can reverse most MD5 hashes in minutes. Modern systems should use bcrypt, scrypt, or Argon2.'},
+  {id:12,title:'Trust Exploitation',cat:'Active Directory',icon:'🤝',scenario:'Domain A has transitive two-way trust with Domain B. Domain B is compromised. What is the risk to Domain A?',options:['No risk — domains are isolated','Attacker in Domain B can attack Domain A via trust','Only data in Domain B is at risk','Kerberos prevents cross-domain attacks'],correct:1,exp:'Domain trusts are a major attack vector. A compromised trusted domain can be used to attack the trusting domain. Trust relationships must be carefully audited.'},
+  {id:13,title:'RBAC Creep',cat:'Authorization',icon:'🎭',scenario:'Over 3 years, a user has accumulated permissions from every project they worked on. They now have access to 47 different systems. What is this called?',options:['Normal career progression','Privilege escalation','Permission creep (privilege creep)','User lifecycle management'],correct:2,exp:'Permission creep occurs when users accumulate access over time and never have it removed. Regular access reviews and recertification campaigns prevent this.'},
+  {id:14,title:'Weak Group Policy',cat:'Group Policy',icon:'📜',scenario:'Workstations have no screensaver lock policy. An employee leaves their computer unlocked for lunch. What is the risk?',options:['None — the office is secure','Unauthorized physical access to data and systems','Slight inconvenience','Screensavers waste resources'],correct:1,exp:'Unattended unlocked workstations are a significant physical security risk. Group Policy should enforce screen lock after 5-10 minutes.'},
+  {id:15,title:'Service Account Exposure',cat:'PAM',icon:'🤖',scenario:'A service account has Domain Admin privileges and its password is in a config file on 20 servers. What should you do?',options:['That\'s normal — service accounts need high privilege','Remove Domain Admin, use least privilege, and use secrets management','Rotate the password every 90 days','Convert to a user account'],correct:1,exp:'Service accounts should have minimum necessary permissions. Secrets should be managed by a PAM solution, not stored in config files.'},
+  {id:16,title:'Federation Attack',cat:'SSO',icon:'🔗',scenario:'An attacker compromises the SAML signing certificate of your Identity Provider. What can they do?',options:['Nothing — SAML is secure','Issue valid signed assertions for any user including admins','Only see assertion contents','Disrupt SSO availability only'],correct:1,exp:'If an attacker has the IdP signing key, they can forge valid SAML assertions for any user including administrators — a "Golden SAML" attack. Protect IdP keys rigorously.'},
+  {id:17,title:'Cloud Identity Gap',cat:'Cloud IAM',icon:'☁️',scenario:'Your company uses AWS, Azure, and GCP each with separate identity systems. What is the best approach?',options:['Manage each separately for isolation','Implement federated identity with a central IdP','Use only one cloud provider','Create separate user accounts per cloud'],correct:1,exp:'Federated identity with a central IdP (like Entra ID) provides consistent governance, MFA, and access control across all cloud platforms.'},
+  {id:18,title:'Account Takeover Detection',cat:'Authentication',icon:'🔍',scenario:'A user account normally logs in from Pune at 9 AM, but today logged in from London at 2 PM and Pune at 3 PM. What does this indicate?',options:['User is traveling quickly','Impossible Travel — likely account takeover','Time zone error in logging','VPN usage'],correct:1,exp:'"Impossible Travel" is a key indicator of account compromise. No human can travel from Pune to London in 1 hour. This should trigger immediate account review and MFA re-verification.'},
+  {id:19,title:'Insider Threat',cat:'Authorization',icon:'👤',scenario:'An employee is leaving in 2 weeks. They suddenly start downloading large amounts of data. What do you do?',options:['Wait until their last day to deprovision','Immediately reduce to read-only, monitor, and HR investigate','Ignore — normal pre-departure behavior','Delete their account immediately'],correct:1,exp:'Insider threats spike during notice periods. Reduce access immediately as a precaution while HR and legal review. Immediate account deletion could destroy evidence.'},
+  {id:20,title:'Zero Trust Architecture',cat:'Zero Trust',icon:'🛡️',scenario:'Which principle best describes Zero Trust Architecture?',options:['Trust internal users, verify external','Never trust, always verify — every request authenticated regardless of source','Trust but verify only for cloud access','Verify only privileged accounts'],correct:1,exp:'"Never trust, always verify" is the Zero Trust principle. Every access request must be authenticated, authorized, and continuously validated regardless of network location.'},
+];
+
+let currentScenario = 0;
+let scenarioScore = 0;
+
+function initScenarios(){
+  currentScenario=0; scenarioScore=0;
+  renderScenario();
+}
+
+function renderScenario(){
+  const sc = SCENARIOS[currentScenario];
+  const container = document.getElementById('scenario-container');
+  container.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <span class="tag tag-purple" style="margin-right:8px">${sc.cat}</span>
+        <span style="font-size:0.8rem;color:var(--text-muted)">Scenario ${currentScenario+1} of ${SCENARIOS.length}</span>
+      </div>
+      <div style="font-size:0.82rem;font-weight:700;color:var(--accent-cyan)">Score: ${scenarioScore}/${currentScenario}</div>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(139,92,246,0.06));border:1px solid rgba(99,179,237,0.25);border-radius:12px;padding:20px;margin-bottom:20px">
+      <div style="font-size:2rem;margin-bottom:8px">${sc.icon}</div>
+      <div style="font-family:var(--font-display);font-weight:700;font-size:1rem;margin-bottom:10px">${sc.title}</div>
+      <div style="font-size:0.88rem;line-height:1.6;color:var(--text-secondary)">${sc.scenario}</div>
+    </div>
+    <div class="quiz-options" id="sc-opts">
+      ${sc.options.map((o,i)=>`
+        <div class="quiz-opt" onclick="answerScenario(${i},${sc.correct},'${sc.exp.replace(/'/g,'&#39;')}')">
+          <span class="quiz-opt-letter">${String.fromCharCode(65+i)}</span>${o}
+        </div>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="sc-fb"></div>
+    <div class="xp-bar-track mt-12" style="height:4px"><div class="xp-bar-fill" style="width:${(currentScenario/SCENARIOS.length)*100}%"></div></div>`;
+}
+
+window.answerScenario=(selected,correct,exp)=>{
+  const opts = document.querySelectorAll('#sc-opts .quiz-opt');
+  opts.forEach(o=>o.style.pointerEvents='none');
+  opts[correct].classList.add('correct');
+  if(selected!==correct) opts[selected].classList.add('wrong');
+  const ok = selected===correct;
+  if(ok){scenarioScore++;addXP(25,'Scenario correct');}
+  const fb = document.getElementById('sc-fb');
+  fb.className='quiz-feedback show '+(ok?'ok':'fail');
+  fb.innerHTML=(ok?'✅ Correct! ':'❌ Incorrect. ')+exp+`<button class="btn btn-primary btn-sm mt-12" onclick="nextScenario()">Next Scenario →</button>`;
+};
+
+window.nextScenario=()=>{
+  currentScenario++;
+  if(currentScenario>=SCENARIOS.length){
+    document.getElementById('scenario-container').innerHTML=`
+      <div style="text-align:center;padding:32px">
+        <div style="font-size:4rem;margin-bottom:12px">🏆</div>
+        <div style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin-bottom:8px">All Scenarios Complete!</div>
+        <div style="color:var(--text-secondary);margin-bottom:16px">Final Score: ${scenarioScore}/${SCENARIOS.length} (${Math.round(scenarioScore/SCENARIOS.length*100)}%)</div>
+        <button class="btn btn-primary" onclick="initScenarios()">↺ Play Again</button>
+      </div>`;
+    earnBadge('zero-trust');
+  } else renderScenario();
+};
+
+// ═══════════════════════════════════════════════════════════
+// PHISHING TRAINER
+// ═══════════════════════════════════════════════════════════
+const PHISHING_EMAILS = [
+  {
+    from:'security@micros0ft-support.com',subject:'URGENT: Your account will be disabled in 24 hours',
+    body:`Dear User,\n\nOur security systems detected unauthorized access to your account. Your account will be DISABLED unless you verify your identity immediately.\n\nClick here: http://verify-microsoft-account.xyz/login\n\nMicrosoft Security Team`,
+    phishing:true,
+    clues:['Domain typo: micros0ft (zero instead of O)','Urgency tactic — "24 hours"','External domain (micros0ft-support.com ≠ microsoft.com)','Suspicious link domain (.xyz)','Generic greeting "Dear User"'],
+  },
+  {
+    from:'it-helpdesk@techcorp.com',subject:'Scheduled maintenance tonight 11 PM - 2 AM',
+    body:`Hi Team,\n\nReminder: We have scheduled system maintenance tonight from 11 PM to 2 AM IST.\n\nEmail and VPN may be unavailable during this window. Please save your work before 11 PM.\n\nIT Helpdesk\nTicket: MAIN-20241108`,
+    phishing:false,
+    clues:['Internal corporate domain (techcorp.com)','No urgency or threats','No suspicious links','Includes ticket number for verification','Professional tone, specific time details'],
+  },
+  {
+    from:'hr@techcorp-payroll.net',subject:'Action Required: Update your bank details for payroll',
+    body:`Dear Employee,\n\nDue to a system upgrade, all employees must re-enter their bank account details by end of day.\n\nPlease login at: http://techcorp-payroll.net/employee-portal\n\nFail to do so means your salary will be delayed.\n\nHR Department`,
+    phishing:true,
+    clues:['Domain mismatch: techcorp-payroll.net ≠ techcorp.com','Requests sensitive financial information','Urgency: "end of day"','Threat: "salary will be delayed"','Uncommon channel for payroll updates'],
+  },
+  {
+    from:'noreply@github.com',subject:'[GitHub] Please verify your email address',
+    body:`Hi there,\n\nPlease verify your email address to continue using GitHub.\n\nVerify email: https://github.com/settings/emails\n\nIf you didn't create a GitHub account, ignore this email.\n\nGitHub`,
+    phishing:false,
+    clues:['Legitimate sender domain (github.com)','Link goes to actual GitHub domain','No urgency or threats','Standard verification email','Clear opt-out option'],
+  },
+];
+
+let phishIdx=0, phishScore=0;
+
+function initPhishing(){
+  phishIdx=0; phishScore=0; renderPhishing();
+}
+
+function renderPhishing(){
+  if(phishIdx>=PHISHING_EMAILS.length){
+    document.getElementById('phishing-container').innerHTML=`
+      <div style="text-align:center;padding:32px">
+        <div style="font-size:4rem;margin-bottom:12px">🎣</div>
+        <div style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;margin-bottom:8px">Training Complete!</div>
+        <div style="color:var(--text-secondary);margin-bottom:16px">Score: ${phishScore}/${PHISHING_EMAILS.length}</div>
+        <button class="btn btn-primary" onclick="initPhishing()">↺ Restart</button>
+      </div>`;
+    return;
+  }
+  const em = PHISHING_EMAILS[phishIdx];
+  document.getElementById('phishing-container').innerHTML = `
+    <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:0.8rem;color:var(--text-muted)">Email ${phishIdx+1} of ${PHISHING_EMAILS.length}</span>
+      <span style="font-size:0.82rem;font-weight:700;color:var(--accent-cyan)">Score: ${phishScore}</span>
+    </div>
+    <div style="background:var(--bg-glass);border:1px solid var(--border);border-radius:12px;padding:20px;font-family:var(--font-mono);font-size:0.8rem;margin-bottom:16px">
+      <div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px">
+        <div><span style="color:var(--text-muted)">From: </span><span style="color:var(--accent-blue)">${em.from}</span></div>
+        <div><span style="color:var(--text-muted)">Subject: </span><span style="font-weight:700">${em.subject}</span></div>
+      </div>
+      <div style="white-space:pre-line;line-height:1.8;color:var(--text-secondary)">${em.body}</div>
+    </div>
+    <div class="flex gap-12">
+      <button class="btn btn-success" style="flex:1" onclick="judgePhish(false)">✅ Safe Email</button>
+      <button class="btn btn-danger" style="flex:1" onclick="judgePhish(true)">⚠️ Phishing!</button>
+    </div>
+    <div id="phish-fb" class="quiz-feedback mt-12"></div>`;
+  
+  window.judgePhish=(guessPhish)=>{
+    const ok = guessPhish === em.phishing;
+    if(ok){phishScore++;addXP(20,'Phishing identified');}
+    const fb = document.getElementById('phish-fb');
+    fb.className='quiz-feedback show '+(ok?'ok':'fail');
+    fb.innerHTML=`${ok?'✅ Correct! ':'❌ Incorrect. '}This email is ${em.phishing?'<strong>PHISHING</strong>':'<strong>SAFE</strong>'}.<br>
+      <div style="margin-top:8px"><strong>${em.phishing?'Red flags:':'Why it\'s safe:'}</strong><ul style="margin-top:4px">${em.clues.map(c=>`<li style="margin-bottom:3px">• ${c}</li>`).join('')}</ul></div>
+      <button class="btn btn-primary btn-sm mt-8" onclick="phishIdx++;renderPhishing()">Next Email →</button>`;
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// PASSWORD ANALYZER
+// ═══════════════════════════════════════════════════════════
+function analyzePW(pw){
+  const bars = document.querySelectorAll('.strength-bar');
+  let score = 0;
+  let tips = [];
+  
+  if(pw.length>=8) score++; else tips.push('Use at least 8 characters');
+  if(pw.length>=12) score++; else if(pw.length>=8) tips.push('Use 12+ characters for stronger protection');
+  if(/[A-Z]/.test(pw)) score++; else tips.push('Add uppercase letters');
+  if(/[0-9]/.test(pw)) score++; else tips.push('Add numbers');
+  if(/[^a-zA-Z0-9]/.test(pw)) score++; else tips.push('Add special characters (!@#$%)');
+  
+  const colors = ['#ef4444','#f59e0b','#f59e0b','#3b82f6','#10b981'];
+  const labels = ['Very Weak','Weak','Fair','Strong','Very Strong'];
+  const times = ['Instantly','Minutes','Hours','Years','Centuries'];
+  
+  bars.forEach((b,i)=>{
+    b.style.background = i<score ? colors[Math.min(score-1,4)] : 'var(--bg-glass)';
+  });
+  
+  document.getElementById('pw-strength-label').textContent = pw ? `${labels[Math.min(score,4)]}` : 'Enter a password above';
+  document.getElementById('pw-strength-label').style.color = pw ? colors[Math.min(score-1,4)] : 'var(--text-muted)';
+  document.getElementById('pw-crack').textContent = pw ? `⏱ Estimated crack time: ${times[Math.min(score,4)]}` : '⏱ Estimated crack time: —';
+  
+  const tipEl = document.getElementById('pw-tips');
+  tipEl.innerHTML = tips.length && pw ? `<div style="padding:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:0.8rem">
+    <strong style="color:var(--accent-orange)">💡 Recommendations:</strong>
+    ${tips.map(t=>`<div style="color:var(--text-secondary);margin-top:4px">• ${t}</div>`).join('')}
+  </div>` : (pw && score>=4 ? '<div style="color:var(--accent-green);font-size:0.82rem">✅ Excellent password!</div>' : '');
+}
+
+function updateHash(val){
+  if(!val){
+    document.getElementById('hash-output').textContent='Enter text above to see its hash';
+    document.getElementById('salt-output').innerHTML='';
+    return;
+  }
+  // Simple simulated hash (not real crypto, just educational)
+  let hash1 = simHash(val);
+  let hash2 = simHash(val+'SALT_A7k9');
+  let hash3 = simHash(val+'SALT_Xm2p');
+  document.getElementById('hash-output').innerHTML = `SHA-256("${val}"):<br>${hash1}`;
+  document.getElementById('salt-output').innerHTML = 
+    `Same password + different salts → completely different hashes:<br>
+    <span style="color:var(--text-muted)">Password:</span> "${val}"<br>
+    <span style="color:var(--accent-cyan)">+ Salt A7k9 →</span> ${hash2.substring(0,48)}...<br>
+    <span style="color:var(--accent-purple)">+ Salt Xm2p →</span> ${hash3.substring(0,48)}...`;
+}
+
+function simHash(s){
+  let h=5381;
+  for(let i=0;i<s.length;i++) h=((h<<5)+h)+s.charCodeAt(i);
+  let hex='';
+  for(let i=0;i<64;i++){h=(h*1103515245+12345)&0xffffffff;hex+=Math.abs(h).toString(16).padStart(8,'0').substring(0,2);}
+  return hex.substring(0,64);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MFA WIZARD
+// ═══════════════════════════════════════════════════════════
+let mfaStep = 0;
+function initMFA(){
+  mfaStep = 0;
+  renderMFA();
+}
+
+function renderMFA(){
+  const steps = ['Username','QR Code','OTP Verify','Complete'];
+  const container = document.getElementById('mfa-container');
+  
+  const stepContents = [
+    `<div style="text-align:center;padding:16px">
+      <div style="font-size:2.5rem;margin-bottom:12px">👤</div>
+      <div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:16px">Enter your username to begin MFA setup</div>
+      <input class="input-field" id="mfa-username" placeholder="Username (e.g. rahul.kumar)" style="max-width:280px;margin:0 auto;display:block;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="mfaNext()">Continue →</button>
+    </div>`,
+    `<div style="text-align:center;padding:16px">
+      <div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px">Scan this QR code with your authenticator app</div>
+      <div class="qr-placeholder">📱</div>
+      <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">Secret Key (manual entry):</div>
+      <div style="font-family:var(--font-mono);font-size:0.8rem;color:var(--accent-cyan);letter-spacing:0.15em;margin-bottom:16px">JBSWY3DPEHPK3PXP</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px">Works with: Google Authenticator, Microsoft Authenticator, Authy</div>
+      <button class="btn btn-primary" onclick="mfaNext()">I've scanned it →</button>
+    </div>`,
+    `<div style="text-align:center;padding:16px">
+      <div style="font-size:2.5rem;margin-bottom:12px">🔢</div>
+      <div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:16px">Enter the 6-digit code from your authenticator app</div>
+      <input class="input-field" id="mfa-otp" placeholder="000000" maxlength="6" style="max-width:160px;margin:0 auto;display:block;text-align:center;font-family:var(--font-mono);font-size:1.2rem;letter-spacing:0.3em;margin-bottom:16px" oninput="if(this.value.length>=6)document.getElementById('mfa-verify-btn').disabled=false">
+      <button class="btn btn-primary" id="mfa-verify-btn" onclick="mfaNext()">Verify OTP →</button>
+    </div>`,
+    `<div style="text-align:center;padding:24px">
+      <div style="font-size:4rem;margin-bottom:12px">🎉</div>
+      <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:800;margin-bottom:8px;color:var(--accent-green)">MFA Enabled Successfully!</div>
+      <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px">Your account is now protected with multi-factor authentication.</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;font-size:0.82rem;color:var(--accent-green)">✅ TOTP Authenticator Linked</div>
+      <div style="margin-top:16px"><button class="btn btn-secondary btn-sm" onclick="mfaStep=0;renderMFA()">Reset Demo</button></div>
+    </div>`,
+  ];
+  
+  container.innerHTML = `
+    <div class="section-title">🔐 MFA Setup Wizard</div>
+    <div class="mfa-steps">
+      ${steps.map((s,i)=>`
+        <div class="mfa-step ${i<mfaStep?'done':i===mfaStep?'active':''}">
+          <div class="mfa-step-num">${i<mfaStep?'✓':i+1}</div>${s}
+        </div>`).join('')}
+    </div>
+    ${stepContents[mfaStep]}`;
+  
+  window.mfaNext=()=>{
+    if(mfaStep<3){mfaStep++;addXP(mfaStep===3?50:10,'MFA step');if(mfaStep===3){earnBadge('mfa-champion');STATE.completedLabs.add('mfa');updateUI();saveState();}renderMFA();}
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// COMPLIANCE SIMULATOR
+// ═══════════════════════════════════════════════════════════
+const AUDIT_ITEMS = [
+  {text:'47 inactive user accounts (90+ days)',sev:'critical',xp:15},
+  {text:'12 users have no MFA configured',sev:'critical',xp:15},
+  {text:'Service account with Domain Admin privileges',sev:'critical',xp:15},
+  {text:'5 terminated employees still have active accounts',sev:'high',xp:10},
+  {text:'23 users have excessive permissions (not used 180+ days)',sev:'high',xp:10},
+  {text:'Password policy: minimum length only 6 characters',sev:'high',xp:10},
+  {text:'No access review conducted in 12 months',sev:'high',xp:10},
+  {text:'Shared admin accounts used (no individual accountability)',sev:'medium',xp:8},
+  {text:'USB drives not blocked on workstations',sev:'medium',xp:8},
+  {text:'3 shadow IT apps with no SSO integration',sev:'medium',xp:8},
+];
+
+let resolvedAudits = new Set();
+function initCompliance(){
+  resolvedAudits = new Set();
+  renderCompliance();
+}
+
+function renderCompliance(){
+  const score = Math.round((resolvedAudits.size/AUDIT_ITEMS.length)*100);
+  const el = document.getElementById('compliance-container');
+  el.innerHTML = `
+    <div class="section-block" style="background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.05));border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="section-title" style="margin-bottom:0">Compliance Score</div>
+        <div style="font-family:var(--font-display);font-size:2rem;font-weight:800;color:${score>=80?'var(--accent-green)':score>=50?'var(--accent-orange)':'var(--accent-red)'}">${score}%</div>
+      </div>
+      <div class="xp-bar-track" style="height:8px;margin-bottom:8px"><div class="xp-bar-fill" style="width:${score}%;background:linear-gradient(90deg,${score>=80?'var(--accent-green)':score>=50?'var(--accent-orange)':'var(--accent-red)'},${score>=80?'#059669':'var(--accent-blue)'})"></div></div>
+      <div style="font-size:0.78rem;color:var(--text-secondary)">${resolvedAudits.size} of ${AUDIT_ITEMS.length} findings resolved</div>
+    </div>
+    <div class="section-block">
+      <div class="section-title">Audit Findings</div>
+      ${AUDIT_ITEMS.map((item,i)=>`
+        <div class="audit-item ${resolvedAudits.has(i)?'resolved':''}">
+          <span class="audit-severity sev-${item.sev}">${item.sev.toUpperCase()}</span>
+          <div class="audit-text">${item.text}</div>
+          ${resolvedAudits.has(i)
+            ? '<span style="color:var(--accent-green);font-weight:700;font-size:0.8rem">✓ RESOLVED</span>'
+            : `<button class="audit-resolve-btn" onclick="resolveAudit(${i},${item.xp})">Remediate</button>`}
+        </div>`).join('')}
+      ${resolvedAudits.size===AUDIT_ITEMS.length?`
+        <div style="text-align:center;padding:16px;background:rgba(16,185,129,0.08);border-radius:10px;border:1px solid rgba(16,185,129,0.25);margin-top:12px">
+          <div style="font-size:2rem;margin-bottom:6px">🏆</div>
+          <div style="font-weight:700;color:var(--accent-green)">Full Compliance Achieved!</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">All findings remediated. Certificate ready.</div>
+        </div>`:''}
+    </div>`;
+  window.resolveAudit=(i,xp)=>{resolvedAudits.add(i);addXP(xp,'Audit remediated');renderCompliance();if(resolvedAudits.size>=5)earnBadge('pam');};
+}
+
+// ═══════════════════════════════════════════════════════════
+// AI CHATBOT
+// ═══════════════════════════════════════════════════════════
+const CHAT_RESPONSES = {
+  'ldap':'LDAP (Lightweight Directory Access Protocol) is the protocol used to access and manage directory services like Active Directory. Applications use LDAP queries to look up users, groups, and other objects. Example query: searching for CN=Rahul,OU=Engineering,DC=techcorp,DC=com.',
+  'rbac':'RBAC (Role-Based Access Control) assigns permissions to roles rather than directly to users. Users get roles, roles have permissions. This simplifies management and enforces least privilege. Example roles: HR Manager, Developer, Finance Analyst — each with specific access rights.',
+  'pam':'PAM (Privileged Access Management) secures, controls, and monitors access to privileged accounts (admin, root, service accounts). PAM solutions include features like credential vaulting, session recording, just-in-time access, and privilege elevation. Examples: CyberArk, BeyondTrust.',
+  'zero trust':'Zero Trust is a security framework based on "never trust, always verify." It eliminates implicit trust for any user, device, or network. Every access request must be explicitly authenticated and authorized, regardless of whether it comes from inside or outside the network.',
+  'saml oauth':'SAML vs OAuth: SAML (XML-based) is used for enterprise SSO — it carries authentication and attributes. OAuth 2.0 is an authorization framework for delegating access to APIs (not authentication itself). OIDC (OpenID Connect) adds identity to OAuth for authentication. SAML = enterprise SSO. OAuth/OIDC = modern cloud and API access.',
+  'kerberos':'Kerberos is a network authentication protocol using tickets. The flow: 1) User authenticates to KDC and gets TGT. 2) User presents TGT to get Service Tickets. 3) User presents Service Ticket to access application. Passwords never travel on the network. It\'s the primary authentication method in Active Directory environments.',
+  'mfa':'MFA (Multi-Factor Authentication) requires two or more verification factors: Something you know (password), Something you have (phone/token), Something you are (biometrics). Common methods: TOTP apps (Google Authenticator), Push notifications (Microsoft Authenticator), Hardware tokens (YubiKey), SMS (least secure).',
+  'sso':'SSO (Single Sign-On) lets users authenticate once and access multiple applications without re-entering credentials. An Identity Provider (IdP) authenticates the user and issues tokens/assertions that Service Providers (SPs) trust. Protocols: SAML, OIDC, OAuth 2.0.',
+  'active directory':'Active Directory (AD) is Microsoft\'s on-premises directory service. It stores identity data, authenticates users (via Kerberos), enforces policies (via GPO), and manages groups and computers. Key components: Domain, Domain Controller, OU, Groups, GPO.',
+  'entra':'Microsoft Entra ID (formerly Azure AD) is the cloud identity platform. It provides cloud authentication, SSO to thousands of SaaS apps, MFA, Conditional Access policies, Identity Governance, and Hybrid Identity to connect on-premises AD with the cloud.',
+  'default':'I can answer questions about: LDAP, RBAC, PAM, Zero Trust, SAML vs OAuth, Kerberos, MFA, SSO, Active Directory, Entra ID, Conditional Access, and more IAM topics. Try asking about any of these!'
+};
+
+function sendChat(){
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value='';
+  
+  const messages = document.getElementById('chat-messages');
+  messages.innerHTML += `<div class="chat-msg user"><div class="chat-avatar user-av">👤</div><div class="chat-bubble">${msg}</div></div>`;
+  
+  // Show typing
+  const typingId = 'typing-'+Date.now();
+  messages.innerHTML += `<div class="chat-msg" id="${typingId}"><div class="chat-avatar">🛡️</div><div class="chat-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
+  messages.scrollTop = messages.scrollHeight;
+  
+  setTimeout(()=>{
+    const typing = document.getElementById(typingId);
+    if(typing) typing.remove();
+    
+    const lower = msg.toLowerCase();
+    let response = CHAT_RESPONSES['default'];
+    for(const [key,val] of Object.entries(CHAT_RESPONSES)){
+      if(key!=='default' && lower.includes(key)){response=val;break;}
+    }
+    
+    messages.innerHTML += `<div class="chat-msg"><div class="chat-avatar">🛡️</div><div class="chat-bubble">${response}</div></div>`;
+    messages.scrollTop = messages.scrollHeight;
+    addXP(5,'Chatbot interaction');
+  }, 800 + Math.random()*600);
+}
+
+// ═══════════════════════════════════════════════════════════
+// BADGES & SKILL TREE
+// ═══════════════════════════════════════════════════════════
+const BADGE_DATA = [
+  {key:'auth-expert',icon:'🔐',name:'Authentication Expert'},
+  {key:'authz-expert',icon:'🛂',name:'Authorization Expert'},
+  {key:'rbac-master',icon:'🎭',name:'RBAC Master'},
+  {key:'mfa-champion',icon:'📱',name:'MFA Champion'},
+  {key:'federation',icon:'🔗',name:'Federation Specialist'},
+  {key:'pam',icon:'🛡️',name:'PAM Defender'},
+  {key:'zero-trust',icon:'🚫',name:'Zero Trust Champion'},
+  {key:'explorer',icon:'🔭',name:'IAM Explorer'},
+  {key:'expert',icon:'🏆',name:'IAM Expert'},
+];
+
+const SKILLS = [
+  {name:'IAM Fundamentals',icon:'🌐',xp:0},
+  {name:'Authentication',icon:'🔐',xp:100},
+  {name:'Authorization',icon:'🛂',xp:200},
+  {name:'RBAC',icon:'🎭',xp:300},
+  {name:'MFA',icon:'📱',xp:400},
+  {name:'Federation / SSO',icon:'🔗',xp:500},
+  {name:'Active Directory',icon:'🖥️',xp:600},
+  {name:'LDAP',icon:'🔍',xp:700},
+  {name:'PAM',icon:'🛡️',xp:800},
+  {name:'Cloud IAM',icon:'☁️',xp:1000},
+  {name:'Zero Trust',icon:'🚫',xp:1500},
+  {name:'Governance',icon:'📋',xp:2000},
+];
+
+function renderBadges(){
+  const gallery = document.getElementById('badges-gallery');
+  if(gallery) gallery.innerHTML = BADGE_DATA.map(b=>`
+    <div class="badge-card ${STATE.badges.has(b.key)?'earned':'locked'}">
+      <div class="badge-emoji">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`).join('');
+  
+  const tree = document.getElementById('skill-tree');
+  if(tree) tree.innerHTML = SKILLS.map(s=>`
+    <div class="skill-node ${STATE.xp>=s.xp?'unlocked':'locked'}">
+      <div class="skill-node-icon">${s.icon}</div>
+      <div class="skill-node-name">${s.name}</div>
+      <div class="skill-node-xp">${STATE.xp>=s.xp?'✓ Unlocked':s.xp+' XP'}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CERTIFICATE
+// ═══════════════════════════════════════════════════════════
+function renderCertificate(){
+  const el = document.getElementById('cert-container');
+  const pct = Math.round((STATE.completedTopics.size/12)*100);
+  const certId = 'IAM-'+Math.abs(STATE.xp*7+STATE.level*13).toString(16).toUpperCase().padStart(8,'0');
+  const today = new Date().toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'});
+  
+  el.innerHTML = `
+    <div class="cert">
+      <div class="cert-watermark">IAM</div>
+      <div class="cert-logo">🛡️</div>
+      <div class="cert-issuer">IAM Training Academy · Certified Completion</div>
+      <div class="cert-headline">This certifies that</div>
+      <div class="cert-name">IAM Academy Student</div>
+      <div class="cert-course">has successfully completed the<br><strong>Identity &amp; Access Management Professional Program</strong><br>covering 12 modules of enterprise IAM concepts, labs, and scenarios</div>
+      <div class="cert-stats">
+        <div class="cert-stat"><span class="cert-stat-val">${STATE.xp}</span><span class="cert-stat-label">Total XP</span></div>
+        <div class="cert-stat"><span class="cert-stat-val">Level ${STATE.level}</span><span class="cert-stat-label">Achieved</span></div>
+        <div class="cert-stat"><span class="cert-stat-val">${pct}%</span><span class="cert-stat-label">Completion</span></div>
+        <div class="cert-stat"><span class="cert-stat-val">${STATE.badges.size}</span><span class="cert-stat-label">Badges</span></div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:12px">Issued: ${today}</div>
+      <div class="cert-id">Certificate ID: ${certId}</div>
+      ${pct<50?`<div style="margin-top:16px;padding:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;font-size:0.8rem;color:var(--accent-orange)">⚠️ Complete more modules to get a full certificate. Progress: ${STATE.completedTopics.size}/12 modules</div>`:''}
+      <div style="margin-top:16px">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print Certificate</button>
+      </div>
+    </div>`;
+  if(pct>=100) earnBadge('expert');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD CHARTS
+// ═══════════════════════════════════════════════════════════
+function renderDashboardModuleCards(){
+  const grid = document.getElementById('module-cards');
+  if(!grid) return;
+  const entries = Object.entries(MODULES);
+  grid.innerHTML = entries.map(([key,mod])=>{
+    const done = STATE.completedTopics.has(key);
+    return `<div class="card" onclick="loadModule('${key}')">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(99,179,237,0.1);font-size:1.6rem">${mod.icon}</div>
+        <div class="card-meta">
+          <div class="card-tag" style="color:${mod.color}">${mod.tag}</div>
+          <div class="card-title">${mod.title}</div>
+        </div>
+      </div>
+      <div class="card-desc" style="font-size:0.8rem">${done?'✅ Completed':'Click to start learning this topic.'}</div>
+      <div class="card-footer">
+        <div class="card-progress-bar"><div class="card-progress-fill" style="width:${done?100:0}%;background:${mod.color}"></div></div>
+        <div class="card-xp">${done?'✓ Done':'+20 XP'}</div>
+      </div>
+    </div>`;
+  }).join('');
+  
+  updateDashboardChart();
+}
+
+function updateDashboardChart(){
+  const chart = document.getElementById('progress-chart');
+  if(!chart) return;
+  const cats = [
+    {label:'Foundations',keys:['iam','identity','directory']},
+    {label:'Active Directory',keys:['ad','ldap','kerberos','ntlm','gpo','trusts']},
+    {label:'Modern IAM',keys:['sso','entra','ecosystem']},
+  ];
+  chart.innerHTML = cats.map(c=>{
+    const done = c.keys.filter(k=>STATE.completedTopics.has(k)).length;
+    const pct = Math.round((done/c.keys.length)*100);
+    return `<div class="chart-bar-row">
+      <div class="chart-bar-label">${c.label}</div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))"></div></div>
+      <div class="chart-bar-val">${done}/${c.keys.length}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════════
+function handleSearch(val){
+  if(!val.trim()) return;
+  const lower = val.toLowerCase();
+  const moduleMap = {iam:'iam',identity:'identity',directory:'directory',ad:'ad',ldap:'ldap',kerberos:'kerberos',ntlm:'ntlm',gpo:'gpo',trusts:'trusts',sso:'sso',entra:'entra',ecosystem:'ecosystem'};
+  for(const [kw,key] of Object.entries(moduleMap)){
+    if(lower.includes(kw)){loadModule(key);document.getElementById('search-input').value='';return;}
+  }
+  if(lower.includes('lab')) showPage('labs');
+  else if(lower.includes('badge')||lower.includes('skill')) showPage('badges');
+  else if(lower.includes('password')) showPage('password');
+  else if(lower.includes('mfa')) showPage('mfa');
+  else if(lower.includes('phish')) showPage('phishing');
+  else if(lower.includes('scenario')||lower.includes('challenge')) showPage('scenarios');
+  else if(lower.includes('compliance')||lower.includes('audit')) showPage('compliance');
+  else if(lower.includes('chat')||lower.includes('ai')||lower.includes('assistant')) showPage('chatbot');
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  renderDashboardModuleCards();
+  renderBadges();
+  
+  // Mark first module as started to give explorer badge
+  if(STATE.xp===0){
+    earnBadge('explorer');
+  }
+  
+  // Auto-open first module accordion
+  setTimeout(()=>{
+    const firstAcc = document.querySelector('.mod-header.open');
+    if(firstAcc) firstAcc.classList.add('open');
+  },200);
+  
+  // Update notifications
+  document.getElementById('notif-badge').textContent = Math.max(0,3-STATE.badges.size);
+});
+
+// Initialize
+updateUI();
+</script>
+</body>
+</html>

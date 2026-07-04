@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAM Training Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d14;
+    --surface: #111520;
+    --surface2: #161c2d;
+    --border: #1e2840;
+    --accent: #4f8aff;
+    --accent2: #7c5cff;
+    --accent3: #00e5a0;
+    --warn: #ff8c42;
+    --text: #e2e8f8;
+    --text-muted: #6b7a99;
+    --text-dim: #3d4d6a;
+    --xp-color: #ffd166;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,138,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,138,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,13,20,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .nav-logo span {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .nav-link {
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .nav-link.active {
+    color: var(--accent);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: auto;
+  }
+
+  .xp-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,209,102,0.1);
+    border: 1px solid rgba(255,209,102,0.2);
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--xp-color);
+  }
+
+  .progress-ring-nav {
+    width: 36px;
+    height: 36px;
+    position: relative;
+  }
+
+  .progress-ring-nav svg {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring-nav .pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent3);
+  }
+
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    z-index: 1;
+    padding: 4rem 2rem 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(79,138,255,0.1);
+    border: 1px solid rgba(79,138,255,0.2);
+    border-radius: 20px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 .gradient {
+    background: linear-gradient(120deg, var(--accent), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 600px;
+    margin-bottom: 2rem;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .stat-pill .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--accent3);
+  }
+
+  .stat-pill .lbl {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+
+  /* PROGRESS BAR OVERVIEW */
+  .progress-overview {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+    padding: 0 2rem;
+  }
+
+  .prog-bar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .prog-bar-label {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .prog-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .prog-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .prog-bar-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent3);
+    white-space: nowrap;
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: sticky;
+    top: 80px;
+  }
+
+  .sidebar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    padding-left: 0.25rem;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border: 1px solid transparent;
+  }
+
+  .sidebar-item:hover {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .sidebar-item.active {
+    background: rgba(79,138,255,0.1);
+    border-color: rgba(79,138,255,0.25);
+    color: var(--accent);
+  }
+
+  .sidebar-item.done {
+    color: var(--accent3);
+  }
+
+  .sidebar-item .s-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-item.done .s-icon {
+    background: rgba(0,229,160,0.15);
+    color: var(--accent3);
+  }
+
+  .sidebar-item.active .s-icon {
+    background: rgba(79,138,255,0.2);
+    color: var(--accent);
+  }
+
+  .sidebar-item .s-check {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--accent3);
+    display: none;
+  }
+
+  .sidebar-item.done .s-check { display: block; }
+
+  /* CONTENT AREA */
+  .content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* MODULE CARD */
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .module-card:hover {
+    border-color: rgba(79,138,255,0.3);
+  }
+
+  .module-header {
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .module-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+
+  .module-meta {
+    flex: 1;
+  }
+
+  .module-tag-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+  }
+
+  .tag-module { background: rgba(79,138,255,0.15); color: var(--accent); }
+  .tag-level { background: rgba(124,92,255,0.15); color: var(--accent2); }
+  .tag-xp { background: rgba(255,209,102,0.15); color: var(--xp-color); }
+  .tag-done { background: rgba(0,229,160,0.15); color: var(--accent3); }
+
+  .module-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+  }
+
+  .module-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .module-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    transition: all 0.3s;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .module-card.expanded .module-toggle {
+    transform: rotate(180deg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* MODULE BODY */
+  .module-body {
+    display: none;
+    padding: 1.75rem;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .module-card.expanded .module-body {
+    display: flex;
+  }
+
+  /* THEORY SECTION */
+  .theory-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .theory-block h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .theory-block p {
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .theory-block p:last-child { margin-bottom: 0; }
+
+  .theory-block ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .theory-block ul li {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-left: 1.25rem;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .theory-block ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 0.7rem;
+    top: 0.15rem;
+  }
+
+  .key-concepts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .concept-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .concept-chip span { color: var(--accent2); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
+
+  /* FLOW DIAGRAM BUTTON */
+  .flow-btn-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(79,138,255,0.08), rgba(124,92,255,0.08));
+    border: 1px solid rgba(79,138,255,0.2);
+    border-radius: 10px;
+  }
+
+  .flow-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(79,138,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .flow-btn-text {
+    flex: 1;
+  }
+
+  .flow-btn-text .title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.15rem;
+  }
+
+  .flow-btn-text .sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .flow-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+  }
+
+  .flow-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(79,138,255,0.4);
+    opacity: 0.95;
+  }
+
+  .flow-btn:active {
+    transform: translateY(0);
+  }
+
+  .flow-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* QUIZ SECTION */
+  .quiz-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .quiz-block h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--warn);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .quiz-q {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .quiz-opt {
+    padding: 0.65rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.84rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+    text-align: left;
+  }
+
+  .quiz-opt:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(79,138,255,0.05);
+  }
+
+  .quiz-opt.correct { border-color: var(--accent3); background: rgba(0,229,160,0.1); color: var(--accent3); }
+  .quiz-opt.wrong { border-color: #ff5252; background: rgba(255,82,82,0.1); color: #ff5252; }
+  .quiz-opt:disabled { cursor: default; }
+
+  .quiz-feedback {
+    display: none;
+    font-size: 0.82rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+  }
+
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(0,229,160,0.1); color: var(--accent3); border: 1px solid rgba(0,229,160,0.2); }
+  .quiz-feedback.err { background: rgba(255,82,82,0.1); color: #ff5252; border: 1px solid rgba(255,82,82,0.2); }
+
+  /* COMPLETE BUTTON */
+  .complete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.3);
+    border-radius: 9px;
+    color: var(--accent3);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .complete-btn:hover {
+    background: rgba(0,229,160,0.2);
+    transform: translateY(-1px);
+  }
+
+  .complete-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+    transform: none;
+  }
+
+  /* XP TOAST */
+  .xp-toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--surface);
+    border: 1px solid rgba(255,209,102,0.3);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--xp-color);
+    z-index: 999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .xp-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .xp-toast .amount {
+    font-size: 1.4rem;
+    color: var(--xp-color);
+  }
+
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { position: static; display: none; }
+    .hero { padding: 2rem 1rem 1.5rem; }
+    .main { padding: 0 1rem 4rem; }
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+    .key-concepts { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <rect x="2" y="2" width="8" height="8" rx="2" fill="url(#ng)"/>
+      <rect x="12" y="2" width="8" height="8" rx="2" fill="url(#ng)" opacity="0.6"/>
+      <rect x="2" y="12" width="8" height="8" rx="2" fill="url(#ng)" opacity="0.6"/>
+      <rect x="12" y="12" width="8" height="8" rx="2" fill="url(#ng)"/>
+      <defs>
+        <linearGradient id="ng" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#4f8aff"/>
+          <stop offset="100%" stop-color="#7c5cff"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <span>IAM Academy</span>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link active" href="iam-complete-academy.html">🎓 Training</a>
+    <a class="nav-link" href="iam-diagrams.html">📊 Flow Diagrams</a>
+  </div>
+  <div class="nav-right">
+    <div class="xp-badge">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polygon points="6,1 7.5,4.5 11,5 8.5,7.5 9,11 6,9.5 3,11 3.5,7.5 1,5 4.5,4.5" fill="#ffd166"/></svg>
+      <span id="navXP">0 XP</span>
+    </div>
+    <div class="progress-ring-nav">
+      <svg width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="14" stroke="#1e2840" stroke-width="3" fill="none"/>
+        <circle id="navRing" cx="18" cy="18" r="14" stroke="#00e5a0" stroke-width="3" fill="none"
+          stroke-dasharray="87.96 87.96" stroke-dashoffset="87.96" stroke-linecap="round"/>
+      </svg>
+      <div class="pct" id="navPct">0%</div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">
+    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#4f8aff"/></svg>
+    IDENTITY & ACCESS MANAGEMENT
+  </div>
+  <h1>Master IAM<br><span class="gradient">Security Architecture</span></h1>
+  <p class="hero-desc">
+    Interactive training modules covering every cornerstone of modern Identity and Access Management.
+    Learn, quiz, and explore interactive flow diagrams.
+  </p>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="num">8</div><div class="lbl">Modules</div></div>
+    <div class="stat-pill"><div class="num" id="completedCount">0</div><div class="lbl">Completed</div></div>
+    <div class="stat-pill"><div class="num" id="totalXPStat">0</div><div class="lbl">XP Earned</div></div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-overview">
+  <div class="prog-bar-wrap">
+    <div class="prog-bar-label">Overall Progress</div>
+    <div class="prog-bar-track">
+      <div class="prog-bar-fill" id="mainProgBar" style="width:0%"></div>
+    </div>
+    <div class="prog-bar-pct" id="mainProgPct">0 / 8</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Modules</div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content-area" id="contentArea"></div>
+</div>
+
+<!-- XP TOAST -->
+<div class="xp-toast" id="xpToast">
+  <div class="amount" id="toastAmt">+50</div>
+  <div>
+    <div>XP Earned!</div>
+    <div style="font-size:0.72rem;font-family:'Inter',sans-serif;color:var(--text-muted)">Module completed</div>
+  </div>
+</div>
+
+<script>
+const MODULES = [
+  {
+    id: 'authentication',
+    icon: '🔑',
+    title: 'Authentication',
+    subtitle: 'Verifying who you are',
+    level: 'Fundamentals',
+    xp: 50,
+    anchor: 'authentication',
+    color: '#4f8aff',
+    theory: {
+      intro: 'Authentication is the process of verifying the identity of a user, device, or system. It answers the question: "Who are you?" before any access is granted.',
+      points: [
+        'Knowledge factors: something you know (passwords, PINs, security questions)',
+        'Possession factors: something you have (smart card, OTP token, mobile device)',
+        'Inherence factors: something you are (fingerprint, retina, voice recognition)',
+        'Multi-factor combines two or more of these categories for stronger assurance'
+      ],
+      concepts: ['Credentials', 'Identity Provider', 'Token', 'Session', 'Biometrics', 'Challenge-Response']
+    },
+    quiz: {
+      q: 'Which factor category does a fingerprint scan belong to?',
+      opts: ['Knowledge factor', 'Possession factor', 'Inherence factor', 'Administrative factor'],
+      correct: 2,
+      explanation: 'Fingerprints are biometric traits — "something you are" — categorised as inherence factors.'
+    }
+  },
+  {
+    id: 'authorization',
+    icon: '🛡️',
+    title: 'Authorization',
+    subtitle: 'Determining what you can do',
+    level: 'Fundamentals',
+    xp: 50,
+    anchor: 'authorization',
+    color: '#7c5cff',
+    theory: {
+      intro: 'Authorization determines what resources and operations an authenticated identity is permitted to access or perform. It answers: "What are you allowed to do?"',
+      points: [
+        'Discretionary Access Control (DAC): resource owners grant access individually',
+        'Mandatory Access Control (MAC): system-enforced policies based on labels and clearances',
+        'Role-Based Access Control (RBAC): permissions assigned through roles rather than individuals',
+        'Attribute-Based Access Control (ABAC): fine-grained policies using multiple attributes'
+      ],
+      concepts: ['Permissions', 'Policy', 'Resource', 'Access Control', 'Least Privilege', 'Deny-by-default']
+    },
+    quiz: {
+      q: 'The principle of least privilege states that users should be granted:',
+      opts: ['Administrative access by default', 'Only the minimum permissions needed for their job', 'Access to all resources in their department', 'Permanent access once approved'],
+      correct: 1,
+      explanation: 'Least privilege limits exposure by giving users only the permissions genuinely required for their role.'
+    }
+  },
+  {
+    id: 'rbac',
+    icon: '👥',
+    title: 'RBAC',
+    subtitle: 'Role-Based Access Control',
+    level: 'Intermediate',
+    xp: 60,
+    anchor: 'rbac',
+    color: '#00e5a0',
+    theory: {
+      intro: 'RBAC groups permissions into roles aligned with job functions. Users are assigned roles rather than individual permissions, simplifying administration and enforcing separation of duties.',
+      points: [
+        'Roles map to job functions (Admin, Editor, Viewer, Auditor)',
+        'Users inherit all permissions of their assigned roles',
+        'Role hierarchy allows child roles to inherit parent role permissions',
+        'Separation of duties prevents any single role from having conflicting high-risk permissions',
+        'RBAC reduces administrative overhead vs direct permission assignment'
+      ],
+      concepts: ['Role', 'Permission', 'Role Hierarchy', 'SoD', 'Role Mining', 'Flat vs Hierarchical']
+    },
+    quiz: {
+      q: 'What is the key advantage of role hierarchy in RBAC?',
+      opts: ['Faster login times', 'Child roles automatically inherit parent role permissions', 'Users can assign their own roles', 'All users get admin access'],
+      correct: 1,
+      explanation: 'Role hierarchy enables inheritance: a Senior Editor role can automatically include all Editor permissions without re-assigning them.'
+    }
+  },
+  {
+    id: 'mfa',
+    icon: '📱',
+    title: 'MFA',
+    subtitle: 'Multi-Factor Authentication',
+    level: 'Intermediate',
+    xp: 60,
+    anchor: 'mfa',
+    color: '#ffd166',
+    theory: {
+      intro: 'MFA requires users to present two or more verification factors from different categories. Even if one factor (like a password) is compromised, the additional factors prevent unauthorized access.',
+      points: [
+        'TOTP (Time-based One-Time Passwords): 6-digit codes refreshed every 30 seconds',
+        'Push notifications: approval prompts sent to a registered mobile device',
+        'Hardware tokens: physical devices generating OTPs (YubiKey, RSA SecurID)',
+        'SMS OTP: one-time code sent via text message (weakest MFA form)',
+        'Adaptive MFA: risk-based, prompting extra factors only when risk is elevated'
+      ],
+      concepts: ['TOTP', 'HOTP', 'Push Auth', 'Hardware Token', 'Adaptive MFA', 'Step-up Auth']
+    },
+    quiz: {
+      q: 'Which MFA method is generally considered the weakest due to SIM-swapping attacks?',
+      opts: ['Hardware security key', 'TOTP authenticator app', 'SMS one-time password', 'Push notification'],
+      correct: 2,
+      explanation: 'SMS OTP is vulnerable to SIM-swapping, where attackers redirect your number to their device to intercept codes.'
+    }
+  },
+  {
+    id: 'sso',
+    icon: '🔐',
+    title: 'SSO',
+    subtitle: 'Single Sign-On',
+    level: 'Intermediate',
+    xp: 65,
+    anchor: 'sso',
+    color: '#ff8c42',
+    theory: {
+      intro: 'Single Sign-On allows users to authenticate once and access multiple applications without re-entering credentials. It centralises authentication at an Identity Provider (IdP).',
+      points: [
+        'SAML 2.0: XML-based protocol popular in enterprise federated identity',
+        'OpenID Connect (OIDC): modern JSON/JWT-based layer over OAuth 2.0',
+        'Identity Provider (IdP): the central authority that authenticates users',
+        'Service Provider (SP): the application that relies on the IdP\'s assertion',
+        'SSO reduces password fatigue and centralises security policy enforcement'
+      ],
+      concepts: ['IdP', 'SP', 'SAML', 'OIDC', 'Assertion', 'Federation', 'JWT']
+    },
+    quiz: {
+      q: 'In an SSO setup, the Service Provider (SP) trusts assertions from:',
+      opts: ['The end user directly', 'The Identity Provider (IdP)', 'Active Directory only', 'The firewall'],
+      correct: 1,
+      explanation: 'The SP delegates authentication to the IdP. It trusts the identity assertion (SAML or JWT) issued by the IdP.'
+    }
+  },
+  {
+    id: 'ldap',
+    icon: '📂',
+    title: 'LDAP',
+    subtitle: 'Lightweight Directory Access Protocol',
+    level: 'Advanced',
+    xp: 75,
+    anchor: 'ldap',
+    color: '#4f8aff',
+    theory: {
+      intro: 'LDAP is an open protocol for accessing and maintaining distributed directory information services. It provides a centralised repository for user accounts, groups, and network resources.',
+      points: [
+        'Directory tree structure: entries organised in a hierarchical Distinguished Name (DN) hierarchy',
+        'Common attributes: cn (common name), uid, mail, memberOf, userPassword',
+        'Bind operation: authenticates the client to the LDAP server',
+        'Search filters: powerful query language to find entries by attributes',
+        'Active Directory is Microsoft\'s LDAP-compatible directory service with Kerberos auth',
+        'LDAPS (LDAP over SSL/TLS) encrypts directory traffic on port 636'
+      ],
+      concepts: ['DN', 'OU', 'Bind', 'Search Filter', 'Schema', 'Active Directory', 'OpenLDAP']
+    },
+    quiz: {
+      q: 'What does a "Bind" operation do in LDAP?',
+      opts: ['Creates a new user entry', 'Authenticates the client to the LDAP server', 'Deletes a directory entry', 'Replicates data between servers'],
+      correct: 1,
+      explanation: 'Bind is the authentication operation in LDAP — it verifies credentials before allowing further directory operations.'
+    }
+  },
+  {
+    id: 'pam',
+    icon: '⚡',
+    title: 'PAM',
+    subtitle: 'Privileged Access Management',
+    level: 'Advanced',
+    xp: 80,
+    anchor: 'pam',
+    color: '#ff5252',
+    theory: {
+      intro: 'PAM secures, controls, monitors, and audits all access to critical assets by privileged accounts. Privileged accounts (admins, service accounts, root) pose significant security risk if compromised.',
+      points: [
+        'Credential vaulting: privileged passwords stored encrypted, checked out on demand',
+        'Just-In-Time (JIT) access: temporary elevated privileges granted only when needed',
+        'Session recording: full video/keystroke capture of privileged sessions',
+        'Privilege elevation: standard users request elevated rights for specific tasks',
+        'Password rotation: automated regular rotation of privileged credentials',
+        'PAM reduces blast radius if admin credentials are stolen'
+      ],
+      concepts: ['Credential Vault', 'JIT Access', 'Session Recording', 'Password Rotation', 'PEDM', 'Break-glass']
+    },
+    quiz: {
+      q: 'What is "Just-In-Time" (JIT) access in PAM?',
+      opts: ['Permanent admin rights for all IT staff', 'Temporary elevated privileges granted only when needed for a specific task', 'Fast login through biometrics', 'Automatic password generation'],
+      correct: 1,
+      explanation: 'JIT access removes standing privileges. Admins request elevation only when needed, dramatically reducing the attack window.'
+    }
+  },
+  {
+    id: 'zerotrust',
+    icon: '🌐',
+    title: 'Zero Trust',
+    subtitle: 'Never trust, always verify',
+    level: 'Expert',
+    xp: 100,
+    anchor: 'zerotrust',
+    color: '#7c5cff',
+    theory: {
+      intro: 'Zero Trust is a security model based on the principle that no user, device, or network segment should be trusted by default — even inside the corporate perimeter. Every access request must be continuously verified.',
+      points: [
+        'Verify explicitly: always authenticate and authorise based on all available data points',
+        'Least privilege access: limit user access with JIT and just-enough-access (JEA)',
+        'Assume breach: minimise blast radius, segment access, verify end-to-end encryption',
+        'Microsegmentation: divide networks into small zones to contain breaches',
+        'Continuous monitoring: constantly evaluate device health, user behaviour, and context',
+        'Identity is the new perimeter: strong IdP-based authentication replaces VPN trust'
+      ],
+      concepts: ['Microsegmentation', 'ZTNA', 'Policy Engine', 'Continuous Verification', 'Device Trust', 'SDP']
+    },
+    quiz: {
+      q: 'The Zero Trust model replaces the traditional "trust but verify" approach with:',
+      opts: ['Trust everyone inside the network', '"Never trust, always verify" for every request', 'Trust verified vendors only', 'Trust after first login'],
+      correct: 1,
+      explanation: 'Zero Trust assumes no implicit trust. Every access request — internal or external — must be continuously verified regardless of network location.'
+    }
+  }
+];
+
+// ---- STATE ----
+function getState() {
+  try {
+    return JSON.parse(localStorage.getItem('iamAcademyState') || '{}');
+  } catch(e) { return {}; }
+}
+
+function saveState(s) {
+  localStorage.setItem('iamAcademyState', JSON.stringify(s));
+}
+
+function getXP() { return parseInt(localStorage.getItem('iamTotalXP') || '0'); }
+function addXP(n) {
+  const cur = getXP();
+  localStorage.setItem('iamTotalXP', cur + n);
+  return cur + n;
+}
+
+function getCompleted() {
+  try { return JSON.parse(localStorage.getItem('iamCompleted') || '[]'); }
+  catch(e) { return []; }
+}
+
+function markCompleted(id) {
+  const c = getCompleted();
+  if (!c.includes(id)) { c.push(id); localStorage.setItem('iamCompleted', JSON.stringify(c)); }
+}
+
+function isCompleted(id) { return getCompleted().includes(id); }
+
+// ---- BUILD UI ----
+function buildSidebar() {
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = '';
+  MODULES.forEach(m => {
+    const done = isCompleted(m.id);
+    const item = document.createElement('a');
+    item.href = '#' + m.id;
+    item.className = 'sidebar-item' + (done ? ' done' : '');
+    item.dataset.id = m.id;
+    item.innerHTML = `
+      <div class="s-icon">${m.icon}</div>
+      <span>${m.title}</span>
+      <span class="s-check">✓</span>
+    `;
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById(m.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+    });
+    nav.appendChild(item);
+  });
+}
+
+function buildModules() {
+  const area = document.getElementById('contentArea');
+  area.innerHTML = '';
+  MODULES.forEach(m => {
+    const done = isCompleted(m.id);
+    const card = document.createElement('div');
+    card.className = 'module-card' + (done ? ' expanded' : '');
+    card.id = m.id;
+
+    const conceptsHTML = m.theory.concepts.map(c =>
+      `<div class="concept-chip"><span>#</span>${c}</div>`
+    ).join('');
+
+    const quizId = m.id + '_quiz';
+
+    card.innerHTML = `
+      <div class="module-header" onclick="toggleModule('${m.id}')">
+        <div class="module-icon" style="background:rgba(${hexToRgb(m.color)},0.12)">${m.icon}</div>
+        <div class="module-meta">
+          <div class="module-tag-row">
+            <span class="tag tag-module">MODULE</span>
+            <span class="tag tag-level">${m.level}</span>
+            <span class="tag tag-xp">+${m.xp} XP</span>
+            ${done ? '<span class="tag tag-done">✓ DONE</span>' : ''}
+          </div>
+          <div class="module-title">${m.title}</div>
+          <div class="module-subtitle">${m.subtitle}</div>
+        </div>
+        <div class="module-toggle">▼</div>
+      </div>
+
+      <div class="module-body">
+        <!-- THEORY -->
+        <div class="theory-block">
+          <h3>📖 Core Concepts</h3>
+          <p>${m.theory.intro}</p>
+          <ul>${m.theory.points.map(p => `<li>${p}</li>`).join('')}</ul>
+          <div class="key-concepts" style="margin-top:1rem">${conceptsHTML}</div>
+        </div>
+
+        <!-- FLOW DIAGRAM BUTTON -->
+        <div class="flow-btn-wrap">
+          <div class="flow-btn-icon">📊</div>
+          <div class="flow-btn-text">
+            <div class="title">Interactive Flow Diagram</div>
+            <div class="sub">Visualise the ${m.title} process step-by-step</div>
+          </div>
+          <a class="flow-btn" href="iam-diagrams.html#${m.anchor}" onclick="saveLastModule('${m.id}')">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 7h10M8 4l3 3-3 3"/>
+            </svg>
+            View Interactive Flow Diagram
+          </a>
+        </div>
+
+        <!-- QUIZ -->
+        <div class="quiz-block" id="${quizId}">
+          <h3>⚡ Quick Quiz</h3>
+          <div class="quiz-q">${m.quiz.q}</div>
+          <div class="quiz-options">
+            ${m.quiz.opts.map((opt, i) =>
+              `<button class="quiz-opt" onclick="checkQuiz('${m.id}',${i},${m.quiz.correct},'${quizId}')">${opt}</button>`
+            ).join('')}
+          </div>
+          <div class="quiz-feedback" id="${quizId}_fb"></div>
+        </div>
+
+        <!-- COMPLETE -->
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+          <button class="complete-btn" id="${m.id}_btn" onclick="completeModule('${m.id}',${m.xp})" ${done ? 'disabled' : ''}>
+            ${done ? '✓ Completed' : '✅ Mark as Complete'}
+          </button>
+          ${done ? `<span style="font-size:0.8rem;color:var(--text-muted)">+${m.xp} XP earned</span>` : ''}
+        </div>
+      </div>
+    `;
+    area.appendChild(card);
+  });
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+function toggleModule(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('expanded');
+}
+
+function checkQuiz(moduleId, chosen, correct, quizId) {
+  const opts = document.querySelectorAll(`#${quizId} .quiz-opt`);
+  opts.forEach(o => o.disabled = true);
+  opts[chosen].classList.add(chosen === correct ? 'correct' : 'wrong');
+  if (chosen !== correct) opts[correct].classList.add('correct');
+
+  const m = MODULES.find(x => x.id === moduleId);
+  const fb = document.getElementById(`${quizId}_fb`);
+  if (chosen === correct) {
+    fb.textContent = '✓ Correct! ' + m.quiz.explanation;
+    fb.className = 'quiz-feedback show ok';
+  } else {
+    fb.textContent = '✗ ' + m.quiz.explanation;
+    fb.className = 'quiz-feedback show err';
+  }
+}
+
+function completeModule(id, xp) {
+  if (isCompleted(id)) return;
+  markCompleted(id);
+  const newXP = addXP(xp);
+
+  // Update button
+  const btn = document.getElementById(id + '_btn');
+  if (btn) { btn.textContent = '✓ Completed'; btn.disabled = true; }
+
+  // Update header tags
+  const card = document.getElementById(id);
+  const tagRow = card?.querySelector('.module-tag-row');
+  if (tagRow && !tagRow.querySelector('.tag-done')) {
+    const done = document.createElement('span');
+    done.className = 'tag tag-done';
+    done.textContent = '✓ DONE';
+    tagRow.appendChild(done);
+  }
+
+  // Sidebar
+  const sideItem = document.querySelector(`.sidebar-item[data-id="${id}"]`);
+  if (sideItem) sideItem.classList.add('done');
+
+  showXPToast(xp);
+  updateStats(newXP);
+  saveState({ lastModule: id });
+}
+
+function saveLastModule(id) {
+  const s = getState();
+  s.lastModuleVisited = id;
+  saveState(s);
+}
+
+function showXPToast(xp) {
+  const toast = document.getElementById('xpToast');
+  document.getElementById('toastAmt').textContent = '+' + xp;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function updateStats(xp) {
+  const completed = getCompleted();
+  const total = MODULES.length;
+  const count = completed.length;
+  const pct = Math.round((count / total) * 100);
+
+  document.getElementById('navXP').textContent = (xp || getXP()) + ' XP';
+  document.getElementById('completedCount').textContent = count;
+  document.getElementById('totalXPStat').textContent = xp || getXP();
+  document.getElementById('mainProgBar').style.width = pct + '%';
+  document.getElementById('mainProgPct').textContent = count + ' / ' + total;
+  document.getElementById('navPct').textContent = pct + '%';
+
+  const circ = 2 * Math.PI * 14;
+  const offset = circ - (pct / 100) * circ;
+  document.getElementById('navRing').setAttribute('stroke-dashoffset', offset);
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('light');
+}
+
+// ---- INIT ----
+buildSidebar();
+buildModules();
+updateStats();
+
+// Auto-expand first incomplete module
+const completed = getCompleted();
+const firstIncomplete = MODULES.find(m => !completed.includes(m.id));
+if (firstIncomplete) {
+  const card = document.getElementById(firstIncomplete.id);
+  if (card) card.classList.add('expanded');
+}
+
+// Hash navigation
+if (location.hash) {
+  setTimeout(() => {
+    const el = document.querySelector(location.hash);
+    if (el) {
+      el.classList.add('expanded');
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 300);
+}
+</script>
+</body>
+</html>

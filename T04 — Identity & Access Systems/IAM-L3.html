@@ -1,0 +1,3042 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity Security Academy – IAM Learning Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg-primary: #080c14;
+    --bg-secondary: #0d1526;
+    --bg-card: rgba(13,21,38,0.85);
+    --bg-glass: rgba(255,255,255,0.04);
+    --border: rgba(0,212,255,0.15);
+    --border-bright: rgba(0,212,255,0.4);
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text-primary: #e2eaf8;
+    --text-secondary: #7a9bb5;
+    --text-muted: #4a6b82;
+    --glow: 0 0 24px rgba(0,212,255,0.25);
+    --glow-strong: 0 0 40px rgba(0,212,255,0.4);
+    --sidebar-w: 260px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  [data-theme="light"] {
+    --bg-primary: #f0f4f8;
+    --bg-secondary: #e2eaf8;
+    --bg-card: rgba(255,255,255,0.9);
+    --bg-glass: rgba(255,255,255,0.7);
+    --border: rgba(0,100,200,0.2);
+    --border-bright: rgba(0,100,200,0.4);
+    --text-primary: #0d1a2d;
+    --text-secondary: #3a5a7a;
+    --text-muted: #6a8aaa;
+    --glow: 0 4px 20px rgba(0,100,200,0.15);
+    --glow-strong: 0 4px 30px rgba(0,100,200,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+    transition: var(--transition);
+  }
+
+  /* Particle Canvas */
+  #particles-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: fixed; left: 0; top: 0; bottom: 0;
+    z-index: 100;
+    transition: var(--transition);
+    backdrop-filter: blur(20px);
+    overflow-y: auto;
+  }
+
+  .sidebar.collapsed { width: 64px; }
+  .sidebar.collapsed .nav-label, .sidebar.collapsed .brand-text,
+  .sidebar.collapsed .sidebar-footer-text { display: none; }
+  .sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
+
+  .brand {
+    padding: 24px 20px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .brand-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+    box-shadow: var(--glow);
+  }
+
+  .brand-text { flex: 1; }
+  .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text-primary); line-height: 1.2; }
+  .brand-sub { font-size: 10px; color: var(--accent); font-family: var(--font-mono); }
+
+  .nav-section {
+    padding: 8px 12px 4px;
+    font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-muted); font-family: var(--font-mono);
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer; border-radius: var(--radius-sm);
+    margin: 1px 8px;
+    transition: var(--transition);
+    position: relative;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-glass);
+    border-color: var(--border);
+  }
+
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(124,58,237,0.08));
+    border-color: var(--border-bright);
+    box-shadow: var(--glow);
+  }
+
+  .nav-item.active .nav-label { color: var(--accent); }
+
+  .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+  .nav-label { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent2); color: white;
+    font-size: 9px; padding: 2px 6px; border-radius: 10px;
+    font-family: var(--font-mono); font-weight: 700;
+  }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 16px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .xp-bar-wrap { margin-bottom: 12px; }
+  .xp-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+  .xp-bar { height: 4px; background: var(--bg-glass); border-radius: 2px; overflow: hidden; }
+  .xp-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.8s ease; }
+
+  .level-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-glass); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 12px;
+    font-size: 12px; color: var(--text-primary);
+  }
+  .level-icon { font-size: 18px; }
+  .level-name { font-weight: 600; font-size: 11px; }
+  .level-num { font-family: var(--font-mono); color: var(--accent); font-size: 10px; }
+
+  /* ===== MAIN CONTENT ===== */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1; min-height: 100vh;
+    display: flex; flex-direction: column;
+    transition: var(--transition);
+    position: relative; z-index: 1;
+  }
+
+  .main.expanded { margin-left: 64px; }
+
+  /* ===== TOPBAR ===== */
+  .topbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 90;
+    backdrop-filter: blur(20px);
+  }
+
+  .topbar-toggle {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-secondary); cursor: pointer;
+    border-radius: var(--radius-sm); padding: 6px 8px; font-size: 16px;
+    transition: var(--transition);
+  }
+  .topbar-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  .search-bar {
+    flex: 1; max-width: 400px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px 14px;
+  }
+  .search-bar input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text-primary); font-size: 13px; font-family: var(--font-body);
+  }
+  .search-bar input::placeholder { color: var(--text-muted); }
+  .search-icon { color: var(--text-muted); font-size: 14px; }
+
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  .theme-toggle {
+    background: var(--bg-glass); border: 1px solid var(--border);
+    color: var(--text-secondary); cursor: pointer;
+    border-radius: var(--radius-sm); padding: 8px 10px; font-size: 14px;
+    transition: var(--transition);
+  }
+  .theme-toggle:hover { color: var(--accent4); border-color: var(--accent4); }
+
+  .topbar-xp {
+    background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,58,237,0.1));
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius); padding: 6px 14px;
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ===== PAGE CONTENT ===== */
+  .page { display: none; padding: 28px 32px; animation: fadeIn 0.4s ease; }
+  .page.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-header { margin-bottom: 28px; }
+  .page-eyebrow { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+  .page-desc { font-size: 14px; color: var(--text-secondary); margin-top: 8px; line-height: 1.6; max-width: 640px; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    backdrop-filter: blur(20px);
+    transition: var(--transition);
+  }
+
+  .card:hover { border-color: var(--border-bright); box-shadow: var(--glow); }
+
+  .card-title {
+    font-family: var(--font-display); font-weight: 600; font-size: 15px;
+    color: var(--text-primary); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+
+  /* ===== DASHBOARD STATS ===== */
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+    transition: var(--transition);
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 2px 0 0 2px;
+  }
+  .stat-card.blue::before { background: var(--accent); }
+  .stat-card.purple::before { background: var(--accent2); }
+  .stat-card.green::before { background: var(--accent3); }
+  .stat-card.amber::before { background: var(--accent4); }
+  .stat-card.red::before { background: var(--accent5); }
+
+  .stat-card:hover { border-color: var(--border-bright); box-shadow: var(--glow); transform: translateY(-2px); }
+
+  .stat-icon { font-size: 28px; flex-shrink: 0; }
+  .stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--text-primary); }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .stat-change { font-size: 11px; color: var(--accent3); font-family: var(--font-mono); }
+
+  /* ===== SECTION HEADERS ===== */
+  .section-title {
+    font-family: var(--font-display); font-weight: 600; font-size: 18px;
+    color: var(--text-primary); margin: 28px 0 16px;
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  .section-title span.tag {
+    font-size: 10px; padding: 3px 8px;
+    background: rgba(0,212,255,0.1); border: 1px solid var(--border-bright);
+    border-radius: 20px; color: var(--accent);
+    font-family: var(--font-mono); font-weight: 500;
+  }
+
+  /* ===== MODULE THEORY ===== */
+  .theory-block {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 20px; overflow: hidden;
+  }
+
+  .theory-header {
+    padding: 16px 20px;
+    background: var(--bg-glass);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+  }
+
+  .theory-header h3 { font-family: var(--font-display); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .theory-content { padding: 20px; line-height: 1.7; font-size: 13.5px; color: var(--text-secondary); }
+  .theory-content p { margin-bottom: 12px; }
+  .theory-content ul { padding-left: 20px; }
+  .theory-content li { margin-bottom: 6px; }
+  .theory-content strong { color: var(--text-primary); }
+
+  .theory-tag {
+    font-size: 9px; padding: 2px 8px; border-radius: 20px;
+    font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;
+  }
+  .theory-tag.intro { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .theory-tag.example { background: rgba(16,185,129,0.15); color: var(--accent3); }
+  .theory-tag.diagram { background: rgba(124,58,237,0.15); color: var(--accent2); }
+  .theory-tag.quiz { background: rgba(245,158,11,0.15); color: var(--accent4); }
+  .theory-tag.lab { background: rgba(239,68,68,0.15); color: var(--accent5); }
+
+  /* ===== SVG DIAGRAMS ===== */
+  .diagram-wrap { width: 100%; overflow-x: auto; }
+
+  .flow-svg { width: 100%; max-width: 700px; margin: 0 auto; display: block; }
+
+  /* ===== QUIZ ===== */
+  .quiz-option {
+    padding: 12px 16px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    margin-bottom: 8px; cursor: pointer;
+    font-size: 13px; color: var(--text-secondary);
+    transition: var(--transition); display: flex; align-items: center; gap: 10px;
+    background: var(--bg-glass);
+  }
+  .quiz-option:hover { border-color: var(--accent); color: var(--text-primary); background: rgba(0,212,255,0.05); }
+  .quiz-option.correct { border-color: var(--accent3); color: var(--accent3); background: rgba(16,185,129,0.1); }
+  .quiz-option.wrong { border-color: var(--accent5); color: var(--accent5); background: rgba(239,68,68,0.1); }
+  .quiz-option .opt-letter {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--bg-glass); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-family: var(--font-mono); flex-shrink: 0;
+  }
+
+  .quiz-feedback {
+    margin-top: 12px; padding: 12px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: rgba(16,185,129,0.1); border: 1px solid var(--accent3); color: var(--accent3); }
+  .quiz-feedback.wrong { background: rgba(239,68,68,0.1); border: 1px solid var(--accent5); color: var(--accent5); }
+
+  /* ===== INTERACTIVE SCENARIOS ===== */
+  .scenario-box {
+    background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius); padding: 24px;
+    margin-bottom: 20px;
+  }
+  .scenario-title { font-family: var(--font-display); font-weight: 600; font-size: 15px; margin-bottom: 8px; color: var(--text-primary); }
+  .scenario-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+
+  .scenario-options { display: flex; gap: 10px; flex-wrap: wrap; }
+  .scenario-btn {
+    padding: 10px 20px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-glass); color: var(--text-secondary);
+    cursor: pointer; font-size: 12px; font-family: var(--font-display); font-weight: 600;
+    transition: var(--transition);
+  }
+  .scenario-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.05); }
+  .scenario-btn.correct-pick { border-color: var(--accent3); color: var(--accent3); background: rgba(16,185,129,0.1); }
+  .scenario-btn.wrong-pick { border-color: var(--accent5); color: var(--accent5); background: rgba(239,68,68,0.1); }
+
+  /* ===== XP POPUP ===== */
+  .xp-popup {
+    position: fixed; top: 80px; right: 24px;
+    background: linear-gradient(135deg, var(--bg-secondary), rgba(0,212,255,0.1));
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius); padding: 16px 24px;
+    z-index: 9999; display: none; align-items: center; gap: 12px;
+    box-shadow: var(--glow-strong);
+    animation: slideIn 0.4s ease;
+  }
+  .xp-popup.show { display: flex; }
+  @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .xp-popup-icon { font-size: 24px; }
+  .xp-popup-text { font-family: var(--font-display); font-size: 13px; color: var(--text-primary); }
+  .xp-popup-amount { color: var(--accent); font-weight: 700; font-size: 16px; font-family: var(--font-mono); }
+
+  /* ===== LEVEL UP POPUP ===== */
+  .level-popup {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: var(--bg-secondary); border: 1px solid var(--accent);
+    border-radius: var(--radius); padding: 40px;
+    z-index: 9999; display: none; flex-direction: column; align-items: center;
+    text-align: center; box-shadow: var(--glow-strong);
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .level-popup.show { display: flex; }
+  @keyframes popIn { from { transform: translate(-50%,-50%) scale(0.5); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+  .level-popup h2 { font-family: var(--font-display); font-size: 24px; color: var(--accent); margin: 16px 0 8px; }
+  .level-popup p { color: var(--text-secondary); font-size: 14px; }
+  .level-popup .lvl-icon { font-size: 60px; }
+  .level-popup-close {
+    margin-top: 24px; padding: 10px 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: var(--radius-sm); color: white;
+    font-family: var(--font-display); font-weight: 600; cursor: pointer; font-size: 13px;
+  }
+
+  /* ===== POLICY BUILDER ===== */
+  .policy-builder {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;
+  }
+  .policy-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .policy-label { font-family: var(--font-mono); font-size: 12px; color: var(--accent); min-width: 60px; }
+  .policy-select {
+    background: var(--bg-glass); border: 1px solid var(--border);
+    color: var(--text-primary); border-radius: var(--radius-sm);
+    padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;
+    outline: none;
+  }
+  .policy-result {
+    margin-top: 16px; padding: 16px; border-radius: var(--radius-sm);
+    font-family: var(--font-mono); font-size: 14px; text-align: center; font-weight: 700;
+    transition: var(--transition);
+  }
+  .policy-result.allow { background: rgba(16,185,129,0.1); border: 1px solid var(--accent3); color: var(--accent3); }
+  .policy-result.mfa { background: rgba(245,158,11,0.1); border: 1px solid var(--accent4); color: var(--accent4); }
+  .policy-result.block { background: rgba(239,68,68,0.1); border: 1px solid var(--accent5); color: var(--accent5); }
+
+  /* ===== BTN STYLES ===== */
+  .btn {
+    padding: 10px 22px; border-radius: var(--radius-sm); cursor: pointer;
+    font-family: var(--font-display); font-weight: 600; font-size: 13px;
+    transition: var(--transition); border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white; border: none; box-shadow: var(--glow);
+  }
+  .btn-primary:hover { box-shadow: var(--glow-strong); transform: translateY(-1px); }
+  .btn-outline { background: transparent; border-color: var(--border); color: var(--text-secondary); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-success { background: rgba(16,185,129,0.15); border-color: var(--accent3); color: var(--accent3); }
+  .btn-success:hover { background: rgba(16,185,129,0.25); }
+
+  /* ===== BADGE CARDS ===== */
+  .badge-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; text-align: center;
+    transition: var(--transition);
+  }
+  .badge-card.unlocked { border-color: var(--accent); box-shadow: var(--glow); }
+  .badge-card.locked { opacity: 0.5; filter: grayscale(0.7); }
+  .badge-icon { font-size: 40px; margin-bottom: 10px; }
+  .badge-name { font-family: var(--font-display); font-weight: 600; font-size: 12px; color: var(--text-primary); }
+  .badge-status { font-size: 10px; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono); }
+
+  /* ===== LAB TERMINAL ===== */
+  .terminal {
+    background: #0a0f1a; border: 1px solid var(--border);
+    border-radius: var(--radius); font-family: var(--font-mono); font-size: 12px;
+    overflow: hidden;
+  }
+  .terminal-header {
+    background: var(--bg-secondary); padding: 8px 14px;
+    display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border);
+  }
+  .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .terminal-dot.red { background: #ff5f57; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #28ca41; }
+  .terminal-title { font-size: 11px; color: var(--text-muted); margin-left: 8px; }
+  .terminal-body { padding: 16px; color: #a8d8a8; line-height: 1.8; }
+  .terminal-body .cmd { color: var(--accent); }
+  .terminal-body .out { color: #7aa899; }
+  .terminal-body .err { color: var(--accent5); }
+  .terminal-body .ok { color: var(--accent3); }
+
+  /* ===== SKILL TREE ===== */
+  .skill-tree { padding: 20px; overflow-x: auto; }
+  .skill-node {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer;
+  }
+  .skill-circle {
+    width: 70px; height: 70px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 2px solid var(--border); background: var(--bg-card);
+    transition: var(--transition); gap: 2px; text-align: center;
+    font-size: 20px;
+  }
+  .skill-circle.unlocked { border-color: var(--accent); box-shadow: var(--glow); }
+  .skill-circle.locked { opacity: 0.4; }
+  .skill-circle span { font-size: 9px; color: var(--text-muted); font-family: var(--font-mono); }
+  .skill-label { font-size: 10px; color: var(--text-secondary); text-align: center; max-width: 70px; }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-wrap { margin-top: 8px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .progress-bar { height: 6px; background: var(--bg-glass); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+  .fill-blue { background: linear-gradient(90deg, var(--accent), #0080ff); }
+  .fill-purple { background: linear-gradient(90deg, var(--accent2), #9c5dff); }
+  .fill-green { background: linear-gradient(90deg, var(--accent3), #34d399); }
+  .fill-amber { background: linear-gradient(90deg, var(--accent4), #fcd34d); }
+
+  /* ===== MONITORING DASHBOARD ===== */
+  .alert-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px; border-radius: var(--radius-sm);
+    margin-bottom: 8px; border: 1px solid var(--border);
+    background: var(--bg-glass); font-size: 12px;
+    animation: fadeIn 0.4s ease;
+  }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-time { font-family: var(--font-mono); color: var(--text-muted); font-size: 10px; margin-top: 2px; }
+  .alert-high { border-color: rgba(239,68,68,0.3); }
+  .alert-medium { border-color: rgba(245,158,11,0.3); }
+  .alert-low { border-color: rgba(16,185,129,0.3); }
+
+  /* ===== DRAG DROP ===== */
+  .drag-item {
+    padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); cursor: grab; font-size: 12px; color: var(--text-primary);
+    transition: var(--transition); user-select: none;
+  }
+  .drag-item:hover { border-color: var(--accent); }
+  .drag-item.dragging { opacity: 0.5; cursor: grabbing; }
+  .drop-zone {
+    min-height: 100px; border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 12px; display: flex; flex-direction: column; gap: 6px;
+    transition: var(--transition);
+  }
+  .drop-zone.drag-over { border-color: var(--accent); background: rgba(0,212,255,0.03); }
+  .drop-zone-label { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); text-align: center; padding: 20px 0; }
+
+  /* ===== CERTIFICATE ===== */
+  .cert-preview {
+    background: linear-gradient(135deg, #0d1a2d, #1a0d2d);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 48px; text-align: center;
+    position: relative; overflow: hidden;
+    box-shadow: var(--glow-strong);
+  }
+  .cert-preview::before {
+    content: '🔐';
+    position: absolute; font-size: 200px; opacity: 0.04;
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+  }
+  .cert-logo { font-size: 40px; margin-bottom: 12px; }
+  .cert-academy { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 4px; text-transform: uppercase; }
+  .cert-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 16px 0 8px; }
+  .cert-name-field { font-size: 13px; color: var(--text-secondary); }
+  .cert-student { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 8px; margin: 12px 40px; }
+  .cert-sub { font-size: 12px; color: var(--text-secondary); margin-top: 24px; }
+  .cert-meta { display: flex; justify-content: center; gap: 32px; margin-top: 24px; }
+  .cert-meta-item { text-align: center; }
+  .cert-meta-label { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+  .cert-meta-value { font-size: 13px; color: var(--text-primary); font-weight: 600; margin-top: 2px; }
+
+  /* ===== PHISHING ===== */
+  .email-sim {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  }
+  .email-header { background: var(--bg-glass); padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .email-from { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .email-subject { font-weight: 600; font-size: 14px; color: var(--text-primary); margin-top: 4px; }
+  .email-body { padding: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+  .email-link { color: var(--accent5); text-decoration: underline; cursor: pointer; }
+
+  /* ===== PASSWORD METER ===== */
+  .pwd-meter { margin-top: 12px; }
+  .pwd-bar { height: 8px; border-radius: 4px; margin-top: 8px; transition: all 0.4s; }
+  .pwd-input {
+    width: 100%; background: var(--bg-glass); border: 1px solid var(--border);
+    color: var(--text-primary); border-radius: var(--radius-sm); padding: 12px 16px;
+    font-family: var(--font-mono); font-size: 14px; outline: none;
+  }
+  .pwd-input:focus { border-color: var(--accent); }
+  .pwd-stat { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-top: 8px; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .sidebar { width: 64px; }
+    .sidebar .nav-label, .sidebar .brand-text, .sidebar .sidebar-footer-text { display: none; }
+    .sidebar .nav-item { justify-content: center; padding: 12px; }
+    .main { margin-left: 64px; }
+    .grid-4 { grid-template-columns: repeat(2,1fr); }
+    .grid-3 { grid-template-columns: repeat(2,1fr); }
+  }
+  @media (max-width: 600px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .page { padding: 16px; }
+  }
+
+  /* ===== CHATBOT ===== */
+  .chat-window {
+    position: fixed; bottom: 80px; right: 24px;
+    width: 340px; background: var(--bg-secondary);
+    border: 1px solid var(--border-bright); border-radius: var(--radius);
+    box-shadow: var(--glow-strong); display: none; flex-direction: column;
+    z-index: 9998; overflow: hidden;
+  }
+  .chat-window.open { display: flex; }
+  .chat-header {
+    padding: 14px 16px; background: var(--bg-glass); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .chat-header h4 { font-family: var(--font-display); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .chat-status { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); }
+  .chat-messages { flex: 1; padding: 14px; overflow-y: auto; max-height: 300px; display: flex; flex-direction: column; gap: 10px; }
+  .chat-msg { padding: 9px 12px; border-radius: var(--radius-sm); font-size: 12px; line-height: 1.5; max-width: 85%; }
+  .chat-msg.ai { background: var(--bg-glass); border: 1px solid var(--border); color: var(--text-secondary); align-self: flex-start; }
+  .chat-msg.user { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); color: var(--accent); align-self: flex-end; }
+  .chat-input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); }
+  .chat-input {
+    flex: 1; background: var(--bg-glass); border: 1px solid var(--border);
+    color: var(--text-primary); border-radius: var(--radius-sm); padding: 8px 12px;
+    font-size: 12px; outline: none; font-family: var(--font-body);
+  }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-send {
+    padding: 8px 12px; background: var(--accent); border: none; border-radius: var(--radius-sm);
+    color: white; cursor: pointer; font-size: 14px;
+  }
+  .chat-fab {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; color: white; font-size: 20px; cursor: pointer;
+    box-shadow: var(--glow-strong); z-index: 9997;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition);
+  }
+  .chat-fab:hover { transform: scale(1.1); }
+
+  .badge-unlocked-notif {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(0,212,255,0.15));
+    border: 1px solid var(--accent2);
+    padding: 12px 24px; border-radius: var(--radius); z-index: 9998;
+    font-family: var(--font-display); font-size: 13px; color: var(--text-primary);
+    display: none; align-items: center; gap: 10px; box-shadow: 0 0 30px rgba(124,58,237,0.3);
+    animation: slideIn 0.4s ease;
+  }
+  .badge-unlocked-notif.show { display: flex; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 10px; font-family: var(--font-mono); font-weight: 700;
+  }
+  .chip-blue { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+  .chip-green { background: rgba(16,185,129,0.1); color: var(--accent3); border: 1px solid rgba(16,185,129,0.2); }
+  .chip-red { background: rgba(239,68,68,0.1); color: var(--accent5); border: 1px solid rgba(239,68,68,0.2); }
+  .chip-amber { background: rgba(245,158,11,0.1); color: var(--accent4); border: 1px solid rgba(245,158,11,0.2); }
+  .chip-purple { background: rgba(124,58,237,0.1); color: var(--accent2); border: 1px solid rgba(124,58,237,0.2); }
+
+  .info-box {
+    background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.2);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .info-box strong { color: var(--accent); }
+
+  .warn-box {
+    background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+  #overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9990;
+    display: none; backdrop-filter: blur(4px);
+  }
+  #overlay.show { display: block; }
+</style>
+</head>
+<body>
+
+<canvas id="particles-canvas"></canvas>
+
+<!-- XP Popup -->
+<div class="xp-popup" id="xpPopup">
+  <div class="xp-popup-icon">⚡</div>
+  <div>
+    <div class="xp-popup-amount" id="xpAmount">+50 XP</div>
+    <div class="xp-popup-text" id="xpReason">Quiz Completed!</div>
+  </div>
+</div>
+
+<!-- Level Up Popup -->
+<div class="level-popup" id="levelPopup">
+  <div class="lvl-icon" id="lvlIcon">🎖️</div>
+  <div style="font-size:11px;font-family:var(--font-mono);color:var(--accent);letter-spacing:3px;margin-bottom:4px">LEVEL UP!</div>
+  <h2 id="lvlName">IAM Analyst</h2>
+  <p id="lvlDesc">You've unlocked a new level of mastery.</p>
+  <button class="level-popup-close" onclick="closeLevelPopup()">Continue →</button>
+</div>
+
+<!-- Badge Notification -->
+<div class="badge-unlocked-notif" id="badgeNotif">
+  <span id="badgeNotifIcon">🏆</span>
+  <span><strong id="badgeNotifName">Badge Unlocked</strong> – Tap to view your collection</span>
+</div>
+
+<div id="overlay"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🔐</div>
+    <div class="brand-text">
+      <div class="brand-name">Identity Security<br>Academy</div>
+      <div class="brand-sub">ISA v3.0</div>
+    </div>
+  </div>
+
+  <div style="padding:8px;flex:1;overflow-y:auto">
+    <div class="nav-section">Platform</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></div>
+    <div class="nav-item" onclick="showPage('skillTree',this)"><span class="nav-icon">🌐</span><span class="nav-label">Skill Tree</span></div>
+
+    <div class="nav-section">Core Modules</div>
+    <div class="nav-item" onclick="showPage('ticketing',this)"><span class="nav-icon">🎫</span><span class="nav-label">Ticketing Systems</span></div>
+    <div class="nav-item" onclick="showPage('delegation',this)"><span class="nav-icon">🤝</span><span class="nav-label">Delegation</span></div>
+    <div class="nav-item" onclick="showPage('conditional',this)"><span class="nav-icon">🛡️</span><span class="nav-label">Conditional Access</span></div>
+    <div class="nav-item" onclick="showPage('pam',this)"><span class="nav-icon">🔑</span><span class="nav-label">PAM</span></div>
+    <div class="nav-item" onclick="showPage('federation',this)"><span class="nav-icon">🔗</span><span class="nav-label">Identity Federation</span></div>
+    <div class="nav-item" onclick="showPage('lifecycle',this)"><span class="nav-icon">🔄</span><span class="nav-label">Identity Lifecycle</span></div>
+    <div class="nav-item" onclick="showPage('governance',this)"><span class="nav-icon">⚖️</span><span class="nav-label">Access Governance</span></div>
+    <div class="nav-item" onclick="showPage('privAccounts',this)"><span class="nav-icon">👑</span><span class="nav-label">Privileged Accounts</span></div>
+    <div class="nav-item" onclick="showPage('authChains',this)"><span class="nav-icon">🔗</span><span class="nav-label">Auth Chains</span></div>
+    <div class="nav-item" onclick="showPage('monitoring',this)"><span class="nav-icon">👁️</span><span class="nav-label">Identity Monitoring</span></div>
+
+    <div class="nav-section">Labs & Challenges</div>
+    <div class="nav-item" onclick="showPage('labs',this)"><span class="nav-icon">🧪</span><span class="nav-label">IAM Labs</span></div>
+    <div class="nav-item" onclick="showPage('challenges',this)"><span class="nav-icon">⚔️</span><span class="nav-label">Security Challenges</span><span class="nav-badge">20</span></div>
+    <div class="nav-item" onclick="showPage('phishing',this)"><span class="nav-icon">🎣</span><span class="nav-label">Phishing Trainer</span></div>
+    <div class="nav-item" onclick="showPage('caseStudies',this)"><span class="nav-icon">📁</span><span class="nav-label">Case Studies</span></div>
+    <div class="nav-item" onclick="showPage('password',this)"><span class="nav-icon">🔐</span><span class="nav-label">Password Security</span></div>
+    <div class="nav-item" onclick="showPage('compliance',this)"><span class="nav-icon">✅</span><span class="nav-label">Compliance Audit</span></div>
+    <div class="nav-item" onclick="showPage('maturity',this)"><span class="nav-icon">📈</span><span class="nav-label">Maturity Assessment</span></div>
+    <div class="nav-item" onclick="showPage('badges',this)"><span class="nav-icon">🏆</span><span class="nav-label">Badge Gallery</span></div>
+    <div class="nav-item" onclick="showPage('certificate',this)"><span class="nav-icon">🎓</span><span class="nav-label">Certificate Center</span></div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="xp-bar-wrap">
+      <div class="xp-label">
+        <span id="sidebarXP">0 XP</span>
+        <span id="sidebarNextXP">500 XP</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" id="sidebarXPBar" style="width:0%"></div></div>
+    </div>
+    <div class="level-badge">
+      <span class="level-icon" id="sidebarLvlIcon">🌱</span>
+      <div>
+        <div class="level-name" id="sidebarLvlName">IAM Beginner</div>
+        <div class="level-num" id="sidebarLvlNum">Level 1</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main" id="mainContent">
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <button class="topbar-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search modules, labs, challenges..." id="searchInput" oninput="handleSearch(this.value)">
+    </div>
+    <div class="topbar-right">
+      <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+      <div class="topbar-xp">⚡ <span id="topbarXP">0 XP</span></div>
+    </div>
+  </nav>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div class="page-eyebrow">Identity Security Academy</div>
+      <div class="page-title">Welcome to IAM Training Hub 🔐</div>
+      <div class="page-desc">Enterprise-grade Identity & Access Management training. Learn, practice, and earn certifications on real-world IAM concepts.</div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:24px">
+      <div class="stat-card blue"><span class="stat-icon">👥</span><div><div class="stat-value" id="dashUsers">24,847</div><div class="stat-label">Identities Managed</div><div class="stat-change">↑ +12 today</div></div></div>
+      <div class="stat-card purple"><span class="stat-icon">🔒</span><div><div class="stat-value">148</div><div class="stat-label">Apps Protected</div><div class="stat-change">↑ SSO Active</div></div></div>
+      <div class="stat-card green"><span class="stat-icon">📱</span><div><div class="stat-value" id="mfaAdoption">87%</div><div class="stat-label">MFA Adoption</div><div class="stat-change">↑ Good posture</div></div></div>
+      <div class="stat-card amber"><span class="stat-icon">⚠️</span><div><div class="stat-value" id="alertCount">3</div><div class="stat-label">Active Alerts</div><div class="stat-change" id="alertChange">Review needed</div></div></div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-title">📊 IAM Health Score</div>
+        <canvas id="healthChart" height="180"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">📉 Access Events (7 Days)</div>
+        <canvas id="eventsChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-title">🎯 Your Progress</div>
+        <div class="progress-wrap"><div class="progress-label"><span>Ticketing Systems</span><span>100%</span></div><div class="progress-bar"><div class="progress-fill fill-blue" style="width:100%"></div></div></div>
+        <div class="progress-wrap"><div class="progress-label"><span>Conditional Access</span><span id="prog-cond">0%</span></div><div class="progress-bar"><div class="progress-fill fill-purple" id="bar-cond" style="width:0%"></div></div></div>
+        <div class="progress-wrap"><div class="progress-label"><span>PAM</span><span id="prog-pam">0%</span></div><div class="progress-bar"><div class="progress-fill fill-green" id="bar-pam" style="width:0%"></div></div></div>
+        <div class="progress-wrap"><div class="progress-label"><span>Identity Federation</span><span id="prog-fed">0%</span></div><div class="progress-bar"><div class="progress-fill fill-amber" id="bar-fed" style="width:0%"></div></div></div>
+        <div class="progress-wrap"><div class="progress-label"><span>Lifecycle Management</span><span id="prog-jml">0%</span></div><div class="progress-bar"><div class="progress-fill fill-blue" id="bar-jml" style="width:0%"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Recent Access Log</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:2" id="accessLog">
+          <div><span style="color:var(--accent3)">✓</span> raj.kumar@bank.com → SAP Finance — <span style="color:var(--text-muted)">09:41</span></div>
+          <div><span style="color:var(--accent5)">✗</span> unknown@external.net → VPN — <span style="color:var(--text-muted)">09:39</span></div>
+          <div><span style="color:var(--accent3)">✓</span> priya.sharma@bank.com → HR Portal — <span style="color:var(--text-muted)">09:38</span></div>
+          <div><span style="color:var(--accent4)">⚠</span> amit.verma@bank.com → Admin Panel — <span style="color:var(--text-muted)">09:35</span></div>
+          <div><span style="color:var(--accent3)">✓</span> system@svc → DB Backup — <span style="color:var(--text-muted)">09:30</span></div>
+          <div><span style="color:var(--accent5)">✗</span> temp.admin@bank.com → CyberArk — <span style="color:var(--text-muted)">09:28</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">📚 Modules <span class="tag">16 Total</span></div>
+    <div class="grid-4">
+      <div class="card" style="cursor:pointer" onclick="showPage('ticketing',null)"><div style="font-size:28px;margin-bottom:8px">🎫</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Ticketing Systems</div><div style="font-size:11px;color:var(--text-muted)">ServiceNow, Jira</div><div class="chip chip-green" style="margin-top:8px">✓ Complete</div></div>
+      <div class="card" style="cursor:pointer" onclick="showPage('delegation',null)"><div style="font-size:28px;margin-bottom:8px">🤝</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Delegation</div><div style="font-size:11px;color:var(--text-muted)">Authority, SoD</div><div class="chip chip-blue" style="margin-top:8px">→ Start</div></div>
+      <div class="card" style="cursor:pointer" onclick="showPage('conditional',null)"><div style="font-size:28px;margin-bottom:8px">🛡️</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Conditional Access</div><div style="font-size:11px;color:var(--text-muted)">Zero Trust Policies</div><div class="chip chip-blue" style="margin-top:8px">→ Start</div></div>
+      <div class="card" style="cursor:pointer" onclick="showPage('pam',null)"><div style="font-size:28px;margin-bottom:8px">🔑</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">PAM</div><div style="font-size:11px;color:var(--text-muted)">Vault, JIT Access</div><div class="chip chip-blue" style="margin-top:8px">→ Start</div></div>
+      <div class="card" style="cursor:pointer" onclick="showPage('federation',null)"><div style="font-size:28px;margin-bottom:8px">🔗</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Identity Federation</div><div style="font-size:11px;color:var(--text-muted)">SAML, OAuth, OIDC</div><div class="chip chip-blue" style="margin-top:8px">→ Start</div></div>
+      <div class="card" style="cursor:pointer" onclick="showPage('lifecycle',null)"><div style="font-size:28px;margin-bottom:8px">🔄</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Lifecycle (JML)</div><div style="font-size:11px;color:var(--text-muted)">Joiner, Mover, Leaver</div><div class="chip chip-blue" style="margin-top:8px">→ Start</div></div>
+      <div class="card" style="cursor:pointer" onclick="showPage('monitoring',null)"><div style="font-size:28px;margin-bottom:8px">👁️</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Identity Monitoring</div><div style="font-size:11px;color:var(--text-muted)">SIEM, Risk Detection</div><div class="chip chip-blue" style="margin-top:8px">→ Start</div></div>
+      <div class="card" style="cursor:pointer" onclick="showPage('labs',null)"><div style="font-size:28px;margin-bottom:8px">🧪</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">IAM Labs</div><div style="font-size:11px;color:var(--text-muted)">RBAC, AD, LDAP</div><div class="chip chip-purple" style="margin-top:8px">5 Labs</div></div>
+    </div>
+  </div>
+
+  <!-- ===== TICKETING MODULE ===== -->
+  <div class="page" id="page-ticketing">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 1</div>
+      <div class="page-title">🎫 Ticketing Systems</div>
+      <div class="page-desc">Understanding access request workflows, approvals, and audit trails in enterprise environments.</div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag intro">Intro</span> What is a Ticketing System?</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p>A <strong>ticketing system</strong> is a centralized platform that manages, tracks, and resolves access requests, incidents, and service requests in an organization. In IAM, ticketing systems are the backbone of the <strong>access request lifecycle</strong>.</p>
+        <p>Popular platforms include <strong>ServiceNow</strong>, <strong>Jira Service Management</strong>, and <strong>Remedy</strong>. These tools enforce governance by ensuring every access change is documented, approved, and traceable.</p>
+        <p><strong>Key concepts:</strong></p>
+        <ul>
+          <li><strong>Access Request:</strong> Formal request to gain access to a system or resource</li>
+          <li><strong>Approval Chain:</strong> Defined hierarchy of approvers (Manager → IT → Security)</li>
+          <li><strong>Audit Trail:</strong> Complete history of who approved what, and when</li>
+          <li><strong>SLA:</strong> Service Level Agreement — time limits for request resolution</li>
+          <li><strong>Compliance Tracking:</strong> Evidence for SOX, PCI-DSS, ISO 27001 audits</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag example">Example</span> 🏦 Real World: Bank SAP Access Request</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p>Raj Kumar, a new Finance Analyst at State Bank, needs access to the SAP Finance module to process payments.</p>
+        <p><strong>The workflow:</strong></p>
+        <ul>
+          <li>Raj raises a ticket in <strong>ServiceNow</strong> requesting SAP Finance Read access</li>
+          <li>His manager <strong>Priya Sharma</strong> receives an email notification and approves</li>
+          <li>The request escalates to the <strong>IT Security team</strong> for risk validation</li>
+          <li>IT provisions the account in SAP and closes the ticket</li>
+          <li>Raj receives access confirmation. The ticket is archived for <strong>compliance evidence</strong></li>
+        </ul>
+        <p>Without this system, access could be granted informally via email — creating <strong>security risks, audit failures, and compliance gaps</strong>.</p>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag diagram">Workflow</span> Access Request Flowchart</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="diagram-wrap">
+          <svg class="flow-svg" viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+              </marker>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <!-- Boxes -->
+            <rect x="220" y="20" width="160" height="48" rx="10" fill="rgba(0,212,255,0.1)" stroke="#00d4ff" stroke-width="1.5"/>
+            <text x="300" y="40" text-anchor="middle" fill="#e2eaf8" font-size="12" font-family="Space Grotesk" font-weight="600">📝 Access Request</text>
+            <text x="300" y="58" text-anchor="middle" fill="#7a9bb5" font-size="10">User submits ticket</text>
+            <line x1="300" y1="68" x2="300" y2="100" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr)"/>
+            <rect x="220" y="100" width="160" height="48" rx="10" fill="rgba(124,58,237,0.1)" stroke="#7c3aed" stroke-width="1.5"/>
+            <text x="300" y="120" text-anchor="middle" fill="#e2eaf8" font-size="12" font-family="Space Grotesk" font-weight="600">✅ Manager Approval</text>
+            <text x="300" y="138" text-anchor="middle" fill="#7a9bb5" font-size="10">Approve / Reject</text>
+            <!-- Reject path -->
+            <line x1="220" y1="124" x2="130" y2="124" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr)"/>
+            <rect x="30" y="100" width="90" height="48" rx="8" fill="rgba(239,68,68,0.1)" stroke="#ef4444" stroke-width="1.5"/>
+            <text x="75" y="126" text-anchor="middle" fill="#ef4444" font-size="10" font-family="Space Grotesk">❌ Rejected</text>
+            <text x="175" y="110" fill="#ef4444" font-size="9" text-anchor="middle">Reject</text>
+            <line x1="300" y1="148" x2="300" y2="180" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr)"/>
+            <text x="310" y="168" fill="#7a9bb5" font-size="9">Approve</text>
+            <rect x="220" y="180" width="160" height="48" rx="10" fill="rgba(0,212,255,0.1)" stroke="#00d4ff" stroke-width="1.5"/>
+            <text x="300" y="200" text-anchor="middle" fill="#e2eaf8" font-size="12" font-family="Space Grotesk" font-weight="600">🔒 Security Review</text>
+            <text x="300" y="218" text-anchor="middle" fill="#7a9bb5" font-size="10">Risk assessment</text>
+            <line x1="300" y1="228" x2="300" y2="260" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr)"/>
+            <rect x="220" y="260" width="160" height="48" rx="10" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-width="1.5"/>
+            <text x="300" y="280" text-anchor="middle" fill="#e2eaf8" font-size="12" font-family="Space Grotesk" font-weight="600">⚙️ Provisioning</text>
+            <text x="300" y="298" text-anchor="middle" fill="#7a9bb5" font-size="10">Access granted in system</text>
+            <line x1="300" y1="308" x2="300" y2="340" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arr)"/>
+            <rect x="220" y="340" width="160" height="32" rx="8" fill="rgba(245,158,11,0.1)" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="300" y="362" text-anchor="middle" fill="#f59e0b" font-size="11" font-family="Space Grotesk" font-weight="600">📁 Ticket Closed + Archived</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag quiz">Interactive</span> 🎭 Manager Simulation</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="info-box">You are <strong>Priya Sharma</strong>, Finance Manager. Review and decide on these access requests below.</div>
+        <div id="ticketList"></div>
+        <div id="ticketResult" style="display:none;padding:12px;border-radius:var(--radius-sm);margin-top:12px;font-size:13px"></div>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag quiz">Quiz</span> Knowledge Check</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div id="quiz-ticketing"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('ticketing', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-ticketing-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== CONDITIONAL ACCESS MODULE ===== -->
+  <div class="page" id="page-conditional">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 3</div>
+      <div class="page-title">🛡️ Conditional Access</div>
+      <div class="page-desc">Context-aware, risk-based authentication policies using Zero Trust principles.</div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag intro">Theory</span> What is Conditional Access?</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p><strong>Conditional Access</strong> is a security approach where access decisions are based on real-time context — not just username and password. It evaluates signals to decide whether to allow, require MFA, or block access entirely.</p>
+        <p><strong>Key signals evaluated:</strong></p>
+        <ul>
+          <li><strong>User identity:</strong> Who is trying to access? (Employee, Contractor, Admin)</li>
+          <li><strong>Device compliance:</strong> Is the device managed and patched?</li>
+          <li><strong>Location:</strong> Is the user in a trusted location or an anomalous country?</li>
+          <li><strong>Risk score:</strong> Has the account been flagged for suspicious behavior?</li>
+          <li><strong>Application sensitivity:</strong> Is this a low-risk email or high-risk financial system?</li>
+        </ul>
+        <p><strong>Zero Trust principle:</strong> "Never trust, always verify." Even if a user is inside the corporate network, they must prove their identity and context for every access request.</p>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag diagram">Builder</span> 🏗️ Interactive Policy Builder</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="info-box">Build a Conditional Access policy below. The decision engine will evaluate your conditions in real time.</div>
+        <div class="policy-builder">
+          <div class="policy-row">
+            <span class="policy-label">IF User =</span>
+            <select class="policy-select" id="pUser" onchange="evalPolicy()">
+              <option>Employee</option>
+              <option>Contractor</option>
+              <option>Admin</option>
+              <option>Unknown</option>
+            </select>
+          </div>
+          <div class="policy-row">
+            <span class="policy-label">AND Device =</span>
+            <select class="policy-select" id="pDevice" onchange="evalPolicy()">
+              <option>Managed</option>
+              <option>Personal</option>
+              <option>Unknown</option>
+            </select>
+          </div>
+          <div class="policy-row">
+            <span class="policy-label">AND Location =</span>
+            <select class="policy-select" id="pLocation" onchange="evalPolicy()">
+              <option>India (Trusted)</option>
+              <option>USA (Trusted)</option>
+              <option>Unknown Country</option>
+              <option>High Risk Country</option>
+            </select>
+          </div>
+          <div class="policy-row">
+            <span class="policy-label">AND Risk =</span>
+            <select class="policy-select" id="pRisk" onchange="evalPolicy()">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
+          </div>
+          <div class="policy-result" id="policyResult">Select conditions above →</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag quiz">Quiz</span> Knowledge Check</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content"><div id="quiz-conditional"></div></div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('conditional', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-conditional-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== PAM MODULE ===== -->
+  <div class="page" id="page-pam">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 4</div>
+      <div class="page-title">🔑 Privileged Access Management</div>
+      <div class="page-desc">Securing, controlling, and monitoring privileged accounts with vaults, JIT access, and session recording.</div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag intro">Theory</span> What is PAM?</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p><strong>Privileged Access Management (PAM)</strong> is a security discipline focused on protecting accounts with elevated access to critical systems. Privileged accounts — like Domain Admins, Root accounts, or Database Admins — can cause catastrophic damage if compromised.</p>
+        <p><strong>Core PAM capabilities:</strong></p>
+        <ul>
+          <li><strong>Password Vault:</strong> Stores privileged credentials encrypted. Admins never see the real password.</li>
+          <li><strong>Credential Checkout:</strong> Admins "check out" a credential for a specific time window</li>
+          <li><strong>Session Recording:</strong> Every keypress and screen action is recorded during privileged sessions</li>
+          <li><strong>Just-In-Time (JIT) Access:</strong> Access is granted only when needed, then automatically revoked</li>
+          <li><strong>Credential Rotation:</strong> Passwords are automatically changed after each use</li>
+        </ul>
+        <p>Enterprise PAM tools: <strong>CyberArk, BeyondTrust, Thycotic, Delinea</strong></p>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag diagram">Simulator</span> 🖥️ PAM Session Simulator</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="info-box">Simulate a <strong>Database Admin</strong> requesting production database access through CyberArk.</div>
+        <div id="pamSimulator">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px" id="pamSteps">
+            <button class="btn btn-outline" id="pamStep1" onclick="pamAction(1)">1️⃣ Request Access</button>
+            <button class="btn btn-outline" id="pamStep2" onclick="pamAction(2)" disabled>2️⃣ Manager Approves</button>
+            <button class="btn btn-outline" id="pamStep3" onclick="pamAction(3)" disabled>3️⃣ Retrieve Credential</button>
+            <button class="btn btn-outline" id="pamStep4" onclick="pamAction(4)" disabled>4️⃣ Start Session</button>
+            <button class="btn btn-outline" id="pamStep5" onclick="pamAction(5)" disabled>5️⃣ Rotate Password</button>
+          </div>
+          <div class="terminal">
+            <div class="terminal-header"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div><span class="terminal-title">CyberArk PAM Console</span></div>
+            <div class="terminal-body" id="pamTerminal">
+              <span class="cmd">$ </span><span class="out">CyberArk Privileged Access Manager v14.2</span><br>
+              <span class="out">Connected to vault: PROD-VAULT-01</span><br>
+              <span class="out">Awaiting action...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag quiz">Quiz</span> Knowledge Check</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content"><div id="quiz-pam"></div></div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('pam', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-pam-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== FEDERATION MODULE ===== -->
+  <div class="page" id="page-federation">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 5</div>
+      <div class="page-title">🔗 Identity Federation & SSO</div>
+      <div class="page-desc">SAML, OAuth 2.0, OpenID Connect — enabling seamless single sign-on across enterprise applications.</div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag intro">Theory</span> Federation Protocols</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p><strong>Identity Federation</strong> allows users to authenticate once and access multiple systems — even across organizational boundaries. This eliminates password fatigue and centralizes identity governance.</p>
+        <p><strong>Key protocols:</strong></p>
+        <ul>
+          <li><strong>SAML 2.0:</strong> XML-based standard for SSO between Identity Provider (IdP) and Service Provider (SP). Used in enterprise apps like Salesforce, SAP.</li>
+          <li><strong>OAuth 2.0:</strong> Authorization framework for delegated access. Allows apps to access resources on behalf of users without sharing passwords.</li>
+          <li><strong>OpenID Connect (OIDC):</strong> Authentication layer on top of OAuth 2.0. Returns an ID Token (JWT) with user identity claims.</li>
+        </ul>
+        <p><strong>Key terms:</strong> Identity Provider (IdP) — authenticates the user. Service Provider (SP) — relies on IdP for authentication. Claims — attributes about the user (email, role, department). Token — cryptographically signed proof of authentication.</p>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag diagram">Demo</span> 🎬 SSO Token Exchange Demo</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="info-box">Click <strong>"Login with SSO"</strong> to simulate a SAML-based single sign-on flow across 4 enterprise applications.</div>
+        <div style="text-align:center;margin-bottom:20px">
+          <button class="btn btn-primary" onclick="startSSO()">🔐 Login with SSO</button>
+          <button class="btn btn-outline" style="margin-left:8px" onclick="resetSSO()">↺ Reset</button>
+        </div>
+        <div class="grid-4" id="ssoApps">
+          <div class="card" id="ssoApp0" style="text-align:center;opacity:0.4"><div style="font-size:32px">👥</div><div style="font-size:12px;font-weight:600;margin-top:8px">HR Portal</div><div class="chip chip-red" style="margin-top:8px" id="ssoStatus0">Locked</div></div>
+          <div class="card" id="ssoApp1" style="text-align:center;opacity:0.4"><div style="font-size:32px">💰</div><div style="font-size:12px;font-weight:600;margin-top:8px">Finance Portal</div><div class="chip chip-red" style="margin-top:8px" id="ssoStatus1">Locked</div></div>
+          <div class="card" id="ssoApp2" style="text-align:center;opacity:0.4"><div style="font-size:32px">📞</div><div style="font-size:12px;font-weight:600;margin-top:8px">CRM</div><div class="chip chip-red" style="margin-top:8px" id="ssoStatus2">Locked</div></div>
+          <div class="card" id="ssoApp3" style="text-align:center;opacity:0.4"><div style="font-size:32px">🎫</div><div style="font-size:12px;font-weight:600;margin-top:8px">Ticketing</div><div class="chip chip-red" style="margin-top:8px" id="ssoStatus3">Locked</div></div>
+        </div>
+        <div id="ssoLog" style="margin-top:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:2"></div>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag quiz">Quiz</span> Knowledge Check</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content"><div id="quiz-federation"></div></div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('federation', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-federation-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== LIFECYCLE MODULE ===== -->
+  <div class="page" id="page-lifecycle">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 6</div>
+      <div class="page-title">🔄 Identity Lifecycle Management</div>
+      <div class="page-desc">Joiner, Mover, Leaver — managing identities from onboarding to offboarding.</div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag intro">Theory</span> The JML Framework</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p><strong>Identity Lifecycle Management</strong> governs how digital identities are created, maintained, and removed throughout an employee's journey.</p>
+        <ul>
+          <li><strong>🟢 Joiner:</strong> New employee joins. Account created, roles assigned based on job function. Access provisioned on Day 1.</li>
+          <li><strong>🟡 Mover:</strong> Employee transfers to another department. Access to old department revoked; new department access provisioned. Role-mapping reviewed.</li>
+          <li><strong>🔴 Leaver:</strong> Employee exits the organization. All accounts immediately disabled, tokens revoked, group memberships removed. Audited for compliance.</li>
+        </ul>
+        <p>Failure to execute the Leaver process creates <strong>orphan accounts</strong> — active accounts with no known owner — a top security risk in organizations.</p>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag diagram">Simulator</span> 🎭 Lifecycle Simulator</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="info-box">Follow Kavya Reddy's employee journey at National Bank.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn btn-outline" onclick="jmlAction('join')">👋 Joiner: Hire</button>
+          <button class="btn btn-outline" onclick="jmlAction('move')">↗️ Mover: Transfer</button>
+          <button class="btn btn-outline" onclick="jmlAction('leave')">🚪 Leaver: Terminate</button>
+        </div>
+        <div id="jmlCanvas" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;min-height:120px;font-size:13px;color:var(--text-secondary)">
+          Click an action above to simulate the identity lifecycle.
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('lifecycle', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-lifecycle-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== MONITORING MODULE ===== -->
+  <div class="page" id="page-monitoring">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 10</div>
+      <div class="page-title">👁️ Identity Monitoring</div>
+      <div class="page-desc">Real-time threat detection, anomaly analysis, and SIEM integration for IAM events.</div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag intro">Theory</span> Identity Threat Detection</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p>Identity monitoring continuously analyzes authentication events, privileged activity, and access patterns to detect threats in real time.</p>
+        <ul>
+          <li><strong>Failed Login Monitoring:</strong> Brute force attacks, credential stuffing</li>
+          <li><strong>Impossible Travel:</strong> Login from Mumbai at 9AM, then London at 9:05AM — physically impossible</li>
+          <li><strong>Privileged Account Abuse:</strong> Admin accessing systems outside business hours</li>
+          <li><strong>Lateral Movement:</strong> Account accessing systems it has never accessed before</li>
+          <li><strong>SIEM Integration:</strong> Forward all events to Splunk, Microsoft Sentinel, IBM QRadar for correlation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag diagram">Dashboard</span> 📊 Live Monitoring Dashboard</h3>
+        <span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="grid-4" style="margin-bottom:16px">
+          <div class="stat-card red"><span class="stat-icon">🚫</span><div><div class="stat-value" id="failedLogins">47</div><div class="stat-label">Failed Logins</div></div></div>
+          <div class="stat-card amber"><span class="stat-icon">⚠️</span><div><div class="stat-value" id="riskScore">73</div><div class="stat-label">Risk Score</div></div></div>
+          <div class="stat-card purple"><span class="stat-icon">🔔</span><div><div class="stat-value" id="threatAlerts">12</div><div class="stat-label">Threat Alerts</div></div></div>
+          <div class="stat-card blue"><span class="stat-icon">🌍</span><div><div class="stat-value" id="suspiciousGeo">3</div><div class="stat-label">Geo Anomalies</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔴 Live Alerts Feed</div>
+          <div id="alertFeed"></div>
+          <button class="btn btn-outline" style="margin-top:12px;font-size:12px" onclick="generateAlert()">+ Generate Alert</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('monitoring', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-monitoring-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== DELEGATION ===== -->
+  <div class="page" id="page-delegation">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 2</div>
+      <div class="page-title">🤝 Delegation</div>
+      <div class="page-desc">Administrative delegation, temporary authority, and separation of duties in IAM workflows.</div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag intro">Theory</span> Delegation Concepts</h3><span>▾</span>
+      </div>
+      <div class="theory-content">
+        <p><strong>Delegation</strong> in IAM allows authorized users to temporarily transfer their administrative rights or approval authority to another trusted individual. This is critical for business continuity — especially when managers are on leave.</p>
+        <ul>
+          <li><strong>Administrative Delegation:</strong> Delegating IT admin rights (e.g., creating users in AD)</li>
+          <li><strong>Approval Delegation:</strong> Delegating access request approvals to a deputy</li>
+          <li><strong>Temporary Authority:</strong> Time-bounded — automatically revokes after the set period</li>
+          <li><strong>Separation of Duties (SoD):</strong> Ensures no single person has end-to-end control of a sensitive process</li>
+        </ul>
+      </div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)">
+        <h3><span class="theory-tag diagram">Exercise</span> 🎯 Delegation Scenario</h3><span>▾</span>
+      </div>
+      <div class="theory-content">
+        <div class="scenario-box">
+          <div class="scenario-title">Raj is going on leave for 2 weeks</div>
+          <div class="scenario-desc">Raj Kumar (Finance Manager) needs to delegate his access approval rights while he's on annual leave. Who should he delegate to, and for how long?</div>
+          <div class="scenario-options">
+            <button class="scenario-btn" onclick="delegScenario(this,'correct')">✅ Priya Sharma (Deputy Manager) — 14 days</button>
+            <button class="scenario-btn" onclick="delegScenario(this,'wrong')">❌ Amit (Junior Analyst) — Permanent</button>
+            <button class="scenario-btn" onclick="delegScenario(this,'wrong2')">❌ No one — Requests will wait</button>
+          </div>
+          <div id="delegResult" style="display:none;margin-top:12px;padding:12px;border-radius:var(--radius-sm);font-size:13px"></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('delegation', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-delegation-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== GOVERNANCE ===== -->
+  <div class="page" id="page-governance">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 7</div>
+      <div class="page-title">⚖️ Access Governance</div>
+      <div class="page-desc">Access reviews, certification campaigns, SoD enforcement, and least privilege management.</div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)"><h3><span class="theory-tag intro">Theory</span> Access Governance Fundamentals</h3><span>▾</span></div>
+      <div class="theory-content">
+        <ul>
+          <li><strong>Access Reviews:</strong> Periodic review of all user entitlements — managers certify "keep" or "remove"</li>
+          <li><strong>Certification Campaigns:</strong> Scheduled reviews across departments (quarterly, annual)</li>
+          <li><strong>Segregation of Duties (SoD):</strong> Preventing conflicts like "Create PO + Approve PO" by same person</li>
+          <li><strong>Least Privilege:</strong> Users have only the minimum access required for their job — nothing more</li>
+        </ul>
+      </div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)"><h3><span class="theory-tag quiz">Exercise</span> 📋 Access Certification</h3><span>▾</span></div>
+      <div class="theory-content">
+        <div class="info-box">You are reviewing access entitlements. For each access, decide: <strong>Keep</strong> or <strong>Remove</strong>.</div>
+        <div id="certList"></div>
+        <div id="certScore" style="margin-top:12px;display:none;padding:12px;border-radius:var(--radius-sm);background:rgba(16,185,129,0.1);border:1px solid var(--accent3);font-size:13px;color:var(--accent3)"></div>
+      </div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('governance', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-governance-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== PRIV ACCOUNTS ===== -->
+  <div class="page" id="page-privAccounts">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 8</div>
+      <div class="page-title">👑 Privileged Accounts</div>
+      <div class="page-desc">Identifying, securing, and governing high-risk privileged identities across the enterprise.</div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)"><h3><span class="theory-tag intro">Theory</span> Types of Privileged Accounts</h3><span>▾</span></div>
+      <div class="theory-content">
+        <ul>
+          <li><strong>Domain Admin:</strong> Full control of Active Directory. Can create users, GPOs, reset any password.</li>
+          <li><strong>Root Account:</strong> Superuser on Unix/Linux systems. No access restrictions.</li>
+          <li><strong>Cloud Admin:</strong> Global Administrator in Azure/AWS. Can access all cloud resources.</li>
+          <li><strong>Database Admin (DBA):</strong> Full access to all databases — production data, PII, financial records.</li>
+          <li><strong>Service Accounts:</strong> Non-human accounts running automated processes. Often have high privileges and are overlooked.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)"><h3><span class="theory-tag quiz">Exercise</span> 🔍 Identify Privileged Accounts</h3><span>▾</span></div>
+      <div class="theory-content">
+        <div id="privExercise"></div>
+      </div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('privAccounts', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-privAccounts-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== AUTH CHAINS ===== -->
+  <div class="page" id="page-authChains">
+    <div class="page-header">
+      <div class="page-eyebrow">Module 9</div>
+      <div class="page-title">🔗 Authentication Chains</div>
+      <div class="page-desc">Multi-factor authentication flows from username to biometrics.</div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)"><h3><span class="theory-tag intro">Theory</span> Authentication Factors</h3><span>▾</span></div>
+      <div class="theory-content">
+        <ul>
+          <li><strong>Something You Know:</strong> Password, PIN, security question</li>
+          <li><strong>Something You Have:</strong> OTP token, authenticator app, hardware key (YubiKey)</li>
+          <li><strong>Something You Are:</strong> Fingerprint, Face ID, retina scan</li>
+          <li><strong>Context:</strong> Location, device, time-of-day (adaptive factor)</li>
+        </ul>
+        <p>MFA combines two or more factors. A compromised password alone cannot bypass OTP or biometrics.</p>
+      </div>
+    </div>
+    <div class="theory-block">
+      <div class="theory-header" onclick="toggleTheory(this)"><h3><span class="theory-tag diagram">Interactive</span> 🔐 MFA Login Simulator</h3><span>▾</span></div>
+      <div class="theory-content">
+        <div id="authSimulator"></div>
+      </div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="completeModule('authChains', this)">✅ Complete Module — Earn 20 XP</button>
+      <span class="chip chip-blue" id="mod-authChains-status">Not Complete</span>
+    </div>
+  </div>
+
+  <!-- ===== LABS ===== -->
+  <div class="page" id="page-labs">
+    <div class="page-header">
+      <div class="page-eyebrow">Hands-on Labs</div>
+      <div class="page-title">🧪 IAM Labs</div>
+      <div class="page-desc">Interactive lab environments to practice real IAM operations.</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🧩 Lab 1 – RBAC Role Assignment</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Drag users to their correct roles based on their department and job function.</p>
+        <div class="grid-2" style="gap:12px">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:8px">USERS</div>
+            <div id="userPool" style="display:flex;flex-direction:column;gap:6px">
+              <div class="drag-item" draggable="true" data-user="Raj (HR)" ondragstart="dragStart(event)">👤 Raj Kumar — HR Dept</div>
+              <div class="drag-item" draggable="true" data-user="Priya (Finance)" ondragstart="dragStart(event)">👤 Priya Sharma — Finance</div>
+              <div class="drag-item" draggable="true" data-user="Amit (IT)" ondragstart="dragStart(event)">👤 Amit Verma — IT Admin</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:6px">HR MANAGER</div>
+              <div class="drop-zone" id="zone-hr" ondrop="dropUser(event,'hr')" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')"><div class="drop-zone-label" id="zl-hr">Drop here</div></div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:6px">FINANCE MANAGER</div>
+              <div class="drop-zone" id="zone-fin" ondrop="dropUser(event,'fin')" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')"><div class="drop-zone-label" id="zl-fin">Drop here</div></div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:6px">ADMINISTRATOR</div>
+              <div class="drop-zone" id="zone-admin" ondrop="dropUser(event,'admin')" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')"><div class="drop-zone-label" id="zl-admin">Drop here</div></div>
+            </div>
+          </div>
+        </div>
+        <div id="rbacResult" style="display:none;margin-top:12px;padding:10px;border-radius:var(--radius-sm);font-size:12px"></div>
+        <button class="btn btn-outline" style="margin-top:12px;font-size:12px" onclick="checkRBAC()">✅ Check Assignment</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚙️ Lab 2 – User Provisioning</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Step-by-step user account provisioning workflow.</p>
+        <div id="provisioningLab">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <input style="background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);padding:10px;font-size:12px;outline:none" placeholder="Full Name" id="provName">
+            <input style="background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);padding:10px;font-size:12px;outline:none" placeholder="Email" id="provEmail">
+            <select class="policy-select" id="provDept" style="width:100%">
+              <option value="">Select Department</option>
+              <option>Finance</option><option>HR</option><option>IT</option><option>Operations</option>
+            </select>
+            <select class="policy-select" id="provRole" style="width:100%">
+              <option value="">Select Role</option>
+              <option>Analyst</option><option>Manager</option><option>Admin</option><option>Read-Only</option>
+            </select>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:6px">
+              <input type="checkbox" id="provMFA"> Enable MFA
+            </label>
+          </div>
+          <button class="btn btn-primary" style="margin-top:12px;font-size:12px;width:100%" onclick="runProvisioning()">🚀 Provision Account</button>
+          <div id="provResult" style="display:none;margin-top:12px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗑️ Lab 3 – User Deprovisioning</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Execute offboarding steps. Missing any step creates security risks.</p>
+        <div id="deprovLab">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-bottom:12px">Target: raj.kumar@bank.com</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><input type="checkbox" id="dp1"> Disable Active Directory Account</label>
+            <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><input type="checkbox" id="dp2"> Remove All Group Memberships</label>
+            <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><input type="checkbox" id="dp3"> Revoke OAuth Tokens</label>
+            <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><input type="checkbox" id="dp4"> Archive Mailbox</label>
+            <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px"><input type="checkbox" id="dp5"> Remove PAM Vault Access</label>
+          </div>
+          <button class="btn btn-outline" style="margin-top:12px;font-size:12px" onclick="runDeprov()">Execute Offboarding</button>
+          <div id="deprovResult" style="display:none;margin-top:12px;padding:10px;border-radius:var(--radius-sm);font-size:12px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏢 Lab 4 – Active Directory Simulator</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Create users, OUs, and groups in a simulated AD environment.</p>
+        <div id="adSimulator">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <button class="btn btn-outline" style="font-size:11px" onclick="adAction('user')">+ User</button>
+            <button class="btn btn-outline" style="font-size:11px" onclick="adAction('group')">+ Group</button>
+            <button class="btn btn-outline" style="font-size:11px" onclick="adAction('ou')">+ OU</button>
+          </div>
+          <div class="terminal" style="max-height:200px;overflow-y:auto">
+            <div class="terminal-header"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div><span class="terminal-title">AD Console — corp.bank.local</span></div>
+            <div class="terminal-body" id="adTerminal">
+              <span class="out">domain: corp.bank.local</span><br>
+              <span class="out">DC: BANKDC01 | Schema: 2019</span><br>
+              <span class="out">Ready.</span><br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px" class="card">
+      <div class="card-title">🔍 Lab 5 – LDAP Search</div>
+      <div class="grid-2">
+        <div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Perform an LDAP search query to retrieve user attributes from the directory.</p>
+          <div style="display:flex;gap:8px">
+            <input style="flex:1;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);padding:10px;font-size:12px;outline:none;font-family:var(--font-mono)" placeholder="Search: raj.kumar" id="ldapSearch" value="raj.kumar">
+            <button class="btn btn-primary" style="font-size:12px" onclick="runLDAP()">Search</button>
+          </div>
+        </div>
+        <div id="ldapResult" style="font-family:var(--font-mono);font-size:11px;line-height:1.8;color:var(--text-secondary);background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px">
+          Awaiting query...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHALLENGES ===== -->
+  <div class="page" id="page-challenges">
+    <div class="page-header">
+      <div class="page-eyebrow">Security Challenges</div>
+      <div class="page-title">⚔️ IAM Incident Response Game</div>
+      <div class="page-desc">20 real-world IAM security scenarios. Make the right call — earn XP, build instincts.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div class="chip chip-blue">Score: <strong id="challengeScore">0</strong>/20</div>
+      <div class="chip chip-amber">XP: +<span id="challengeXP">0</span></div>
+    </div>
+    <div id="challengeArea"></div>
+    <div style="margin-top:20px"><button class="btn btn-primary" onclick="nextChallenge()">▶ Next Challenge</button></div>
+  </div>
+
+  <!-- ===== PHISHING ===== -->
+  <div class="page" id="page-phishing">
+    <div class="page-header">
+      <div class="page-eyebrow">Security Training</div>
+      <div class="page-title">🎣 Phishing Awareness Trainer</div>
+      <div class="page-desc">Can you spot the phishing email? Train your instincts against social engineering attacks.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div class="chip chip-blue">Score: <strong id="phishScore">0</strong></div>
+      <div class="chip chip-green" id="phishStreak">Streak: 0</div>
+    </div>
+    <div id="phishEmail"></div>
+    <div id="phishFeedback" style="display:none;margin-top:16px;padding:14px;border-radius:var(--radius-sm);font-size:13px;line-height:1.6"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-success" onclick="phishAnswer('safe')">✅ Safe Email</button>
+      <button class="btn btn-outline" style="border-color:var(--accent5);color:var(--accent5)" onclick="phishAnswer('phishing')">🎣 Phishing</button>
+    </div>
+    <div style="margin-top:12px"><button class="btn btn-outline" style="font-size:12px" onclick="nextPhish()">→ Next Email</button></div>
+  </div>
+
+  <!-- ===== PASSWORD ===== -->
+  <div class="page" id="page-password">
+    <div class="page-header">
+      <div class="page-eyebrow">Security Tools</div>
+      <div class="page-title">🔐 Password Security Center</div>
+      <div class="page-desc">Analyze password strength, understand entropy, and explore hashing and salting concepts.</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🔒 Password Strength Analyzer</div>
+        <input class="pwd-input" type="text" placeholder="Enter a password to analyze..." id="pwdInput" oninput="analyzePwd(this.value)">
+        <div class="pwd-meter">
+          <div class="pwd-bar" id="pwdBar" style="background:#333;height:8px;border-radius:4px;margin-top:8px"></div>
+          <div class="pwd-stat"><span id="pwdLabel">—</span><span id="pwdScore">—</span></div>
+        </div>
+        <div id="pwdDetails" style="margin-top:12px;font-size:12px;color:var(--text-secondary);line-height:1.8"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🧂 Salting & Hashing Visualizer</div>
+        <div id="hashViz" style="font-family:var(--font-mono);font-size:11px;line-height:2;color:var(--text-secondary)">
+          Enter a password on the left to see hashing in action.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CASE STUDIES ===== -->
+  <div class="page" id="page-caseStudies">
+    <div class="page-header">
+      <div class="page-eyebrow">Real World</div>
+      <div class="page-title">📁 IAM Case Studies</div>
+      <div class="page-desc">Apply IAM knowledge to industry-specific scenarios across banking, healthcare, universities, and cloud enterprises.</div>
+    </div>
+    <div class="grid-2" id="caseStudyGrid"></div>
+  </div>
+
+  <!-- ===== COMPLIANCE ===== -->
+  <div class="page" id="page-compliance">
+    <div class="page-header">
+      <div class="page-eyebrow">Audit Tools</div>
+      <div class="page-title">✅ Compliance Audit Simulator</div>
+      <div class="page-desc">Detect governance issues and calculate your organization's compliance posture.</div>
+    </div>
+    <div id="complianceSim"></div>
+  </div>
+
+  <!-- ===== MATURITY ASSESSMENT ===== -->
+  <div class="page" id="page-maturity">
+    <div class="page-header">
+      <div class="page-eyebrow">Assessment</div>
+      <div class="page-title">📈 IAM Maturity Assessment</div>
+      <div class="page-desc">15 questions to evaluate your organization's IAM maturity level.</div>
+    </div>
+    <div id="maturityAssessment"></div>
+  </div>
+
+  <!-- ===== BADGES ===== -->
+  <div class="page" id="page-badges">
+    <div class="page-header">
+      <div class="page-eyebrow">Achievements</div>
+      <div class="page-title">🏆 Badge Gallery</div>
+      <div class="page-desc">Earn badges by completing modules, labs, and challenges.</div>
+    </div>
+    <div class="grid-4" id="badgeGrid"></div>
+  </div>
+
+  <!-- ===== SKILL TREE ===== -->
+  <div class="page" id="page-skillTree">
+    <div class="page-header">
+      <div class="page-eyebrow">Progression</div>
+      <div class="page-title">🌐 IAM Skill Tree</div>
+      <div class="page-desc">Track your progression across the IAM knowledge graph. Complete modules to unlock skills.</div>
+    </div>
+    <div class="card"><div id="skillTreeViz"></div></div>
+  </div>
+
+  <!-- ===== CERTIFICATE ===== -->
+  <div class="page" id="page-certificate">
+    <div class="page-header">
+      <div class="page-eyebrow">Certificate Center</div>
+      <div class="page-title">🎓 IAM Professional Certificate</div>
+      <div class="page-desc">Complete all modules, labs, and quizzes to generate your certificate.</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">👤 Certificate Details</div>
+          <input style="width:100%;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);padding:10px;font-size:13px;outline:none;margin-bottom:10px" placeholder="Your Full Name" id="certName" value="IAM Student">
+          <button class="btn btn-primary" style="width:100%" onclick="generateCert()">🎓 Generate Certificate</button>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Completion Status</div>
+          <div id="certProgress" style="font-size:12px;color:var(--text-secondary);line-height:2"></div>
+        </div>
+      </div>
+      <div class="cert-preview" id="certDisplay">
+        <div class="cert-logo">🔐</div>
+        <div class="cert-academy">Identity Security Academy</div>
+        <div class="cert-title">Certificate of Achievement</div>
+        <div class="cert-name-field">This certifies that</div>
+        <div class="cert-student" id="certNameDisplay">Your Name</div>
+        <div class="cert-sub">has successfully completed the<br><strong>IAM Level 3 – Identity Security Professional</strong> program</div>
+        <div class="cert-meta">
+          <div class="cert-meta-item"><div class="cert-meta-label">DATE</div><div class="cert-meta-value" id="certDate">—</div></div>
+          <div class="cert-meta-item"><div class="cert-meta-label">XP EARNED</div><div class="cert-meta-value" id="certXP">—</div></div>
+          <div class="cert-meta-item"><div class="cert-meta-label">CERT ID</div><div class="cert-meta-value" id="certID">—</div></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:24px;font-size:12px" onclick="window.print()">🖨️ Print Certificate</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- AI Chatbot -->
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header">
+    <h4><span class="chat-status"></span> IAM Assistant</h4>
+    <button onclick="toggleChat()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg ai">👋 Hi! I'm your IAM AI Assistant. Ask me anything about IAM — RBAC, LDAP, PAM, SAML, Zero Trust, and more!</div>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Ask about IAM..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+<button class="chat-fab" onclick="toggleChat()">🤖</button>
+
+<script>
+// ===========================
+// STATE & DATA
+// ===========================
+const STATE = JSON.parse(localStorage.getItem('iamAcademy') || '{}');
+const DEF = {
+  xp: 0, level: 1, completedModules: [], completedQuizzes: [],
+  badges: [], challengeIndex: 0, challengeScore: 0, phishIndex: 0, phishScore: 0, phishStreak: 0
+};
+Object.keys(DEF).forEach(k => { if (STATE[k] === undefined) STATE[k] = DEF[k]; });
+
+function save() { localStorage.setItem('iamAcademy', JSON.stringify(STATE)); }
+
+const LEVELS = [
+  {name:'IAM Beginner',icon:'🌱',min:0},{name:'IAM Learner',icon:'📚',min:100},
+  {name:'IAM Analyst',icon:'🔍',min:300},{name:'IAM Specialist',icon:'⚙️',min:600},
+  {name:'IAM Engineer',icon:'🏗️',min:1000},{name:'IAM Expert',icon:'🎯',min:1500},
+  {name:'IAM Architect',icon:'🏛️',min:2000}
+];
+
+const BADGES_DEF = [
+  {id:'auth_expert',name:'Authentication Expert',icon:'🔑',desc:'Complete Auth Chains module'},
+  {id:'authz_expert',name:'Authorization Expert',icon:'⚖️',desc:'Complete Governance module'},
+  {id:'rbac_master',name:'RBAC Master',icon:'🧩',desc:'Complete RBAC Lab'},
+  {id:'mfa_champ',name:'MFA Champion',icon:'📱',desc:'Complete MFA simulation'},
+  {id:'fed_spec',name:'Federation Specialist',icon:'🔗',desc:'Complete Federation module'},
+  {id:'pam_def',name:'PAM Defender',icon:'🛡️',desc:'Complete PAM module'},
+  {id:'zt_champ',name:'Zero Trust Champion',icon:'🚫',desc:'Complete Conditional Access'},
+  {id:'explorer',name:'IAM Explorer',icon:'🌐',desc:'Open 5 modules'},
+  {id:'expert',name:'IAM Expert',icon:'⭐',desc:'Reach Level 5'},
+  {id:'incident_resp',name:'Incident Responder',icon:'🚨',desc:'Complete 10 challenges'},
+  {id:'phish_hunter',name:'Phish Hunter',icon:'🎣',desc:'Score 5 in phishing trainer'},
+  {id:'lifecycle',name:'Lifecycle Guru',icon:'🔄',desc:'Complete JML module'},
+];
+
+function addXP(amount, reason) {
+  const old = STATE.xp;
+  STATE.xp += amount;
+  save();
+  updateXPUI();
+  showXPPopup(amount, reason);
+  checkLevelUp(old, STATE.xp);
+  checkBadges();
+}
+
+function updateXPUI() {
+  const lvl = getCurrentLevel();
+  const nextLvl = LEVELS[lvl.idx + 1];
+  const pct = nextLvl ? Math.min(100, ((STATE.xp - lvl.min) / (nextLvl.min - lvl.min)) * 100) : 100;
+  document.getElementById('topbarXP').textContent = STATE.xp + ' XP';
+  document.getElementById('sidebarXP').textContent = STATE.xp + ' XP';
+  document.getElementById('sidebarNextXP').textContent = (nextLvl ? nextLvl.min : '★') + ' XP';
+  document.getElementById('sidebarXPBar').style.width = pct + '%';
+  document.getElementById('sidebarLvlName').textContent = lvl.name;
+  document.getElementById('sidebarLvlNum').textContent = 'Level ' + (lvl.idx + 1);
+  document.getElementById('sidebarLvlIcon').textContent = lvl.icon;
+}
+
+function getCurrentLevel() {
+  let lvl = LEVELS[0]; let idx = 0;
+  LEVELS.forEach((l,i) => { if (STATE.xp >= l.min) { lvl = l; idx = i; } });
+  return {...lvl, idx};
+}
+
+function showXPPopup(amount, reason) {
+  const popup = document.getElementById('xpPopup');
+  document.getElementById('xpAmount').textContent = '+' + amount + ' XP';
+  document.getElementById('xpReason').textContent = reason;
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 3000);
+}
+
+function checkLevelUp(oldXP, newXP) {
+  const old = LEVELS.filter(l => oldXP >= l.min).length;
+  const now = LEVELS.filter(l => newXP >= l.min).length;
+  if (now > old) {
+    const lvl = LEVELS[now - 1];
+    document.getElementById('lvlIcon').textContent = lvl.icon;
+    document.getElementById('lvlName').textContent = lvl.name;
+    document.getElementById('lvlDesc').textContent = 'You are now a ' + lvl.name + '!';
+    document.getElementById('levelPopup').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    STATE.level = now;
+    save();
+  }
+}
+
+function closeLevelPopup() {
+  document.getElementById('levelPopup').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function checkBadges() {
+  const newBadges = [];
+  if (!STATE.badges.includes('explorer') && STATE.completedModules.length >= 5) newBadges.push('explorer');
+  if (!STATE.badges.includes('pam_def') && STATE.completedModules.includes('pam')) newBadges.push('pam_def');
+  if (!STATE.badges.includes('fed_spec') && STATE.completedModules.includes('federation')) newBadges.push('fed_spec');
+  if (!STATE.badges.includes('zt_champ') && STATE.completedModules.includes('conditional')) newBadges.push('zt_champ');
+  if (!STATE.badges.includes('auth_expert') && STATE.completedModules.includes('authChains')) newBadges.push('auth_expert');
+  if (!STATE.badges.includes('authz_expert') && STATE.completedModules.includes('governance')) newBadges.push('authz_expert');
+  if (!STATE.badges.includes('lifecycle') && STATE.completedModules.includes('lifecycle')) newBadges.push('lifecycle');
+  if (!STATE.badges.includes('incident_resp') && STATE.challengeScore >= 10) newBadges.push('incident_resp');
+  if (!STATE.badges.includes('phish_hunter') && STATE.phishScore >= 5) newBadges.push('phish_hunter');
+  if (!STATE.badges.includes('expert') && STATE.level >= 5) newBadges.push('expert');
+  newBadges.forEach(b => {
+    STATE.badges.push(b);
+    const def = BADGES_DEF.find(bd => bd.id === b);
+    if (def) showBadgeNotif(def.icon, def.name);
+  });
+  if (newBadges.length) save();
+  renderBadges();
+}
+
+function showBadgeNotif(icon, name) {
+  const n = document.getElementById('badgeNotif');
+  document.getElementById('badgeNotifIcon').textContent = icon;
+  document.getElementById('badgeNotifName').textContent = name;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 4000);
+}
+
+// ===========================
+// NAVIGATION
+// ===========================
+function showPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  else {
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+    });
+  }
+  if (!STATE.completedModules.includes(id + '_opened')) {
+    addXP(10, 'Module Opened');
+    STATE.completedModules.push(id + '_opened');
+    save();
+  }
+  onPageLoad(id);
+}
+
+function onPageLoad(id) {
+  if (id === 'dashboard') initCharts();
+  if (id === 'monitoring') initMonitoring();
+  if (id === 'challenges') renderChallenge();
+  if (id === 'phishing') renderPhish();
+  if (id === 'badges') renderBadges();
+  if (id === 'skillTree') renderSkillTree();
+  if (id === 'governance') renderCertList();
+  if (id === 'privAccounts') renderPrivExercise();
+  if (id === 'authChains') renderAuthSim();
+  if (id === 'caseStudies') renderCaseStudies();
+  if (id === 'compliance') renderCompliance();
+  if (id === 'maturity') renderMaturity();
+  if (id === 'certificate') renderCertProgress();
+  if (id === 'ticketing') renderTickets(); renderQuiz('ticketing');
+  if (id === 'conditional') renderQuiz('conditional');
+  if (id === 'pam') renderQuiz('pam');
+  if (id === 'federation') renderQuiz('federation');
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const main = document.getElementById('mainContent');
+  sb.classList.toggle('collapsed');
+  main.classList.toggle('expanded');
+}
+
+function toggleTheory(header) {
+  const content = header.nextElementSibling;
+  const isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  header.querySelector('span:last-child').textContent = isOpen ? '▸' : '▾';
+}
+
+// ===========================
+// CHARTS
+// ===========================
+function initCharts() {
+  const hctx = document.getElementById('healthChart');
+  const ectx = document.getElementById('eventsChart');
+  if (!hctx || hctx._chartCreated) return;
+  hctx._chartCreated = true;
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const textColor = isDark ? '#7a9bb5' : '#3a5a7a';
+  new Chart(hctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['MFA Adoption', 'Access Reviews', 'Orphan Accounts Cleared', 'Pending'],
+      datasets: [{
+        data: [87, 76, 92, 15],
+        backgroundColor: ['rgba(0,212,255,0.8)', 'rgba(124,58,237,0.8)', 'rgba(16,185,129,0.8)', 'rgba(245,158,11,0.4)'],
+        borderColor: 'transparent', borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { labels: { color: textColor, font: { size: 11 } } } },
+      cutout: '65%'
+    }
+  });
+  new Chart(ectx, {
+    type: 'line',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets: [
+        { label: 'Successful Logins', data: [1240,1389,1204,1567,1432,843,620], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.05)', tension: 0.4, fill: true },
+        { label: 'Failed Logins', data: [24,31,19,47,33,12,8], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', tension: 0.4, fill: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { labels: { color: textColor, font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: textColor }, grid: { color: gridColor } },
+        y: { ticks: { color: textColor }, grid: { color: gridColor } }
+      }
+    }
+  });
+}
+
+// ===========================
+// MODULE COMPLETE
+// ===========================
+function completeModule(id, btn) {
+  if (STATE.completedModules.includes(id)) {
+    btn.textContent = '✅ Already Completed!';
+    return;
+  }
+  STATE.completedModules.push(id);
+  save();
+  addXP(20, 'Module Completed!');
+  btn.textContent = '✅ Completed! +20 XP';
+  btn.disabled = true;
+  const statusEl = document.getElementById('mod-' + id + '-status');
+  if (statusEl) { statusEl.textContent = '✓ Complete'; statusEl.className = 'chip chip-green'; }
+  updateProgressBars();
+  checkBadges();
+}
+
+function updateProgressBars() {
+  const mods = ['conditional','pam','federation','lifecycle','monitoring'];
+  const labels = ['prog-cond','prog-pam','prog-fed','prog-jml','prog-cond'];
+  const bars = ['bar-cond','bar-pam','bar-fed','bar-jml','bar-cond'];
+  mods.forEach((m,i) => {
+    const pct = STATE.completedModules.includes(m) ? 100 : 0;
+    const lbl = document.getElementById('prog-' + m.substring(0,3));
+    const bar = document.getElementById('bar-' + m.substring(0,3));
+    if (lbl) lbl.textContent = pct + '%';
+    if (bar) bar.style.width = pct + '%';
+  });
+}
+
+// ===========================
+// QUIZZES
+// ===========================
+const QUIZZES = {
+  ticketing: [
+    { q: "What is the primary purpose of a ticketing system in IAM?", opts: ["Store passwords","Track and audit access requests","Send marketing emails","Monitor network traffic"], ans: 1, exp: "Ticketing systems create an auditable trail of all access requests, approvals, and changes — critical for compliance." },
+    { q: "Which term describes the complete history of who approved what in a ticketing system?", opts: ["Flowchart","Audit Trail","Changelog","Backlog"], ans: 1, exp: "An Audit Trail records every action taken on a ticket, providing compliance evidence for SOX, PCI-DSS, etc." }
+  ],
+  conditional: [
+    { q: "What does Conditional Access evaluate to make access decisions?", opts: ["User's salary","Context signals like device, location, and risk","Email subject line","Browser history"], ans: 1, exp: "Conditional Access uses real-time context — device compliance, user role, location, and risk level — to dynamically decide access." },
+    { q: "Which principle does Conditional Access enforce?", opts: ["Open Access","Zero Trust","Trust but Verify","Password Policy"], ans: 1, exp: "Zero Trust: 'Never trust, always verify.' Every access is evaluated contextually, regardless of network location." }
+  ],
+  pam: [
+    { q: "What is a Password Vault in PAM?", opts: ["A folder on the desktop","Encrypted storage for privileged credentials, never shared directly with admins","A browser password manager","A VPN tunnel"], ans: 1, exp: "The vault stores privileged passwords encrypted. Admins request access through workflows — they never see the actual password." },
+    { q: "What does JIT access mean in PAM?", opts: ["Just In Time — access granted only when needed, then revoked automatically","Just In Trust — long-term admin access","Just Is There — static permissions","Jump In Terminal — remote session"], ans: 0, exp: "JIT (Just-In-Time) ensures privileged access exists only for the duration of a specific task, massively reducing attack surface." }
+  ],
+  federation: [
+    { q: "What protocol is most commonly used for enterprise SSO?", opts: ["FTP","SMTP","SAML 2.0","ICMP"], ans: 2, exp: "SAML (Security Assertion Markup Language) is the dominant SSO protocol in enterprises, used by Salesforce, SAP, and more." },
+    { q: "In a federated login, what is the Identity Provider (IdP)?", opts: ["The app you want to access","The system that authenticates the user and issues tokens","The firewall","The database"], ans: 1, exp: "The IdP (e.g., Azure AD, Okta) authenticates users. The SP (Service Provider) trusts the IdP's assertion." }
+  ]
+};
+
+function renderQuiz(module) {
+  const container = document.getElementById('quiz-' + module);
+  if (!container || !QUIZZES[module]) return;
+  if (container.innerHTML.trim()) return;
+  const q = QUIZZES[module][0];
+  container.innerHTML = `
+    <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px">${q.q}</p>
+    ${q.opts.map((o,i) => `<div class="quiz-option" onclick="answerQuiz(this,${i},${q.ans},'${module}','${q.exp.replace(/'/g,"\\'")}')"><span class="opt-letter">${'ABCD'[i]}</span>${o}</div>`).join('')}
+    <div class="quiz-feedback" id="qfb-${module}"></div>
+  `;
+}
+
+function answerQuiz(el, chosen, correct, module, exp) {
+  if (el.classList.contains('correct') || el.classList.contains('wrong')) return;
+  const parent = el.parentElement;
+  parent.querySelectorAll('.quiz-option').forEach(o => o.style.pointerEvents = 'none');
+  const fb = document.getElementById('qfb-' + module);
+  if (chosen === correct) {
+    el.classList.add('correct');
+    fb.textContent = '✅ Correct! ' + exp;
+    fb.className = 'quiz-feedback show correct';
+    if (!STATE.completedQuizzes.includes(module)) {
+      STATE.completedQuizzes.push(module);
+      save();
+      addXP(50, 'Quiz Correct!');
+    }
+  } else {
+    el.classList.add('wrong');
+    parent.querySelectorAll('.quiz-option')[correct].classList.add('correct');
+    fb.textContent = '❌ Incorrect. ' + exp;
+    fb.className = 'quiz-feedback show wrong';
+  }
+}
+
+// ===========================
+// TICKETING SIMULATION
+// ===========================
+const TICKETS = [
+  { user: 'Arjun Mehta', request: 'SAP Finance — Read Access', risk: 'Low', valid: true },
+  { user: 'Unknown@external.com', request: 'Admin Panel — Full Control', risk: '🔴 HIGH', valid: false },
+  { user: 'Neha Gupta', request: 'HR HRMS — Analyst Access', risk: 'Low', valid: true },
+];
+let ticketStates = {};
+
+function renderTickets() {
+  const container = document.getElementById('ticketList');
+  if (!container || container.innerHTML.trim()) return;
+  container.innerHTML = TICKETS.map((t,i) => `
+    <div style="background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-weight:600;font-size:13px">${t.user}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${t.request}</div>
+          <div class="chip ${t.risk.includes('HIGH') ? 'chip-red' : 'chip-green'}" style="margin-top:6px">Risk: ${t.risk}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success" style="font-size:11px;padding:6px 14px" onclick="ticketAction(${i},'approve',this)">✅ Approve</button>
+          <button class="btn btn-outline" style="font-size:11px;padding:6px 14px;border-color:var(--accent5);color:var(--accent5)" onclick="ticketAction(${i},'reject',this)">❌ Reject</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function ticketAction(idx, action, btn) {
+  ticketStates[idx] = action;
+  const t = TICKETS[idx];
+  const correct = (action === 'approve' && t.valid) || (action === 'reject' && !t.valid);
+  const row = btn.closest('div[style]');
+  row.style.borderColor = correct ? 'var(--accent3)' : 'var(--accent5)';
+  btn.textContent = correct ? '✓ Correct!' : '✗ Wrong!';
+  if (correct) addXP(25, 'Correct Ticket Decision!');
+  const allDone = Object.keys(ticketStates).length === TICKETS.length;
+  if (allDone) {
+    const res = document.getElementById('ticketResult');
+    res.style.display = 'block';
+    res.style.background = 'rgba(16,185,129,0.1)';
+    res.style.border = '1px solid var(--accent3)';
+    res.style.color = 'var(--accent3)';
+    res.textContent = '🎉 Simulation complete! All requests reviewed.';
+  }
+}
+
+// ===========================
+// CONDITIONAL ACCESS
+// ===========================
+function evalPolicy() {
+  const user = document.getElementById('pUser').value;
+  const device = document.getElementById('pDevice').value;
+  const loc = document.getElementById('pLocation').value;
+  const risk = document.getElementById('pRisk').value;
+  const res = document.getElementById('policyResult');
+  let decision, cls;
+  if (user === 'Unknown' || loc === 'High Risk Country' || risk === 'High') {
+    decision = '🚫 BLOCK — Access Denied'; cls = 'block';
+  } else if (device !== 'Managed' || loc === 'Unknown Country' || risk === 'Medium') {
+    decision = '🔐 REQUIRE MFA — Elevated Verification'; cls = 'mfa';
+  } else {
+    decision = '✅ ALLOW — Access Granted'; cls = 'allow';
+  }
+  res.textContent = decision;
+  res.className = 'policy-result ' + cls;
+}
+
+// ===========================
+// PAM SIMULATOR
+// ===========================
+let pamState = 0;
+const PAM_LOG = [
+  'Ticket #PAM-2024-0471 raised: DB Admin requests PROD-DB01 access\nRequester: ravi.admin@bank.com\nSystem: PROD-DB01 (Oracle 19c)\nJustification: Monthly reporting...',
+  'APPROVAL WORKFLOW:\nStep 1/3: Manager (priya.sharma) ✅ APPROVED\nStep 2/3: Security (iam-security) ✅ APPROVED\nStep 3/3: Vault auto-check ✅ PASSED\nAccess Window: 2 hours',
+  'CREDENTIAL RETRIEVED:\nVault: PROD-VAULT-01\nAccount: db_admin_PROD\nPassword: [HIDDEN - Shown only to authorized user]\nToken Expires: 2 hours\nSession ID: SES-20240612-0471',
+  'SESSION STARTED:\nProtocol: SSH\nTarget: PROD-DB01:1521\nRecording: ENABLED ▶\nKeylogging: ACTIVE\nCommands logged to: audit.bank.local/sessions/SES-0471',
+  'PASSWORD ROTATION COMPLETE:\nOld password: Invalidated\nNew password: Auto-generated (256-bit)\nVault updated: ✅\nSession SES-0471: Terminated\nAudit log: Archived'
+];
+
+function pamAction(step) {
+  if (step !== pamState + 1) return;
+  pamState = step;
+  const term = document.getElementById('pamTerminal');
+  term.innerHTML = term.innerHTML + `\n<br><span class="cmd">$ [STEP ${step}] </span>\n<span class="ok">${PAM_LOG[step-1].replace(/\n/g,'<br>')}</span>\n`;
+  document.getElementById('pamStep' + step).classList.add('btn-success');
+  if (step < 5) document.getElementById('pamStep' + (step+1)).disabled = false;
+  if (step === 5) addXP(25, 'PAM Simulation Complete!');
+}
+
+// ===========================
+// SSO FEDERATION DEMO
+// ===========================
+let ssoActive = false;
+function startSSO() {
+  if (ssoActive) return;
+  ssoActive = true;
+  const log = document.getElementById('ssoLog');
+  const steps = [
+    '→ User navigates to HR Portal',
+    '→ SP redirects to Identity Provider (Azure AD)',
+    '→ User authenticates: username + MFA',
+    '→ IdP issues SAML Assertion (signed XML token)',
+    '→ Token passed to HR Portal... ✅ HR Portal Access Granted',
+    '→ Token reused at Finance Portal... ✅ Finance Portal Access Granted',
+    '→ Token reused at CRM... ✅ CRM Access Granted',
+    '→ Token reused at Ticketing... ✅ Ticketing Access Granted',
+    '🎉 SSO Complete: 1 login → 4 applications!'
+  ];
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < steps.length) {
+      log.innerHTML += `<span style="color:${i >= 4 ? 'var(--accent3)' : 'var(--text-secondary)'}">⟩ ${steps[i]}</span><br>`;
+      if (i >= 4 && i <= 7) {
+        const appIdx = i - 4;
+        const app = document.getElementById('ssoApp' + appIdx);
+        const status = document.getElementById('ssoStatus' + appIdx);
+        if (app) { app.style.opacity = '1'; app.style.borderColor = 'var(--accent3)'; }
+        if (status) { status.textContent = '✓ Unlocked'; status.className = 'chip chip-green'; }
+      }
+      i++;
+    } else { clearInterval(interval); addXP(25, 'SSO Demo Complete!'); }
+  }, 700);
+}
+function resetSSO() {
+  ssoActive = false;
+  document.getElementById('ssoLog').innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const app = document.getElementById('ssoApp' + i);
+    const status = document.getElementById('ssoStatus' + i);
+    if (app) app.style.opacity = '0.4';
+    if (status) { status.textContent = 'Locked'; status.className = 'chip chip-red'; }
+  }
+}
+
+// ===========================
+// JML LIFECYCLE
+// ===========================
+function jmlAction(type) {
+  const canvas = document.getElementById('jmlCanvas');
+  if (type === 'join') {
+    canvas.innerHTML = `
+      <div style="color:var(--accent3);font-weight:700;margin-bottom:8px">🟢 JOINER — Kavya Reddy hired as HR Analyst</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:2">
+        ✅ AD Account Created: kavya.reddy@bank.com<br>
+        ✅ Added to Group: HR-ANALYSTS<br>
+        ✅ SAP HR Read Access: Provisioned<br>
+        ✅ Email Mailbox: Created<br>
+        ✅ MFA Enrollment: Email sent<br>
+        ✅ Manager: priya.sharma@bank.com set<br>
+        <span style="color:var(--accent3)">▶ Account Active — Day 1 Ready</span>
+      </div>`;
+    addXP(10, 'Joiner Simulated!');
+  } else if (type === 'move') {
+    canvas.innerHTML = `
+      <div style="color:var(--accent4);font-weight:700;margin-bottom:8px">🟡 MOVER — Kavya transferred from HR → Finance</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:2">
+        🔄 Group Changed: HR-ANALYSTS → FINANCE-ANALYSTS<br>
+        🔴 HR SAP Access: REVOKED<br>
+        ✅ Finance SAP Access: Provisioned<br>
+        🔄 Manager Updated: raj.kumar@bank.com<br>
+        ✅ Access Review: Triggered for manager<br>
+        <span style="color:var(--accent4)">▶ Role change complete — SoD check passed</span>
+      </div>`;
+    addXP(10, 'Mover Simulated!');
+  } else {
+    canvas.innerHTML = `
+      <div style="color:var(--accent5);font-weight:700;margin-bottom:8px">🔴 LEAVER — Kavya resigned</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:2">
+        🔴 AD Account: DISABLED immediately<br>
+        🔴 All Group Memberships: REMOVED<br>
+        🔴 OAuth Tokens: REVOKED<br>
+        🔴 PAM Vault Access: REMOVED<br>
+        🔴 MFA Enrollment: CLEARED<br>
+        📦 Mailbox: Archived for 90 days<br>
+        📁 Ticket: #LEAVER-2024-0312 closed<br>
+        <span style="color:var(--accent5)">▶ Account fully offboarded — No orphan risk</span>
+      </div>`;
+    addXP(10, 'Leaver Simulated!');
+  }
+}
+
+// ===========================
+// MONITORING
+// ===========================
+const ALERT_TEMPLATES = [
+  { type: 'high', icon: '🚨', title: 'Impossible Travel Detected', desc: 'raj.kumar logged in from Mumbai at 09:40, then Paris at 09:45. Physically impossible.', time: 'Now' },
+  { type: 'high', icon: '🔴', title: 'Brute Force Attack', desc: '50 failed logins on priya.sharma@bank.com in 2 minutes. IP: 185.220.101.42', time: '1m ago' },
+  { type: 'medium', icon: '⚠️', title: 'Privileged Login After Hours', desc: 'admin.verma accessed Domain Controller at 2:47 AM on Saturday.', time: '3m ago' },
+  { type: 'medium', icon: '⚠️', title: 'New Admin Account Created', desc: 'New Global Admin created: temp.admin@bank.com. Requires review.', time: '5m ago' },
+  { type: 'low', icon: '🔵', title: 'New Country Login', desc: 'First-time login from Singapore for kavya.reddy@bank.com.', time: '8m ago' },
+  { type: 'high', icon: '🚨', title: 'Sensitive Data Access', desc: 'Customer PII database queried 10,000 rows by svc.reporting — unusual volume.', time: '10m ago' },
+];
+let alertIndex = 0;
+
+function initMonitoring() {
+  const feed = document.getElementById('alertFeed');
+  if (!feed || feed.children.length > 0) return;
+  ALERT_TEMPLATES.slice(0,4).forEach(a => addAlertToFeed(a));
+}
+
+function addAlertToFeed(a) {
+  const feed = document.getElementById('alertFeed');
+  if (!feed) return;
+  const div = document.createElement('div');
+  div.className = 'alert-item alert-' + a.type;
+  div.innerHTML = `<span class="alert-icon">${a.icon}</span><div><div style="font-weight:600;font-size:12px;color:var(--text-primary)">${a.title}</div><div>${a.desc}</div><div class="alert-time">${a.time}</div></div>`;
+  feed.prepend(div);
+  if (feed.children.length > 8) feed.lastChild.remove();
+}
+
+function generateAlert() {
+  const a = ALERT_TEMPLATES[alertIndex % ALERT_TEMPLATES.length];
+  alertIndex++;
+  addAlertToFeed({...a, time: 'Just now'});
+  const fl = document.getElementById('failedLogins');
+  const rs = document.getElementById('riskScore');
+  if (fl) fl.textContent = parseInt(fl.textContent) + Math.floor(Math.random()*5);
+  if (rs) rs.textContent = Math.min(99, parseInt(rs.textContent) + 3);
+  addXP(5, 'Alert Generated!');
+}
+
+// ===========================
+// DELEGATION SCENARIO
+// ===========================
+function delegScenario(btn, type) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.disabled = true);
+  const res = document.getElementById('delegResult');
+  if (type === 'correct') {
+    btn.classList.add('correct-pick');
+    res.style.display='block'; res.style.background='rgba(16,185,129,0.1)'; res.style.border='1px solid var(--accent3)'; res.style.color='var(--accent3)';
+    res.innerHTML = '✅ <strong>Correct!</strong> Delegating to a Deputy Manager for a fixed duration (14 days) follows least privilege and ensures continuity without permanent authority transfer.';
+    addXP(25, 'Correct Scenario Answer!');
+  } else {
+    btn.classList.add('wrong-pick');
+    res.style.display='block'; res.style.background='rgba(239,68,68,0.1)'; res.style.border='1px solid var(--accent5)'; res.style.color='var(--accent5)';
+    if (type === 'wrong') res.innerHTML = '❌ Delegating permanently to a junior analyst violates least privilege and separation of duties.';
+    else res.innerHTML = '❌ Leaving requests unprocessed creates a business continuity failure and SLA breach.';
+  }
+}
+
+// ===========================
+// ACCESS CERTIFICATION
+// ===========================
+const CERT_ITEMS = [
+  { user: 'raj.kumar', access: 'SAP Finance Read', dept: 'Finance', valid: true },
+  { user: 'priya.sharma', access: 'HR Admin (departed last year)', dept: 'ex-HR', valid: false },
+  { user: 'amit.verma', access: 'IT Admin Panel', dept: 'IT', valid: true },
+  { user: 'svc.report01', access: 'Database SELECT ALL', dept: 'Service Acct', valid: false },
+  { user: 'kavya.reddy', access: 'Finance Read', dept: 'Finance', valid: true },
+];
+let certDecisions = {};
+
+function renderCertList() {
+  const c = document.getElementById('certList');
+  if (!c || c.innerHTML.trim()) return;
+  c.innerHTML = CERT_ITEMS.map((item,i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;flex-wrap:wrap;gap:8px" id="certItem${i}">
+      <div>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">${item.user}</span>
+        <span style="font-size:11px;color:var(--text-secondary);margin:0 6px">→</span>
+        <span style="font-size:12px;color:var(--text-primary)">${item.access}</span>
+        <div class="chip chip-blue" style="display:inline-flex;margin-left:8px">${item.dept}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-success" style="font-size:10px;padding:5px 12px" onclick="certDecide(${i},'keep')">✅ Keep</button>
+        <button class="btn btn-outline" style="font-size:10px;padding:5px 12px;border-color:var(--accent5);color:var(--accent5)" onclick="certDecide(${i},'remove')">❌ Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function certDecide(i, action) {
+  certDecisions[i] = action;
+  const item = CERT_ITEMS[i];
+  const el = document.getElementById('certItem' + i);
+  const correct = (action === 'keep' && item.valid) || (action === 'remove' && !item.valid);
+  el.style.borderColor = correct ? 'var(--accent3)' : 'var(--accent5)';
+  if (Object.keys(certDecisions).length === CERT_ITEMS.length) {
+    const correct = Object.keys(certDecisions).filter(i => {
+      const a = certDecisions[i];
+      const item = CERT_ITEMS[i];
+      return (a === 'keep' && item.valid) || (a === 'remove' && !item.valid);
+    }).length;
+    const sc = document.getElementById('certScore');
+    sc.style.display = 'block';
+    sc.textContent = `Compliance Score: ${correct}/${CERT_ITEMS.length} (${Math.round(correct/CERT_ITEMS.length*100)}%) — ${correct === CERT_ITEMS.length ? '🎉 Perfect!' : 'Review incorrect decisions.'}`;
+    addXP(correct * 10, 'Access Certification Done!');
+  }
+}
+
+// ===========================
+// PRIV ACCOUNTS EXERCISE
+// ===========================
+function renderPrivExercise() {
+  const c = document.getElementById('privExercise');
+  if (!c || c.innerHTML.trim()) return;
+  const accounts = [
+    { name: 'raj.kumar', type: 'Standard User', priv: false },
+    { name: 'DOMAIN\\Administrator', type: 'Domain Admin', priv: true },
+    { name: 'svc.sqlprod', type: 'Service Account', priv: true },
+    { name: 'priya.hr', type: 'HR Analyst', priv: false },
+    { name: 'root', type: 'Linux Root', priv: true },
+    { name: 'temp.contractor', type: 'Contractor', priv: false },
+  ];
+  c.innerHTML = `<div class="info-box">Identify which accounts are <strong>Privileged</strong> and require PAM controls.</div>
+  <div class="grid-2">` + accounts.map((a,i) => `
+    <div style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px" id="privItem${i}">
+      <div><div style="font-family:var(--font-mono);font-size:12px">${a.name}</div><div style="font-size:11px;color:var(--text-muted)">${a.type}</div></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline" style="font-size:10px;padding:4px 10px;border-color:var(--accent5);color:var(--accent5)" onclick="markPriv(${i},true,${a.priv})">👑 Privileged</button>
+        <button class="btn btn-outline" style="font-size:10px;padding:4px 10px" onclick="markPriv(${i},false,${a.priv})">👤 Standard</button>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function markPriv(i, choice, correct) {
+  const el = document.getElementById('privItem' + i);
+  el.style.borderColor = choice === correct ? 'var(--accent3)' : 'var(--accent5)';
+  if (choice === correct) addXP(10, 'Correct Identity Classification!');
+}
+
+// ===========================
+// AUTH CHAINS SIMULATOR
+// ===========================
+let authStep = 0;
+function renderAuthSim() {
+  const c = document.getElementById('authSimulator');
+  if (!c || c.innerHTML.trim()) return;
+  authStep = 0;
+  c.innerHTML = `
+  <div class="info-box">Complete the MFA authentication flow for <strong>Raj Kumar</strong> accessing the banking portal.</div>
+  <div id="authSteps" style="display:flex;flex-direction:column;gap:12px">
+    <div id="authStep0">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Step 1: Enter Username</div>
+      <div style="display:flex;gap:8px">
+        <input id="authUser" style="flex:1;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);padding:10px;font-size:12px;outline:none" placeholder="username@bank.com" value="raj.kumar@bank.com">
+        <button class="btn btn-primary" style="font-size:12px" onclick="authNext(1)">Next →</button>
+      </div>
+    </div>
+  </div>
+  <div id="authResult" style="display:none;margin-top:16px;padding:14px;border-radius:var(--radius-sm);background:rgba(16,185,129,0.1);border:1px solid var(--accent3);color:var(--accent3);font-size:13px"></div>`;
+}
+
+function authNext(step) {
+  const steps = document.getElementById('authSteps');
+  if (step === 1) {
+    steps.innerHTML += `<div id="authStep1"><div style="font-size:13px;font-weight:600;margin-bottom:8px">Step 2: Enter Password</div><div style="display:flex;gap:8px"><input type="password" id="authPwd" style="flex:1;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);padding:10px;font-size:12px;outline:none" placeholder="••••••••" value="P@ssw0rd!"><button class="btn btn-primary" style="font-size:12px" onclick="authNext(2)">Next →</button></div></div>`;
+  } else if (step === 2) {
+    steps.innerHTML += `<div id="authStep2"><div style="font-size:13px;font-weight:600;margin-bottom:8px">Step 3: Enter OTP (from Authenticator App)</div><div style="display:flex;gap:8px"><input id="authOTP" style="flex:1;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius-sm);padding:10px;font-size:12px;outline:none;font-family:var(--font-mono);letter-spacing:8px" placeholder="000000" maxlength="6" value="482917"><button class="btn btn-primary" style="font-size:12px" onclick="authNext(3)">Verify →</button></div></div>`;
+  } else if (step === 3) {
+    const res = document.getElementById('authResult');
+    res.style.display = 'block';
+    res.innerHTML = '✅ <strong>Authentication Successful!</strong> All 3 factors verified.<br>Token issued: eyJhbGciOiJSUzI1NiJ9... (JWT)<br>Session: RAJ-SESS-20240612-7749<br>Access: Banking Portal → Dashboard';
+    addXP(25, 'MFA Flow Completed!');
+    if (!STATE.badges.includes('mfa_champ')) {
+      STATE.badges.push('mfa_champ');
+      save();
+      showBadgeNotif('📱', 'MFA Champion');
+    }
+  }
+}
+
+// ===========================
+// CHALLENGES
+// ===========================
+const CHALLENGES = [
+  { scenario: '50 failed login attempts detected on admin@bank.com in 60 seconds.', options: ['Ignore it','Grant temporary access','Lock account & alert SOC','Send password reset email'], correct: 2, exp: 'Locking the account immediately prevents credential stuffing. The SOC must investigate the source IP for brute force indicators.' },
+  { scenario: 'An employee requests Domain Admin access to "fix a printer".', options: ['Grant it — sounds urgent','Grant only for 1 hour (JIT)','Deny completely, escalate to IT team','Ask them to submit a ticket later'], correct: 1, exp: 'JIT access (time-limited) follows least privilege. No one should have permanent Domain Admin for routine tasks.' },
+  { scenario: 'A service account (svc.backup) hasn\'t been used in 180 days.', options: ['Keep it active','Disable and review with the owner','Delete immediately','Reset its password'], correct: 1, exp: 'Orphan/dormant accounts are attack vectors. Disable first, then investigate before permanent deletion.' },
+  { scenario: 'A contractor\'s contract ended 30 days ago but their AD account is still active.', options: ['Wait for HR to tell you','Disable immediately — orphan account','Send them a reminder email','Change their password'], correct: 1, exp: 'This is an orphan account — a leaver process failure. Immediate disablement reduces attack surface and meets compliance requirements.' },
+  { scenario: 'An executive logs in from New York at 9AM, then Tokyo at 9:05AM.', options: ['Normal — executives travel','Impossible travel — block and investigate','Ignore — could be VPN','Send a security survey'], correct: 1, exp: 'Impossible travel is a strong indicator of account compromise. Block access immediately, alert the SOC, and contact the executive via alternate channel.' },
+  { scenario: 'A user is assigned both "Create Purchase Order" and "Approve Purchase Order" roles.', options: ['This is fine — dual productivity','This violates Segregation of Duties (SoD)','Give them a third role too','Only an issue if they use both'], correct: 1, exp: 'SoD prevents fraud. One person controlling both sides of a transaction is a critical control failure — common in financial fraud cases.' },
+  { scenario: 'MFA bypass is discovered: attacker uses legacy authentication (SMTP) to avoid MFA.', options: ['Disable legacy auth protocols immediately','Update MFA policy documentation','Notify users','Nothing — legacy auth is needed'], correct: 0, exp: 'Legacy protocols like basic SMTP authentication bypass modern MFA. Blocking them is a Zero Trust best practice in all enterprise environments.' },
+  { scenario: 'An employee finds a USB drive in the parking lot and plugs it into their work laptop.', options: ['Scan it for files','Unplug and report to security immediately','Copy files, then format it','Share any interesting files with the team'], correct: 1, exp: 'USB drop attacks are a common social engineering tactic. The USB may auto-execute malware. Immediately unplug and report — never plug in unknown media.' },
+  { scenario: 'A database admin runs: SELECT * FROM customers; — 2.3 million rows at 2AM on Sunday.', options: ['Normal backup activity','Flag for investigation — anomalous query','Ignore — DBAs have access','Block all DB access'], correct: 1, exp: 'Large bulk queries at unusual times are strong indicators of data exfiltration. SIEM and DLP tools should trigger alerts for this pattern.' },
+  { scenario: 'An app requests permissions: "Read all emails, contacts, and files permanently".', options: ['Grant all permissions requested','Deny — apply principle of least privilege','Grant temporarily','Ignore the permissions request'], correct: 1, exp: 'Applications should be granted only the minimum permissions they truly need. Broad, permanent permissions violate least privilege and OAuth best practices.' },
+  { scenario: 'Root user is used directly on a production Linux server for routine maintenance.', options: ['Fine — it\'s Linux','Violation — use sudo with individual named accounts','Only an issue if something breaks','Root is safer than named accounts'], correct: 1, exp: 'Root access is non-auditable and bypasses access controls. PAM should enforce named accounts with sudo, with all actions logged.' },
+  { scenario: 'An access review shows 40% of users have more permissions than their role requires.', options: ['This is typical in large orgs','Trigger immediate access remediation campaign','Wait for next quarterly review','Ask users to self-certify'], correct: 1, exp: 'Permission creep is a top governance risk. Immediate remediation + automated role-based provisioning prevents future accumulation of excess rights.' },
+  { scenario: 'An SSO token with no expiry is found in a mobile app\'s local storage.', options: ['It\'s fine — SSO tokens are safe','Vulnerability — tokens must expire and be encrypted','Delete the mobile app','Notify the app store'], correct: 1, exp: 'Non-expiring tokens are critical security flaws. Stolen tokens give permanent access. Implement short-lived tokens with refresh mechanisms per OAuth 2.0 standards.' },
+  { scenario: 'An ex-employee\'s email starts receiving internal project updates 6 months after they left.', options: ['Coincidence','Forwarding rule left active — investigate and remove','Tell the new employee to ignore','Block external email'], correct: 1, exp: 'This indicates a mail forwarding rule was not cleaned during offboarding. Sensitive information has been leaking. Immediate audit required.' },
+  { scenario: 'Cloud admin deploys a new S3 bucket with "public-read" permissions by mistake.', options: ['Private data is safe — it\'s encrypted','Immediate remediation: restrict to private + audit for data exposure','Add watermarks to files','Send a privacy notice'], correct: 1, exp: 'Public S3 buckets are a leading cause of cloud data breaches (Capital One, Twitch, etc.). Immediately restrict access and check access logs for unauthorized reads.' },
+  { scenario: 'A phishing email convincing users to enter credentials on "bankk.corp.com".', options: ['It looks legitimate — proceed','Homograph/typosquatting attack — report and block domain','Only a risk for non-technical staff','Forward to colleagues'], correct: 1, exp: 'Typosquatting uses lookalike domains to harvest credentials. Report to IT Security for domain blocking and notify all staff via security advisory.' },
+  { scenario: 'An API key is accidentally committed to a public GitHub repository.', options: ['Remove it from the commit — that\'s enough','Immediately rotate the key + audit for unauthorized use + review all repos','Leave it — GitHub is private','Alert the developer'], correct: 1, exp: 'Once exposed, a key must be considered compromised and rotated immediately. Removing from git history is insufficient — bots scan public repos in minutes.' },
+  { scenario: 'A contractor requests permanent access to the production database.', options: ['Grant it — they\'re trusted','Grant time-limited JIT access scoped to their specific task','Give read-only permanent','Deny access entirely'], correct: 1, exp: 'Contractors should never have permanent privileged access. JIT access with minimal scope follows Zero Trust and ensures accountability.' },
+  { scenario: 'Audit finds 15 shared admin accounts ("admin1", "admin2") used by the entire IT team.', options: ['Fine — they know the passwords','Critical finding — implement individual named accounts with PAM immediately','Change passwords quarterly','Add MFA to the shared accounts'], correct: 1, exp: 'Shared accounts destroy accountability and auditability. Individual named accounts with PAM session recording are mandatory for privileged access governance.' },
+  { scenario: 'An employee\'s RBAC role gives them write access to their own performance reviews.', options: ['Feature — self-service HR','Critical SoD violation — employees cannot modify their own records','Fix in next sprint','Only an issue if they change something'], correct: 1, exp: 'This is a textbook Segregation of Duties violation enabling fraud. Role design must prevent users from accessing their own HR records, payroll, or performance data.' },
+];
+
+let currentChallenge = 0;
+
+function renderChallenge() {
+  const area = document.getElementById('challengeArea');
+  if (!area) return;
+  if (currentChallenge >= CHALLENGES.length) {
+    area.innerHTML = `<div class="scenario-box"><div class="scenario-title">🎉 All 20 Challenges Complete!</div><div class="scenario-desc">You scored ${STATE.challengeScore}/20. Excellent incident response skills!</div></div>`;
+    return;
+  }
+  const ch = CHALLENGES[currentChallenge];
+  area.innerHTML = `
+    <div class="scenario-box">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-bottom:8px">CHALLENGE ${currentChallenge+1}/20</div>
+      <div class="scenario-title">🚨 Security Incident</div>
+      <div class="scenario-desc">${ch.scenario}</div>
+      <div class="scenario-options">
+        ${ch.options.map((o,i) => `<button class="scenario-btn" onclick="answerChallenge(this,${i},${ch.correct},'${ch.exp.replace(/'/g,"\\'")}')">${o}</button>`).join('')}
+      </div>
+      <div id="challengeFeedback" style="display:none;margin-top:12px;padding:12px;border-radius:var(--radius-sm);font-size:13px;line-height:1.6"></div>
+    </div>`;
+}
+
+function answerChallenge(btn, choice, correct, exp) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('challengeFeedback');
+  fb.style.display = 'block';
+  if (choice === correct) {
+    btn.classList.add('correct-pick');
+    fb.style.background = 'rgba(16,185,129,0.1)'; fb.style.border = '1px solid var(--accent3)'; fb.style.color = 'var(--accent3)';
+    fb.innerHTML = '✅ <strong>Correct!</strong> ' + exp;
+    STATE.challengeScore++;
+    document.getElementById('challengeScore').textContent = STATE.challengeScore;
+    STATE.challengeXP = (STATE.challengeXP || 0) + 25;
+    document.getElementById('challengeXP').textContent = STATE.challengeXP || 25;
+    save();
+    addXP(25, 'Challenge Correct!');
+  } else {
+    btn.classList.add('wrong-pick');
+    document.querySelectorAll('.scenario-btn')[correct].classList.add('correct-pick');
+    fb.style.background = 'rgba(239,68,68,0.1)'; fb.style.border = '1px solid var(--accent5)'; fb.style.color = 'var(--accent5)';
+    fb.innerHTML = '❌ <strong>Incorrect.</strong> ' + exp;
+  }
+  checkBadges();
+}
+
+function nextChallenge() {
+  currentChallenge++;
+  STATE.challengeIndex = currentChallenge;
+  save();
+  renderChallenge();
+}
+
+// ===========================
+// PHISHING TRAINER
+// ===========================
+const PHISH_EMAILS = [
+  { from: 'security@bankk-of-india.com', subject: 'URGENT: Your account will be suspended in 24 hours!', body: 'Dear Valued Customer,\n\nWe detected suspicious activity on your account. Click the link below IMMEDIATELY to verify your identity or your account will be PERMANENTLY SUSPENDED.\n\nVerify Now: http://bankk-of-india-secure.xyz/verify?token=a83h1', isPhishing: true, clues: ['Misspelled domain (bankk-of-india.com)', 'Urgency tactics (24 hours, IMMEDIATELY, PERMANENTLY)', 'Suspicious external URL (.xyz domain)', 'Generic greeting "Valued Customer"'] },
+  { from: 'hr@yourcompany.com', subject: 'Team offsite – Friday 3PM invite', body: 'Hi team,\n\nJoining details for Friday\'s team offsite at the Bangalore office:\n\nDate: Friday, June 13\nTime: 3:00 PM\nLocation: Floor 4, Conference Room B\n\nPlease confirm attendance by replying to this email.\n\nBest,\nHR Team', isPhishing: false, clues: ['Legitimate internal sender', 'No suspicious links', 'No urgency tactics', 'Provides verifiable internal location'] },
+  { from: 'noreply@microsoft-security-alert.com', subject: 'Your Microsoft 365 password expires today', body: 'Your Microsoft 365 password is expiring today. Update it immediately at:\n\nhttp://microsft-365-update.net/password\n\nFailure to update will lock all your Office apps within 1 hour.', isPhishing: true, clues: ['Non-Microsoft domain (microsoft-security-alert.com)', 'Link points to misspelled domain (microsft-365-update.net)', 'Artificial urgency (1 hour deadline)', 'Microsoft never sends password update links this way'] },
+  { from: 'it@corp.bank.local', subject: 'Scheduled maintenance — Monday 11PM-1AM', body: 'Please be informed that IT infrastructure maintenance is scheduled:\n\nDate: Monday night\nTime: 11:00 PM – 1:00 AM IST\n\nServices affected: VPN, Email, AD authentication\n\nNo action required from users.\n\nIT Operations Team', isPhishing: false, clues: ['Internal corporate sender domain', 'No links or attachments', 'No credential requests', 'Standard IT communication format'] },
+];
+let phishIdx = 0;
+
+function renderPhish() {
+  const email = PHISH_EMAILS[phishIdx % PHISH_EMAILS.length];
+  const container = document.getElementById('phishEmail');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="email-sim">
+      <div class="email-header">
+        <div class="email-from">From: ${email.from}</div>
+        <div class="email-subject">${email.subject}</div>
+      </div>
+      <div class="email-body">${email.body.replace(/\n/g,'<br>').replace(/(http[s]?:\/\/[^\s<]+)/g,'<span class="email-link">$1</span>')}</div>
+    </div>`;
+  document.getElementById('phishFeedback').style.display = 'none';
+}
+
+function phishAnswer(answer) {
+  const email = PHISH_EMAILS[phishIdx % PHISH_EMAILS.length];
+  const correct = (answer === 'phishing') === email.isPhishing;
+  const fb = document.getElementById('phishFeedback');
+  fb.style.display = 'block';
+  if (correct) {
+    fb.style.background = 'rgba(16,185,129,0.1)'; fb.style.border = '1px solid var(--accent3)'; fb.style.color = 'var(--accent3)';
+    STATE.phishScore++; STATE.phishStreak++;
+    fb.innerHTML = `✅ <strong>Correct!</strong> This is ${email.isPhishing ? 'a phishing' : 'a legitimate'} email.<br><strong>Key indicators:</strong><ul style="margin-top:8px;padding-left:16px">${email.clues.map(c=>`<li>${c}</li>`).join('')}</ul>`;
+    document.getElementById('phishScore').textContent = STATE.phishScore;
+    document.getElementById('phishStreak').textContent = 'Streak: ' + STATE.phishStreak;
+    addXP(25, 'Phishing Correctly Identified!');
+  } else {
+    fb.style.background = 'rgba(239,68,68,0.1)'; fb.style.border = '1px solid var(--accent5)'; fb.style.color = 'var(--accent5)';
+    STATE.phishStreak = 0;
+    fb.innerHTML = `❌ <strong>Incorrect!</strong> This is actually ${email.isPhishing ? 'a phishing' : 'a legitimate'} email.<br><strong>Indicators:</strong><ul style="margin-top:8px;padding-left:16px">${email.clues.map(c=>`<li>${c}</li>`).join('')}</ul>`;
+    document.getElementById('phishStreak').textContent = 'Streak: 0';
+  }
+  save(); checkBadges();
+}
+
+function nextPhish() {
+  phishIdx++;
+  renderPhish();
+}
+
+// ===========================
+// PASSWORD ANALYSIS
+// ===========================
+function analyzePwd(pwd) {
+  const bar = document.getElementById('pwdBar');
+  const label = document.getElementById('pwdLabel');
+  const score = document.getElementById('pwdScore');
+  const details = document.getElementById('pwdDetails');
+  const hash = document.getElementById('hashViz');
+  if (!pwd) { bar.style.background='#333'; label.textContent='—'; score.textContent='—'; return; }
+  let s = 0;
+  const checks = {
+    length: pwd.length >= 12,
+    upper: /[A-Z]/.test(pwd),
+    lower: /[a-z]/.test(pwd),
+    number: /[0-9]/.test(pwd),
+    special: /[^A-Za-z0-9]/.test(pwd),
+    noCommon: !['password','123456','qwerty','admin'].some(c => pwd.toLowerCase().includes(c))
+  };
+  Object.values(checks).forEach(v => { if (v) s++; });
+  const pct = (s / 6) * 100;
+  const colors = ['#ef4444','#ef4444','#f59e0b','#f59e0b','#10b981','#10b981'];
+  const labels = ['Very Weak','Weak','Fair','Moderate','Strong','Very Strong'];
+  bar.style.background = colors[s-1] || '#333';
+  bar.style.width = pct + '%';
+  label.textContent = labels[s-1] || 'Very Weak';
+  const entropy = Math.floor(pwd.length * 6.5);
+  const crack = s < 3 ? 'Milliseconds' : s < 4 ? 'Minutes' : s < 5 ? 'Days' : 'Years';
+  score.textContent = `${s}/6 factors — ${entropy} bits entropy — Crack: ${crack}`;
+  details.innerHTML = Object.entries(checks).map(([k,v]) => `<span style="color:${v?'var(--accent3)':'var(--accent5)'}">• ${k}: ${v?'✓':'✗'}</span>`).join('<br>');
+  const simpleHash = Array.from(pwd).reduce((acc,c) => ((acc<<5)-acc)+c.charCodeAt(0)|0, 0);
+  const salt = Math.random().toString(36).substring(2,10);
+  const saltedHash = Math.abs(Array.from(pwd+salt).reduce((acc,c) => ((acc<<5)-acc)+c.charCodeAt(0)|0, 0)).toString(16).padStart(16,'0');
+  if (hash) hash.innerHTML = `<span style="color:var(--text-muted)">Input:</span> <span style="color:var(--accent)">${pwd}</span><br>
+<span style="color:var(--text-muted)">Salt:</span> <span style="color:var(--accent4)">${salt}</span><br>
+<span style="color:var(--text-muted)">Hash (MD5-sim):</span> <span style="color:var(--accent3)">${Math.abs(simpleHash).toString(16).padStart(16,'0')}</span><br>
+<span style="color:var(--text-muted)">Salted Hash:</span> <span style="color:var(--accent3)">${saltedHash}...${saltedHash.substring(0,8)}</span><br>
+<span style="color:var(--text-muted)">Algorithm rec:</span> <span style="color:var(--accent2)">bcrypt / Argon2id</span>`;
+}
+
+// ===========================
+// CASE STUDIES
+// ===========================
+function renderCaseStudies() {
+  const grid = document.getElementById('caseStudyGrid');
+  if (!grid || grid.innerHTML.trim()) return;
+  const cases = [
+    { title: '🏦 Banking: SBI Data Access Incident', sector: 'Banking', scenario: 'A mid-level analyst gained access to 50,000 customer records outside their role. How was this possible?', question: 'What IAM control would have prevented this?', options: ['Better firewall rules','Role-Based Access Control + Access Reviews','Stronger passwords','More CCTV cameras'], correct: 1, exp: 'RBAC would have limited the analyst to only their required data. Quarterly access reviews would have detected excess permissions.' },
+    { title: '🏥 Healthcare: HIPAA Compliance Gap', sector: 'Healthcare', scenario: 'Apollo Hospital\'s IT audit found that 30 employees had access to patient records they never needed — including records of hospital executives.', question: 'Which IAM framework addresses this?', options: ['Multi-Factor Authentication','Firewall upgrade','Least Privilege + Access Governance','VPN deployment'], correct: 2, exp: 'Least Privilege ensures users access only what their role requires. Access Governance with periodic reviews identifies and removes unnecessary access.' },
+    { title: '🎓 University: Account Takeover', sector: 'University', scenario: 'Mumbai University\'s student portal was compromised — 1,200 students\' grades were modified. Investigation found shared admin passwords.', question: 'What should have been implemented?', options: ['Change passwords monthly','Individual named accounts with MFA and PAM audit logging','Block student portals','Two-person approval for everything'], correct: 1, exp: 'Shared accounts destroy audit trails. Individual named accounts with MFA and PAM session recording would have prevented this and identified the perpetrator.' },
+    { title: '☁️ Cloud: AWS Misconfiguration', sector: 'Cloud', scenario: 'A startup exposed its entire customer database via an S3 bucket set to public. The bucket contained PII for 2M users. The IAM role had no least-privilege policy.', question: 'What Cloud IAM control would have prevented this?', options: ['Stronger encryption','Resource-level IAM policies + S3 Block Public Access + Periodic permission audits','Better monitoring software','Migrate to another cloud'], correct: 1, exp: 'Resource-level IAM policies with explicit deny for public access, combined with AWS S3 Block Public Access defaults and regular IAM permission reviews, are mandatory controls.' },
+  ];
+  grid.innerHTML = cases.map((cs,i) => `
+    <div class="card" id="cs${i}">
+      <div style="font-size:11px;font-family:var(--font-mono);color:var(--accent2);margin-bottom:4px">${cs.sector}</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px">${cs.title}</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">${cs.scenario}</div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">${cs.question}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${cs.options.map((o,j) => `<button class="quiz-option" onclick="csAnswer(this,${j},${cs.correct},'${cs.exp.replace(/'/g,"\\'")}','cs${i}')"><span class="opt-letter">${'ABCD'[j]}</span>${o}</button>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="csfb${i}"></div>
+    </div>`).join('');
+}
+
+function csAnswer(el, chosen, correct, exp, csId) {
+  const parent = el.parentElement;
+  parent.querySelectorAll('.quiz-option').forEach(o => o.style.pointerEvents = 'none');
+  const fb = document.getElementById('csfb' + csId.replace('cs',''));
+  if (chosen === correct) {
+    el.classList.add('correct');
+    fb.textContent = '✅ Correct! ' + exp; fb.className = 'quiz-feedback show correct';
+    addXP(50, 'Case Study Solved!');
+  } else {
+    el.classList.add('wrong');
+    parent.querySelectorAll('.quiz-option')[correct].classList.add('correct');
+    fb.textContent = '❌ ' + exp; fb.className = 'quiz-feedback show wrong';
+  }
+}
+
+// ===========================
+// COMPLIANCE AUDIT
+// ===========================
+function renderCompliance() {
+  const c = document.getElementById('complianceSim');
+  if (!c || c.innerHTML.trim()) return;
+  const findings = [
+    { issue: 'Inactive Users (>90 days)', count: 47, severity: 'high', fix: 'Disable accounts not used for 90+ days' },
+    { issue: 'Orphan Accounts (ex-employees)', count: 12, severity: 'high', fix: 'Terminate all accounts tied to departed staff' },
+    { issue: 'Excess Permissions', count: 234, severity: 'medium', fix: 'Run access recertification campaign' },
+    { issue: 'Accounts without MFA', count: 89, severity: 'high', fix: 'Enforce MFA policy for all users' },
+    { issue: 'Shared Service Accounts', count: 8, severity: 'medium', fix: 'Replace with individual service identities' },
+    { issue: 'No Access Review (180d+)', count: 31, severity: 'low', fix: 'Initiate quarterly access review campaign' },
+  ];
+  let fixed = 0;
+  c.innerHTML = `
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="stat-card red"><span class="stat-icon">⚠️</span><div><div class="stat-value">381</div><div class="stat-label">Total Findings</div></div></div>
+      <div class="stat-card amber"><span class="stat-icon">📋</span><div><div class="stat-value" id="compScore">47%</div><div class="stat-label">Compliance Score</div></div></div>
+      <div class="stat-card green"><span class="stat-icon">✅</span><div><div class="stat-value" id="compFixed">0</div><div class="stat-label">Issues Fixed</div></div></div>
+      <div class="stat-card blue"><span class="stat-icon">🎯</span><div><div class="stat-value">SOX / ISO 27001</div><div class="stat-label">Frameworks</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 Audit Findings</div>
+      ${findings.map((f,i) => `
+        <div id="finding${i}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;flex-wrap:wrap;gap:8px">
+          <div>
+            <span class="chip chip-${f.severity==='high'?'red':f.severity==='medium'?'amber':'blue'}">${f.severity.toUpperCase()}</span>
+            <span style="font-size:13px;color:var(--text-primary);margin-left:8px">${f.issue}</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:8px">(${f.count} accounts)</span>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Fix: ${f.fix}</div>
+          </div>
+          <button class="btn btn-success" style="font-size:11px;padding:5px 14px" onclick="fixCompliance(${i})">✅ Remediate</button>
+        </div>`).join('')}
+    </div>`;
+}
+
+function fixCompliance(i) {
+  const el = document.getElementById('finding' + i);
+  el.style.opacity = '0.5';
+  el.querySelector('button').textContent = '✓ Fixed';
+  el.querySelector('button').disabled = true;
+  el.style.borderColor = 'var(--accent3)';
+  const fixed = document.getElementById('compFixed');
+  const sc = document.getElementById('compScore');
+  if (fixed) { const n = parseInt(fixed.textContent)+1; fixed.textContent = n; if(sc) sc.textContent = Math.min(100, 47 + n*9) + '%'; }
+  addXP(20, 'Compliance Issue Remediated!');
+}
+
+// ===========================
+// MATURITY ASSESSMENT
+// ===========================
+const MATURITY_QS = [
+  { q: "Does your organization have a formal IAM policy?", opts: ["No policy","Informal guidelines","Documented policy","Policy with enforcement & reviews"] },
+  { q: "How is user access provisioned?", opts: ["Manually via email","Ticketing system only","Automated role-based provisioning","Full IGA platform with lifecycle management"] },
+  { q: "Is MFA enforced for all users?", opts: ["No MFA","Optional MFA","MFA for admins only","Mandatory MFA for all users"] },
+  { q: "How are privileged accounts managed?", opts: ["No controls","Password rotation only","PAM tool with session recording","Full JIT + vault + session monitoring"] },
+  { q: "Are access reviews conducted?", opts: ["Never","Ad-hoc when issues arise","Annual reviews","Quarterly automated certification campaigns"] },
+  { q: "What is your SSO maturity?", opts: ["No SSO","SSO for some apps","SSO for most internal apps","Universal SSO + Federation for all apps"] },
+  { q: "How are identities managed across cloud environments?", opts: ["Each cloud team manages separately","Basic IAM roles per cloud","Centralized cloud IAM","Unified identity governance across all clouds"] },
+  { q: "Is Zero Trust implemented?", opts: ["Not considered","Network perimeter only","Conditional Access policies","Full Zero Trust with continuous verification"] },
+  { q: "How mature is your offboarding process?", opts: ["Manual, often missed","IT ticket required","Automated HR-triggered offboarding","Immediate automated offboarding with audit trail"] },
+  { q: "Do you have an identity monitoring program?", opts: ["No monitoring","Basic login logging","SIEM with IAM events","Behavioral analytics + impossible travel detection"] },
+  { q: "Is Segregation of Duties enforced?", opts: ["Not enforced","Manual review only","SoD rulebook in IGA","Automated SoD conflict detection and remediation"] },
+  { q: "How are service accounts managed?", opts: ["Shared credentials","Individual accounts","Individual + rotating credentials","Full PAM vaulting + secret management"] },
+  { q: "Is your IAM posture reviewed by a third party?", opts: ["Never","Internally only","Annual pen test","Continuous red team + external IAM audit"] },
+  { q: "Do you have IAM incident response playbooks?", opts: ["None","Informal response","Documented playbooks","Automated SOAR playbooks tested regularly"] },
+  { q: "Is IAM training provided to all staff?", opts: ["No training","Occasional awareness","Annual mandatory training","Continuous learning platform with role-based tracks"] },
+];
+let matAnswers = {};
+
+function renderMaturity() {
+  const c = document.getElementById('maturityAssessment');
+  if (!c) return;
+  if (c.innerHTML.trim() && !Object.keys(matAnswers).length) return;
+  c.innerHTML = `
+    <div class="info-box">Answer all 15 questions to get your IAM Maturity Score. Each question has 4 levels: Basic (0) → Intermediate (1) → Advanced (2) → Enterprise (3).</div>
+    ${MATURITY_QS.map((q,i) => `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:10px">${i+1}. ${q.q}</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${q.opts.map((o,j) => `<div class="quiz-option ${matAnswers[i]===j?'correct':''}" onclick="matAnswer(${i},${j},this)"><span class="opt-letter">${j}</span>${o}</div>`).join('')}
+        </div>
+      </div>`).join('')}
+    <button class="btn btn-primary" onclick="calcMaturity()" style="margin-top:8px">📊 Calculate My Maturity Score</button>
+    <div id="matResult" style="display:none;margin-top:20px"></div>`;
+}
+
+function matAnswer(q, val, el) {
+  matAnswers[q] = val;
+  el.closest('div[style]').querySelectorAll('.quiz-option').forEach(o => o.classList.remove('correct'));
+  el.classList.add('correct');
+}
+
+function calcMaturity() {
+  const total = Object.values(matAnswers).reduce((a,b) => a+b, 0);
+  const max = 15 * 3;
+  const pct = Math.round((total / max) * 100);
+  let level, color;
+  if (pct < 25) { level = '🟠 Basic'; color = 'var(--accent4)'; }
+  else if (pct < 50) { level = '🟡 Intermediate'; color = 'var(--accent4)'; }
+  else if (pct < 75) { level = '🟢 Advanced'; color = 'var(--accent3)'; }
+  else { level = '🔵 Enterprise Ready'; color = 'var(--accent)'; }
+  const res = document.getElementById('matResult');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center">
+      <div style="font-size:48px;margin-bottom:8px">${level.split(' ')[0]}</div>
+      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;color:${color}">${level.substring(2)}</div>
+      <div style="font-size:36px;font-family:var(--font-mono);color:var(--accent);margin:12px 0">${pct}%</div>
+      <div style="font-size:13px;color:var(--text-secondary)">Score: ${total}/${max} points across all 15 dimensions</div>
+      <div style="height:8px;background:var(--bg-glass);border-radius:4px;margin-top:16px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${color},var(--accent));border-radius:4px;transition:width 1s"></div></div>
+    </div>`;
+  addXP(100, 'Maturity Assessment Complete!');
+}
+
+// ===========================
+// BADGE GALLERY
+// ===========================
+function renderBadges() {
+  const grid = document.getElementById('badgeGrid');
+  if (!grid) return;
+  grid.innerHTML = BADGES_DEF.map(b => `
+    <div class="badge-card ${STATE.badges.includes(b.id) ? 'unlocked' : 'locked'}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-status">${STATE.badges.includes(b.id) ? '✅ Unlocked' : '🔒 ' + b.desc}</div>
+    </div>`).join('');
+}
+
+// ===========================
+// SKILL TREE
+// ===========================
+function renderSkillTree() {
+  const c = document.getElementById('skillTreeViz');
+  if (!c) return;
+  const skills = [
+    { id: 'fund', label: 'IAM\nFundamentals', unlock: true },
+    { id: 'auth', label: 'Authentication', unlock: STATE.completedModules.includes('authChains') },
+    { id: 'authz', label: 'Authorization', unlock: STATE.completedModules.includes('governance') },
+    { id: 'rbac', label: 'RBAC', unlock: STATE.completedModules.includes('labs_opened') },
+    { id: 'mfa', label: 'MFA', unlock: STATE.badges.includes('mfa_champ') },
+    { id: 'fed', label: 'Federation', unlock: STATE.completedModules.includes('federation') },
+    { id: 'sso', label: 'SSO', unlock: STATE.completedModules.includes('federation') },
+    { id: 'ldap', label: 'LDAP', unlock: STATE.completedModules.includes('labs_opened') },
+    { id: 'ad', label: 'Active\nDirectory', unlock: false },
+    { id: 'pam', label: 'PAM', unlock: STATE.completedModules.includes('pam') },
+    { id: 'cloud', label: 'Cloud IAM', unlock: false },
+    { id: 'zt', label: 'Zero Trust', unlock: STATE.completedModules.includes('conditional') },
+  ];
+  const cols = 4;
+  c.innerHTML = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:20px;padding:20px">` +
+    skills.map(s => `
+      <div class="skill-node" title="${s.unlock ? 'Unlocked!' : 'Complete related module to unlock'}">
+        <div class="skill-circle ${s.unlock ? 'unlocked' : 'locked'}">
+          <span>${s.unlock ? '✅' : '🔒'}</span>
+          <span>${s.id}</span>
+        </div>
+        <div class="skill-label">${s.label}</div>
+      </div>`).join('') + '</div>';
+}
+
+// ===========================
+// CERTIFICATE
+// ===========================
+function renderCertProgress() {
+  const c = document.getElementById('certProgress');
+  if (!c) return;
+  const modules = ['ticketing','delegation','conditional','pam','federation','lifecycle','governance','privAccounts','authChains','monitoring'];
+  const done = modules.filter(m => STATE.completedModules.includes(m));
+  c.innerHTML = modules.map(m => `<div style="color:${STATE.completedModules.includes(m)?'var(--accent3)':'var(--text-muted)'}">
+    ${STATE.completedModules.includes(m)?'✅':'⬜'} ${m.charAt(0).toUpperCase()+m.slice(1)}</div>`).join('') +
+    `<div style="margin-top:12px;color:var(--accent)">Completed: ${done.length}/${modules.length} modules</div>`;
+}
+
+function generateCert() {
+  const name = document.getElementById('certName').value || 'IAM Student';
+  document.getElementById('certNameDisplay').textContent = name;
+  document.getElementById('certDate').textContent = new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('certXP').textContent = STATE.xp + ' XP';
+  document.getElementById('certID').textContent = 'ISA-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  addXP(100, 'Certificate Generated!');
+}
+
+// ===========================
+// DRAG & DROP (RBAC LAB)
+// ===========================
+let draggedUser = null;
+function dragStart(e) {
+  draggedUser = e.target.dataset.user;
+  e.target.classList.add('dragging');
+  setTimeout(() => e.target.classList.remove('dragging'), 0);
+}
+
+function dropUser(e, zone) {
+  e.preventDefault();
+  e.target.classList.remove('drag-over');
+  if (!draggedUser) return;
+  const label = document.getElementById('zl-' + zone);
+  if (label) label.textContent = draggedUser;
+  document.querySelectorAll('.drag-item').forEach(d => {
+    if (d.dataset.user === draggedUser) d.style.opacity = '0.4';
+  });
+  draggedUser = null;
+}
+
+function checkRBAC() {
+  const hr = document.getElementById('zl-hr')?.textContent;
+  const fin = document.getElementById('zl-fin')?.textContent;
+  const admin = document.getElementById('zl-admin')?.textContent;
+  const res = document.getElementById('rbacResult');
+  const correct = hr && hr.includes('HR') && fin && fin.includes('Finance') && admin && admin.includes('IT');
+  res.style.display = 'block';
+  res.style.background = correct ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+  res.style.border = `1px solid ${correct ? 'var(--accent3)' : 'var(--accent5)'}`;
+  res.style.color = correct ? 'var(--accent3)' : 'var(--accent5)';
+  res.textContent = correct ? '🎉 Correct! Role assignments match job functions.' : '❌ Some roles are mismatched. Raj→HR, Priya→Finance, Amit→Admin.';
+  if (correct) { addXP(50, 'RBAC Lab Complete!'); if (!STATE.badges.includes('rbac_master')) { STATE.badges.push('rbac_master'); save(); showBadgeNotif('🧩','RBAC Master'); } }
+}
+
+// ===========================
+// PROVISIONING LAB
+// ===========================
+function runProvisioning() {
+  const name = document.getElementById('provName').value;
+  const email = document.getElementById('provEmail').value;
+  const dept = document.getElementById('provDept').value;
+  const role = document.getElementById('provRole').value;
+  const mfa = document.getElementById('provMFA').checked;
+  const res = document.getElementById('provResult');
+  if (!name || !email || !dept || !role) {
+    res.style.display = 'block';
+    res.innerHTML = '<div style="color:var(--accent5);font-size:12px">⚠️ Fill all fields.</div>';
+    return;
+  }
+  res.style.display = 'block';
+  res.innerHTML = `<div class="terminal"><div class="terminal-header"><div class="terminal-dot red"></div><div class="terminal-dot yellow"></div><div class="terminal-dot green"></div><span class="terminal-title">Provisioning Console</span></div>
+    <div class="terminal-body">
+      <span class="cmd">$ create-user</span> <span class="out">"${name}"</span><br>
+      <span class="ok">✅ AD Account: ${email.includes('@')?email:email+'@bank.com'}</span><br>
+      <span class="ok">✅ Department: ${dept}</span><br>
+      <span class="ok">✅ Role Assigned: ${role}</span><br>
+      ${mfa?'<span class="ok">✅ MFA: Enrollment email sent</span><br>':'<span class="err">⚠️ MFA: Not enabled — Recommend enabling!</span><br>'}
+      <span class="ok">✅ Account Created Successfully</span>
+    </div></div>`;
+  addXP(30, 'User Provisioned!');
+}
+
+// ===========================
+// DEPROVISIONING LAB
+// ===========================
+function runDeprov() {
+  const checks = ['dp1','dp2','dp3','dp4','dp5'];
+  const done = checks.filter(id => document.getElementById(id)?.checked).length;
+  const res = document.getElementById('deprovResult');
+  res.style.display = 'block';
+  if (done === checks.length) {
+    res.style.background='rgba(16,185,129,0.1)'; res.style.border='1px solid var(--accent3)'; res.style.color='var(--accent3)';
+    res.innerHTML = '✅ Full offboarding complete. No orphan account risk. Audit trail recorded.';
+    addXP(50, 'Full Deprovisioning Complete!');
+  } else {
+    res.style.background='rgba(239,68,68,0.1)'; res.style.border='1px solid var(--accent5)'; res.style.color='var(--accent5)';
+    res.innerHTML = `⚠️ ${checks.length - done} step(s) missed! Missing steps create: orphan accounts, active tokens, accessible mailboxes — compliance failures.`;
+  }
+}
+
+// ===========================
+// AD SIMULATOR
+// ===========================
+let adCounter = { user: 1, group: 1, ou: 1 };
+function adAction(type) {
+  const names = { user: ['kavya.reddy','raj.kumar2','priya2.sharma','amit2.verma'], group: ['Finance-Users','HR-Admins','IT-SecTeam','Cloud-Ops'], ou: ['OU=Finance','OU=IT','OU=HR','OU=Management'] };
+  const term = document.getElementById('adTerminal');
+  const name = names[type][adCounter[type] % names[type].length];
+  adCounter[type]++;
+  const cmds = {
+    user: `New-ADUser -Name "${name}" -AccountPassword (ConvertTo-SecureString "P@ssw0rd!" -AsPlainText -Force) -Enabled $true`,
+    group: `New-ADGroup -Name "${name}" -GroupScope Global -GroupCategory Security`,
+    ou: `New-ADOrganizationalUnit -Name "${name.replace('OU=','')}" -Path "DC=corp,DC=bank,DC=local"`
+  };
+  term.innerHTML += `<span class="cmd">$ ${cmds[type]}</span><br><span class="ok">Successfully created ${type}: ${name}</span><br>`;
+  term.scrollTop = term.scrollHeight;
+  addXP(10, 'AD Object Created!');
+}
+
+// ===========================
+// LDAP SEARCH
+// ===========================
+function runLDAP() {
+  const query = document.getElementById('ldapSearch').value;
+  const res = document.getElementById('ldapResult');
+  const users = {
+    'raj.kumar': { dn: 'CN=Raj Kumar,OU=Finance,DC=corp,DC=bank,DC=local', email: 'raj.kumar@bank.com', dept: 'Finance', role: 'Finance Analyst', manager: 'priya.sharma', phone: '+91-9876543210', groups: 'Finance-Users, SAP-Finance-Read' },
+    'priya.sharma': { dn: 'CN=Priya Sharma,OU=Finance,DC=corp,DC=bank,DC=local', email: 'priya.sharma@bank.com', dept: 'Finance', role: 'Finance Manager', manager: 'director.finance', phone: '+91-9876543211', groups: 'Finance-Users, Finance-Managers, SAP-Finance-Write' },
+    'amit.verma': { dn: 'CN=Amit Verma,OU=IT,DC=corp,DC=bank,DC=local', email: 'amit.verma@bank.com', dept: 'IT', role: 'IT Administrator', manager: 'it.head', phone: '+91-9876543212', groups: 'IT-Admins, Domain-Admins-ReadOnly' },
+  };
+  const user = users[query.toLowerCase()];
+  if (user) {
+    res.innerHTML = `<span style="color:var(--accent)">dn: ${user.dn}</span><br>
+<span style="color:var(--text-secondary)">mail: ${user.email}</span><br>
+<span style="color:var(--text-secondary)">department: ${user.dept}</span><br>
+<span style="color:var(--accent3)">title: ${user.role}</span><br>
+<span style="color:var(--text-secondary)">manager: ${user.manager}</span><br>
+<span style="color:var(--text-secondary)">mobile: ${user.phone}</span><br>
+<span style="color:var(--accent2)">memberOf: ${user.groups}</span>`;
+    addXP(10, 'LDAP Search Complete!');
+  } else {
+    res.innerHTML = `<span style="color:var(--accent5)">Error: No object found for "${query}"</span><br><span style="color:var(--text-muted)">Try: raj.kumar, priya.sharma, amit.verma</span>`;
+  }
+}
+
+// ===========================
+// CHATBOT
+// ===========================
+function toggleChat() {
+  document.getElementById('chatWindow').classList.toggle('open');
+}
+
+const IAM_KB = {
+  'rbac': 'RBAC (Role-Based Access Control) assigns permissions to roles rather than individual users. Users are assigned to roles, and roles define what access is permitted. Benefits: easier management, least privilege, audit-friendly. Example: "Finance Analyst" role gets read access to SAP Finance; "Finance Manager" gets write access.',
+  'ldap': 'LDAP (Lightweight Directory Access Protocol) is a protocol for accessing and maintaining distributed directory information services. In IAM, it\'s used to query user attributes like name, email, role, department, and group memberships. Common directory: Active Directory. Example query: ldapsearch -x -H ldap://dc.bank.local -b "DC=bank,DC=local" "uid=raj.kumar"',
+  'pam': 'PAM (Privileged Access Management) controls and monitors access to privileged accounts. Key components: Password Vault (encrypted credential storage), JIT Access (time-limited access), Session Recording (full audit trail), Credential Rotation (auto-change after use). Enterprise tools: CyberArk, BeyondTrust, Delinea.',
+  'saml': 'SAML (Security Assertion Markup Language) is an XML-based standard for SSO. Flow: 1) User accesses SP, 2) SP redirects to IdP, 3) User authenticates at IdP, 4) IdP issues signed SAML Assertion, 5) SP validates assertion and grants access. Used in enterprise apps like Salesforce, SAP, ServiceNow.',
+  'oauth': 'OAuth 2.0 is an authorization framework that allows apps to access resources on behalf of users without sharing credentials. Key roles: Resource Owner (user), Client (app), Authorization Server, Resource Server. Flows: Authorization Code (web apps), Client Credentials (machine-to-machine), Device Flow (IoT).',
+  'zero trust': 'Zero Trust is a security philosophy: "Never trust, always verify." Every access request is evaluated regardless of network location. Principles: verify explicitly (identity, device, location), use least privilege access, assume breach (segment networks, monitor continuously). Implemented via Conditional Access, MFA, micro-segmentation.',
+  'mfa': 'MFA (Multi-Factor Authentication) requires two or more verification factors: Something you know (password), Something you have (OTP, hardware key), Something you are (biometrics). MFA blocks 99.9% of automated attacks. Implementation: TOTP apps (Microsoft/Google Authenticator), SMS OTP, FIDO2/WebAuthn hardware keys.',
+  'jml': 'JML (Joiner-Mover-Leaver) is the identity lifecycle framework. Joiner: new hire → create account, assign role, provision access. Mover: transfer → update role/group, revoke old access, provision new. Leaver: departure → immediately disable account, revoke tokens, remove groups, archive mailbox.',
+  'iam': 'IAM (Identity and Access Management) is the framework for managing digital identities and controlling their access to resources. Core pillars: Authentication (who are you?), Authorization (what can you do?), Governance (are permissions appropriate?), Lifecycle (when is access needed?). Tools: Microsoft Azure AD, Okta, SailPoint, CyberArk.',
+  'sso': 'SSO (Single Sign-On) allows users to authenticate once and access multiple applications. Benefits: reduced password fatigue, centralized audit trail, faster access. Protocols: SAML 2.0 (enterprise apps), OAuth 2.0 + OIDC (web/mobile), Kerberos (Windows domain). Example: Login to Okta → access Salesforce, SAP, Workday without re-authenticating.',
+};
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msgs = document.getElementById('chatMessages');
+  const text = input.value.trim();
+  if (!text) return;
+  msgs.innerHTML += `<div class="chat-msg user">${text}</div>`;
+  input.value = '';
+  const lower = text.toLowerCase();
+  let reply = "I can help with: RBAC, LDAP, PAM, SAML, OAuth, Zero Trust, MFA, JML, IAM, SSO. Try asking about any of these!";
+  Object.entries(IAM_KB).forEach(([key, val]) => { if (lower.includes(key)) reply = val; });
+  setTimeout(() => {
+    msgs.innerHTML += `<div class="chat-msg ai">${reply}</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 500);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ===========================
+// THEME TOGGLE
+// ===========================
+function toggleTheme() {
+  const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelector('.theme-toggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+// ===========================
+// SEARCH
+// ===========================
+function handleSearch(val) {
+  if (!val) return;
+  const lower = val.toLowerCase();
+  const map = {ticketing:'ticketing',pam:'pam',delegation:'delegation',conditional:'conditional',federation:'federation',lifecycle:'lifecycle',governance:'governance',monitoring:'monitoring',labs:'labs',challenges:'challenges',phishing:'phishing',certificate:'certificate',badges:'badges'};
+  Object.entries(map).forEach(([k,v]) => { if (lower.includes(k)) showPage(v, null); });
+}
+
+// ===========================
+// PARTICLES
+// ===========================
+(function() {
+  const canvas = document.getElementById('particles-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  for (let i = 0; i < 60; i++) {
+    particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5+0.5, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, o: Math.random()*0.5+0.1 });
+  }
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = canvas.width;
+      if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height;
+      if (p.y > canvas.height) p.y = 0;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(0,212,255,${p.o})`; ctx.fill();
+    });
+    // Draw connections
+    particles.forEach((a,i) => {
+      particles.slice(i+1).forEach(b => {
+        const d = Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);
+        if (d < 100) {
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+          ctx.strokeStyle = `rgba(0,212,255,${0.05*(1-d/100)})`; ctx.lineWidth=0.5; ctx.stroke();
+        }
+      });
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===========================
+// INIT
+// ===========================
+updateXPUI();
+initCharts();
+evalPolicy();
+
+// Pre-complete ticketing as example
+if (!STATE.completedModules.includes('ticketing')) {
+  STATE.completedModules.push('ticketing');
+  save();
+}
+</script>
+</body>
+</html>

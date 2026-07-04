@@ -1,0 +1,2892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBERLEARN: SYSTEMS &amp; OPERATING SYSTEMS LABORATORY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #060810;
+            --bg-surface: rgba(12, 17, 34, 0.75);
+            --bg-surface-lit: rgba(26, 36, 68, 0.85);
+            --bg-input: #090d1a;
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #8e96aa;
+            
+            /* High-Intensity Accents */
+            --accent-cyan: #00f0ff;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-purple: #8b5cf6;
+            
+            --font-sans: 'Sora', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR DASHBOARD NAVIGATION --- */
+        #sidebar {
+            width: 320px;
+            background: rgba(8, 11, 22, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-glass);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .brand-panel {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .brand-panel h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        .brand-panel h1 span {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        }
+
+        .brand-panel p {
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .search-container {
+            padding: 16px 20px 8px 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-family: var(--font-sans);
+            font-size: 0.82rem;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .nav-scroller {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+            letter-spacing: 1.5px;
+            margin: 16px 0 6px 8px;
+            font-weight: 700;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            font-family: var(--font-mono);
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-item.active {
+            color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.05);
+            border-color: rgba(0, 240, 255, 0.15);
+            font-weight: 600;
+        }
+
+        /* --- SYSTEM WORKSPACE CORE --- */
+        #workspace {
+            margin-left: 320px;
+            flex-grow: 1;
+            padding: 40px 60px;
+            max-width: 1440px;
+            width: calc(100% - 320px);
+        }
+
+        .hero-banner {
+            margin-bottom: 60px;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 30px;
+        }
+
+        .hero-banner h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff 30%, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-banner p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-top: 8px;
+            max-width: 800px;
+        }
+
+        .lab-view {
+            margin-bottom: 100px;
+            scroll-margin-top: 40px;
+        }
+
+        .lab-header {
+            margin-bottom: 24px;
+        }
+
+        .lab-header .module-tag {
+            font-size: 0.75rem;
+            color: var(--accent-purple);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-family: var(--font-mono);
+        }
+
+        .lab-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 2px;
+            letter-spacing: -0.5px;
+        }
+
+        /* --- VISUAL GRID ARCHITECTURE --- */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glass-card {
+            background: var(--bg-surface);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-card h3 {
+            font-size: 1rem;
+            color: #fff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+
+        .glass-card h3::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 14px;
+            background: var(--accent-cyan);
+            border-radius: 2px;
+        }
+
+        /* --- THEORY AND TEXT BLOCKS --- */
+        .theory-block p {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .theory-block ul {
+            list-style: none;
+            margin-top: 8px;
+        }
+
+        .theory-block li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 0.88rem;
+            color: #e2e8f0;
+        }
+
+        .theory-block li::before {
+            content: "//";
+            position: absolute;
+            left: 0;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .analogy-callout {
+            background: rgba(139, 92, 246, 0.03);
+            border-left: 4px solid var(--accent-purple);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        .analogy-callout strong {
+            color: var(--accent-purple);
+        }
+
+        /* --- SCHEMATIC VECTOR TRACERS --- */
+        .arch-diagram {
+            background: rgba(4, 6, 12, 0.7);
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .arch-node {
+            background: var(--bg-surface-lit);
+            border: 1px solid var(--border-glass);
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-muted);
+        }
+
+        .arch-node.active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+            background: rgba(0, 240, 255, 0.03);
+            color: #fff;
+        }
+
+        .arch-connector {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            margin: -4px 0;
+        }
+
+        /* --- CONTROLS AND FORMS --- */
+        .sim-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--bg-surface-lit);
+            color: #fff;
+            border: 1px solid var(--border-glass);
+            padding: 9px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-sans);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--text-muted);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            border-color: transparent;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-accent {
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .btn-accent:hover {
+            background: rgba(0, 240, 255, 0.16);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+        }
+
+        .btn-rose {
+            background: rgba(244, 63, 94, 0.08);
+            border: 1px solid var(--accent-rose);
+            color: var(--accent-rose);
+        }
+
+        .btn-rose:hover {
+            background: rgba(244, 63, 94, 0.16);
+        }
+
+        select, input[type="text"], input[type="number"], input[type="password"] {
+            background: var(--bg-input);
+            border: 1px solid var(--border-glass);
+            color: #fff;
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            outline: none;
+            font-family: var(--font-mono);
+        }
+
+        select:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        /* --- LAB EMULATION TERMINALS --- */
+        .terminal-container {
+            background: #04060f;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .terminal-header {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px 14px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: space-between;
+            text-transform: uppercase;
+        }
+
+        .terminal-body {
+            padding: 14px;
+            min-height: 160px;
+            max-height: 320px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #10b981;
+        }
+
+        /* --- PIPELINE VISUALIZATION STEPS --- */
+        .pipeline-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .pipeline-step {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            background: var(--bg-surface-lit);
+            border: 1px solid var(--border-glass);
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin: 0 4px;
+            transition: all 0.25s ease;
+            font-family: var(--font-mono);
+        }
+
+        .pipeline-step.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .pipeline-step.completed {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .pipeline-step.failed {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: var(--accent-rose);
+            color: var(--accent-rose);
+        }
+
+        /* --- COMPLEX GRAPHICS MATRICES --- */
+        .memory-matrix {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .matrix-cell {
+            background: var(--bg-surface-lit);
+            border: 1px solid var(--border-glass);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            color: var(--text-muted);
+        }
+
+        .matrix-cell.hit {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--accent-green);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+        }
+
+        .matrix-cell.miss {
+            background: rgba(244, 63, 94, 0.2);
+            border-color: var(--accent-rose);
+            color: #fff;
+        }
+
+        .tree-view {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #e5e7eb;
+        }
+
+        .tree-line {
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .tree-line:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .real-world-box {
+            background: rgba(245, 158, 11, 0.02);
+            border-left: 4px solid var(--accent-amber);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 20px;
+        }
+
+        .real-world-box h4 {
+            color: var(--accent-amber);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-family: var(--font-mono);
+        }
+
+        .real-world-box p {
+            font-size: 0.88rem;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <aside id="sidebar">
+        <div class="brand-panel">
+            <h1>CyberLearn <span>Lab</span></h1>
+            <p>Virtual Systems Explorer</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" id="search-box" placeholder="Filter vectors &amp; labs..." onkeyup="filterLabs()">
+        </div>
+
+        <div class="nav-scroller">
+            <div class="nav-section-title">1. Computer Architecture</div>
+            <a href="#cpu-fundamentals" class="nav-item active">CPU Fundamentals</a>
+            <a href="#memory-fundamentals" class="nav-item">Memory Fundamentals</a>
+            <a href="#storage-systems" class="nav-item">Storage Systems</a>
+
+            <div class="nav-section-title">2. Operating Systems</div>
+            <a href="#processes-threads" class="nav-item">Processes &amp; Threads</a>
+            <a href="#file-systems" class="nav-item">File Systems</a>
+            <a href="#system-boot" class="nav-item">System Boot Process</a>
+            <a href="#apps-services" class="nav-item">Applications &amp; Services</a>
+            <a href="#virtualization-basics" class="nav-item">Virtualization Basics</a>
+
+            <div class="nav-section-title">3. Windows Internals</div>
+            <a href="#windows-architecture" class="nav-item">Windows Architecture</a>
+            <a href="#windows-registry" class="nav-item">The Registry Engine</a>
+            <a href="#windows-services" class="nav-item">Service Control Manager</a>
+            <a href="#windows-events" class="nav-item">Event Logs Visualizer</a>
+            <a href="#windows-scheduler" class="nav-item">Scheduled Tasks</a>
+            <a href="#windows-ntfs" class="nav-item">NTFS Architecture</a>
+            <a href="#windows-powershell" class="nav-item">PowerShell Sandbox</a>
+
+            <div class="nav-section-title">4. Linux Internals</div>
+            <a href="#linux-architecture" class="nav-item">Linux Architecture</a>
+            <a href="#linux-filesystem" class="nav-item">Filesystem Hierarchy</a>
+            <a href="#linux-permissions" class="nav-item">Permissions (chmod)</a>
+            <a href="#linux-systemd" class="nav-item">Systemd Initialization</a>
+            <a href="#linux-packages" class="nav-item">Package Management</a>
+            <a href="#linux-bash" class="nav-item">Bash Sandbox</a>
+            <a href="#linux-ssh" class="nav-item">SSH Tunnel Visualizer</a>
+
+            <div class="nav-section-title">5. macOS Internals</div>
+            <a href="#macos-architecture" class="nav-item">macOS Architecture</a>
+            <a href="#macos-launch" class="nav-item">Launch Services Engine</a>
+            <a href="#macos-keychain" class="nav-item">Keychain Subsystem</a>
+
+            <div class="nav-section-title">6. Security Architecture</div>
+            <a href="#sec-auth-flow" class="nav-item">Authentication Flow</a>
+            <a href="#sec-auth-models" class="nav-item">Authorization Models</a>
+            <a href="#sec-priv-models" class="nav-item">Privilege Models</a>
+            <a href="#sec-access-tokens" class="nav-item">Access Tokens</a>
+            <a href="#sec-uac" class="nav-item">User Account Control (UAC)</a>
+            <a href="#sec-sandboxing" class="nav-item">Sandboxing Engine</a>
+            <a href="#sec-secure-boot" class="nav-item">Secure Boot Chain</a>
+            <a href="#sec-tpm" class="nav-item">TPM Hardware Security</a>
+            <a href="#sec-credential-storage" class="nav-item">Credential Storage</a>
+            <a href="#sec-secret-storage" class="nav-item">Secret Storage Vault</a>
+            <a href="#sec-process-isolation" class="nav-item">Process Isolation</a>
+            <a href="#sec-memory-protection" class="nav-item">Memory Protection</a>
+            <a href="#sec-capstone-dashboard" class="nav-item">Advanced Security Capstone</a>
+        </div>
+    </aside>
+
+    <main id="workspace">
+
+        <header class="hero-banner">
+            <h1>Systems &amp; OS Laboratory</h1>
+            <p>An interactive virtual sandbox mapping internal hardware execution layers, kernel topologies, and platform sub-systems. Scroll directly to explore or use the tracking index metrics.</p>
+        </header>
+
+        <section id="cpu-fundamentals" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 1: Computer Architecture</span>
+                <h2>CPU Fundamentals &amp; Execution Cycle</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Central Processing Unit (CPU) executes binary program instructions using the foundational <strong>Fetch, Decode, Execute, Write-Back</strong> operational pipeline cycle loop.</p>
+                        <ul>
+                            <li><strong>Control Unit (CU):</strong> The operational dispatcher; interprets system binary code opcodes.</li>
+                            <li><strong>Arithmetic Logic Unit (ALU):</strong> The functional logic core; handles mathematical operations.</li>
+                            <li><strong>Registers:</strong> High-speed internal memory latches (e.g., Program Counter (PC), Accumulator).</li>
+                            <li><strong>Clock Cycle:</strong> Microscopic oscillator synchronization pulses measuring chip step metrics.</li>
+                        </ul>
+                        <div class="analogy-callout">
+                            <strong>Conveyor Assembly Analogy:</strong> The CPU runs like a hyper-speed manufacturing plant. The Program Counter is the order index tracking sheets, the Instruction Latch houses the current blueprint pattern, and the ALU is the machine press stamping values together.
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <h3>Internal Architecture Schematic</h3>
+                        <div class="arch-diagram" id="cpu-arch-map">
+                            <div class="arch-node" id="node-pc">Program Counter (PC) [Points to Next Execution Address]</div>
+                            <div class="arch-connector">↓ Bus Route</div>
+                            <div class="arch-node" id="node-cu">Control Unit (CU) [Fetches &amp; Parses OpCode Binary Masks]</div>
+                            <div class="arch-connector">↓ Interrupt Path</div>
+                            <div class="arch-node" id="node-alu">Arithmetic Logic Unit (ALU) [Executes Math Processing]</div>
+                            <div class="arch-connector">↓ Internal Bus</div>
+                            <div class="arch-node" id="node-acc">Accumulator Register (ACC) [Saves Operational Results]</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: CPU Execution Lab</h3>
+                        <div class="sim-controls">
+                            <select id="cpu-instruction">
+                                <option value="LOAD_A">LOAD_A #42 (Fetch value into execution matrix)</option>
+                                <option value="ADD_B">ADD_B #18 (ALU Arithmetic modification step)</option>
+                                <option value="STORE">STORE ACC (Write-back result data to memory lines)</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="runCpuSimulation()">Step Execution Cycle</button>
+                        </div>
+                        <div class="pipeline-wrapper">
+                            <div class="pipeline-step" id="cpu-f">1. Fetch</div>
+                            <div class="pipeline-step" id="cpu-d">2. Decode</div>
+                            <div class="pipeline-step" id="cpu-e">3. Execute</div>
+                            <div class="pipeline-step" id="cpu-w">4. Write-Back</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>CPU Register &amp; Bus Monitor</span><span>LIVE</span></div>
+                            <div class="terminal-body" id="cpu-terminal">Core idling. Select an assembly vector instruction and click "Step Execution Cycle".</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Context</h4>
+                        <p>Modern x86-64 and ARM processors utilize instruction pipelining to begin fetching instruction N+1 while instruction N is still mid-execution, mitigating the Von Neumann memory bandwidth bottleneck.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="memory-fundamentals" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 1: Computer Architecture</span>
+                <h2>Memory Fundamentals &amp; Paging Hierarchy</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Computer memory maps across a tiered physical topology matrix designed to balance access velocity, data storage depth, and silicon fabric cost metrics.</p>
+                        <ul>
+                            <li><strong>L1/L2 Cache SRAM:</strong> Ultra-low latency memory channels mounted directly inside the physical processing core.</li>
+                            <li><strong>System RAM DRAM:</strong> Dynamic storage workspace containing run-time processes.</li>
+                            <li><strong>Virtual Memory / Paging:</strong> Kernel-managed storage allocation maps translating secondary disk spaces into logical memory configurations.</li>
+                        </ul>
+                        <div class="analogy-callout">
+                            <strong>Office Desk space Analogy:</strong> L1 Cache is the document currently held in your physical hand. System RAM represents files placed flat across the desk layout. Virtual page files act like a heavy archival cabinet down the corridor.
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <h3>Hardware Latency Topology</h3>
+                        <div class="arch-diagram">
+                            <div class="arch-node">SRAM L1/L2 Core Cache (~1ns Access Velocity Boundary)</div>
+                            <div class="arch-connector">↓ Cache Line Miss Link</div>
+                            <div class="arch-node">DRAM Physical Main Memory RAM (~60ns Access Velocity Boundary)</div>
+                            <div class="arch-connector">↓ MMU Translation Page Fault</div>
+                            <div class="arch-node">Secondary Page File Swap Drive (~50,000ns Access Velocity Penalty)</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Memory Access &amp; Cache Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="simulateMemoryAccess('cache')">Query Cache Line Target</button>
+                            <button class="btn btn-accent" onclick="simulateMemoryAccess('ram')">Query Unmapped Address</button>
+                            <button class="btn btn-rose" onclick="simulateMemoryAccess('page_fault')">Force Core Page Fault</button>
+                        </div>
+                        <div class="memory-matrix" id="memory-matrix-view"></div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>MMU Address Translation Register</span></div>
+                            <div class="terminal-body" id="memory-terminal">Select a lookup access tier vectors to visualize memory translation bus paths.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Context</h4>
+                        <p>When physical RAM utilization scales past capacity boundaries, the OS uses virtual memory page swapping. Shuffling active structures to disk creates significant operational lag called disk thrashing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="storage-systems" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 1: Computer Architecture</span>
+                <h2>Storage Systems &amp; Disk Fragmentation</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Persistent storage systems maintain binary arrays without active power connectivity, separating historical mechanical architectures from solid-state designs.</p>
+                        <ul>
+                            <li><strong>Mechanical HDD:</strong> Magnetic platters requiring mechanical actuator arms to rotate over sectors, introducing physical seek latency.</li>
+                            <li><strong>Solid-State SSD:</strong> Non-volatile NAND Flash memory cells that read and write blocks electronically without mechanical motion.</li>
+                            <li><strong>Fragmentation:</strong> Scatter-pattering where continuous files split across non-contiguous storage sectors over time, increasing system file pointer lookup overhead.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Disk Management Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="diskOperation('create')">Write Segment File</button>
+                            <button class="btn btn-rose" onclick="diskOperation('delete')">Delete Alternate Clusters</button>
+                            <button class="btn btn-accent" onclick="diskOperation('defrag')">Defragment Media Blocks</button>
+                        </div>
+                        <div class="memory-matrix" id="disk-matrix-view"></div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>Storage Driver Cluster Allocation Log</span></div>
+                            <div class="terminal-body" id="disk-terminal">Initialize persistent operations to analyze mechanical or solid-state matrix distribution maps.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="processes-threads" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 2: Operating Systems</span>
+                <h2>Processes, Threads &amp; Schedulers</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Operating systems handle concurrent software execution loops by managing scheduling priorities inside kernel threads.</p>
+                        <ul>
+                            <li><strong>Process:</strong> An isolated application runtime execution context holding private sandbox memory allocations.</li>
+                            <li><strong>Thread:</strong> A lightweight worker pipeline running execution tasks inside the shared parental process space.</li>
+                            <li><strong>Process Control Block (PCB):</strong> The tracking metadata node saving register records, permissions, and session flags.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Process Scheduler Lab</h3>
+                        <div class="sim-controls">
+                            <select id="sched-algo">
+                                <option value="FCFS">First-Come, First-Served (FCFS)</option>
+                                <option value="RR">Round Robin (Time-Quantum Sliced Execution)</option>
+                                <option value="Priority">Strict Priority Scheduling Matrix</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="runSchedulerSim()">Dispatch Processes</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Task Scheduler Core CPU Pipeline</span></div>
+                            <div class="terminal-body" id="scheduler-terminal">Select an allocation algorithm logic and trigger dispatch to track PCB register context shifts.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="file-systems" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 2: Operating Systems</span>
+                <h2>File Systems &amp; Inode Indexing Maps</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>File systems abstract unstructured physical media blocks into structured human directories and assets using index tracking structures.</p>
+                        <ul>
+                            <li><strong>Metadata:</strong> Core property rows detailing file names, modification times, permissions, and byte length parameters.</li>
+                            <li><strong>Index Nodes (Inodes):</strong> Specialized index maps pointing directly to the precise physical storage block ranges housing raw asset data.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: File System Builder</h3>
+                        <div class="sim-controls">
+                            <input type="text" id="fs-filename" value="config_node.json" placeholder="filename.ext">
+                            <button class="btn btn-primary" onclick="createFsNode('file')">Touch System File</button>
+                            <button class="btn btn-accent" onclick="createFsNode('link')">Create Symlink Node</button>
+                        </div>
+                        <div class="tree-view" id="fs-tree-view">
+                            <div class="tree-line">📁 / (Virtual File System Root Target) [Inode #02]</div>
+                            <div class="tree-line">&nbsp;&nbsp;└── 📁 /etc (System Configurations Configuration Root) [Inode #1041]</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>Kernel Virtual File System (VFS) Output</span></div>
+                            <div class="terminal-body" id="fs-terminal">Add file records to link logical asset directory handles with sector addresses.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="system-boot" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 2: Operating Systems</span>
+                <h2>System Boot Sequence Execution</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The bootstrapping process switches system control from basic low-level firmware blocks to a fully operational, complex kernel environment.</p>
+                        <ul>
+                            <li><strong>POST:</strong> Power-On Self-Test; low-level hardware diagnostics verifying component functionality.</li>
+                            <li><strong>UEFI/BIOS:</strong> Motherboard configuration firmware that maps storage partitions to locate boot records.</li>
+                            <li><strong>Bootloader:</strong> A lightweight system initialization app (e.g., GRUB) that loads the primary kernel binary into RAM.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Boot Sequence Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="triggerBootSequence()">Trigger Power Switch</button>
+                        </div>
+                        <div class="pipeline-wrapper" style="flex-wrap: wrap; gap: 4px;">
+                            <div class="pipeline-step" id="boot-1">1. POST</div>
+                            <div class="pipeline-step" id="boot-2">2. UEFI Init</div>
+                            <div class="pipeline-step" id="boot-3">3. Bootloader</div>
+                            <div class="pipeline-step" id="boot-4">4. Kernel Init</div>
+                            <div class="pipeline-step" id="boot-5">5. Services</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>Motherboard ROM Serial stdout Monitor</span></div>
+                            <div class="terminal-body" id="boot-terminal">System unpowered. Click the power switch to watch the kernel bootstrapping sequence logs.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="apps-services" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 2: Operating Systems</span>
+                <h2>Applications &amp; Background Services</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Operating systems separate foreground interactive user tools from persistent background support utilities.</p>
+                        <ul>
+                            <li><strong>User Applications:</strong> Frontend interactive processes tied directly to active display windows.</li>
+                            <li><strong>Services / Daemons:</strong> Persistent, headless software pipelines running in the background to handle system networking, security, and hardware polling chores.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Service Control Center</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="controlSvc('httpd', 'start')">Start networkd.service</button>
+                            <button class="btn btn-rose" onclick="controlSvc('httpd', 'stop')">Kill Service Daemon</button>
+                            <button class="btn btn-primary" onclick="controlSvc('db', 'fail')">Simulate Dependency Failure Hook</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Background Daemon Controller Registers</span></div>
+                            <div class="terminal-body" id="svc-terminal">All systems nominal. Modify service states to analyze cascading dependency chain behaviors.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="virtualization-basics" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 2: Operating Systems</span>
+                <h2>Virtualization &amp; Container Fabrics</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Virtualization isolates multi-tenant operational systems by abstracting physical execution hardware boundaries.</p>
+                        <ul>
+                            <li><strong>Hypervisors:</strong> Virtual machine managers that construct isolated guest environments running separate operating system kernels.</li>
+                            <li><strong>Containers:</strong> Lightweight virtualization sandboxes that share the parental host kernel directly, using namespaces and cgroups to isolate processes.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: VM Creation Lab</h3>
+                        <div class="sim-controls">
+                            <select id="vm-type">
+                                <option value="Hypervisor">Full Virtual Machine (Heavy Abstraction Layer)</option>
+                                <option value="Container">Docker Container Instance (Shared Host Kernel)</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="provisionVm()">Provision Instance Resource</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Hypervisor Hyper-V Resource Manager</span></div>
+                            <div class="terminal-body" id="vm-terminal">Configure an instance profile type to evaluate resource slicing optimization differences.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="windows-architecture" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 3: Windows Internals</span>
+                <h2>Windows Architecture &amp; Privilege Rings</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Windows NT architecture enforces structural security boundaries by separating code operational modes across processor privilege levels.</p>
+                        <ul>
+                            <li><strong>User Mode (Ring 3):</strong> Subsystem applications run inside isolated virtual memory sandboxes, locked out from direct hardware access.</li>
+                            <li><strong>Kernel Mode (Ring 0):</strong> Core system drivers, managers, and the executive engine execute with full hardware privileges.</li>
+                            <li><strong>Hardware Abstraction Layer (HAL):</strong> A low-level dynamic library module (`hal.dll`) that translates generic OS queries into motherboard-specific commands.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Windows Request Flow Tracer</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="traceWinRequest()">Trigger Win32 WriteFile() Call</button>
+                        </div>
+                        <div class="arch-diagram">
+                            <div class="arch-node" id="win-u">User Mode: application.exe invoking exported Win32 API functions</div>
+                            <div class="arch-connector">↓ ntdll.dll (SYSENTER Instruction Trap Intercept)</div>
+                            <div class="arch-node" id="win-k">Kernel Mode: Windows Executive Engine Subsystems (ntoskrnl.exe)</div>
+                            <div class="arch-connector">↓ HAL Driver Pipeline Mapping</div>
+                            <div class="arch-node" id="win-h">Hardware Abstraction Layer (hal.dll) ➔ Physical Media Interface</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>Sysinternals Procmon Trace Stream</span></div>
+                            <div class="terminal-body" id="win-arch-terminal">Awaiting trace trigger. Execute a system call to step through ring transition intercepts.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="windows-registry" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 3: Windows Internals</span>
+                <h2>The Windows Registry Database Engine</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Windows Registry serves as a centralized hierarchical tracking database engine housing all system software configuration variables and hardware policies.</p>
+                        <ul>
+                            <li><strong>Hives:</strong> Major tracking registry database branches mapped directly to persistent system storage configuration files.</li>
+                            <li><strong>Keys and Values:</strong> Organizational database paths holding the structural variables that define system configuration parameters.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Registry Editor Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="modifyRegistry('HKLM\\Software\\Policies\\DisableTelemetry', 1)">Set Telemetry Disable = 1</button>
+                            <button class="btn btn-accent" onclick="modifyRegistry('HKCU\\Software\\Theme\\DarkMode', 1)">Set DarkMode Active = 1</button>
+                        </div>
+                        <div class="tree-view">
+                            <div class="tree-line">📂 HKEY_LOCAL_MACHINE</div>
+                            <div class="tree-line">&nbsp;&nbsp;└── 📂 SOFTWARE ➔ Policies ➔ <span id="reg-telemetry" style="color:var(--accent-amber);">DisableTelemetry = 0</span></div>
+                            <div class="tree-line">📂 HKEY_CURRENT_USER</div>
+                            <div class="tree-line">&nbsp;&nbsp;└── 📂 SOFTWARE ➔ Windows ➔ <span id="reg-theme" style="color:var(--accent-amber);">DarkMode = 0</span></div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>Kernel Configuration Registry Auditor</span></div>
+                            <div class="terminal-body" id="registry-terminal">Modify policy registry paths to witness parameter enforcement changes live.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="windows-services" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 3: Windows Internals</span>
+                <h2>Windows Service Control Manager (SCM)</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Service Control Manager (`services.exe`) acts as the background RPC dispatcher that manages service lifecycles and dependency links.</p>
+                        <ul>
+                            <li>It processes automatic boot assignments, updates active thread statuses, and isolates service execution pools.</li>
+                            <li>It manages complex dependent relationships, ensuring foundational drivers load fully before routing access to downstream client processes.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: SCM Subsystem Manager</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="toggleWinSvc('Spooler')">Toggle Print Spooler (Spooler)</button>
+                            <button class="btn btn-rose" onclick="toggleWinSvc('RpcSs')">Kill RPC Endpoint Mapper (RpcSs)</button>
+                        </div>
+                        <div class="arch-diagram">
+                            <div class="arch-node" id="svc-win-rpc" style="border-color:var(--accent-green); color:#fff;">RpcSs [Remote Procedure Call Subsystem Core] (Running)</div>
+                            <div class="arch-connector">↓ Core System Dependency Link</div>
+                            <div class="arch-node" id="svc-win-spooler">Spooler [Print Spooler Spooler Service] (Stopped)</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>services.msc Management Stream</span></div>
+                            <div class="terminal-body" id="win-svc-terminal">SCM Engine ready. Stop the foundational RPC process loop to analyze cascading service dependency crashes.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="windows-events" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 3: Windows Internals</span>
+                <h2>Windows Event Logs Engine (eventvwr)</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Event Log engine aggregates diagnostic, operational, and security telemetry across structured channels.</p>
+                        <ul>
+                            <li><strong>Application Log:</strong> Operational warnings, asset errors, and status flags posted by installed system software.</li>
+                            <li><strong>Security Log:</strong> Security auditing records tracking authentication attempts, user logins, and privilege changes.</li>
+                            <li><strong>System Log:</strong> System alert reports, driver crashes, and storage volume exceptions generated by the Windows NT kernel.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Event Viewer Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="generateWinLog('Sec', 'Audit Success: User Account \'Administrator\' authenticated via remote RDP socket loop.')">Post Security Audit Event</button>
+                            <button class="btn btn-rose" onclick="generateWinLog('Sys', 'Critical Error: ntfs.sys driver encountered an uncorrectable bit block configuration exception at block offset 0x4F.')">Post Driver System Exception</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>eventvwr Live Channel Capture Stream</span></div>
+                            <div class="terminal-body" id="event-terminal" style="color:#e5e7eb;">[Listening for system notifications] Click event vectors above to ingest telemetry entries...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="windows-scheduler" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 3: Windows Internals</span>
+                <h2>Task Scheduler Engine Architecture</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Task Scheduler engine uses an autonomous scheduling service loop to run routine execution scripts based on environmental parameters.</p>
+                        <ul>
+                            <li><strong>Triggers:</strong> Time-based execution patterns or specific system condition events that kick off a task.</li>
+                            <li><strong>Actions:</strong> The actual automated command script or system process binary that runs when triggered.</li>
+                            <li><strong>Conditions:</strong> Environmental verification checks (e.g., active AC power connection, network availability) required to allow the task to proceed.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Task Scheduler Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="fireTask()">Simulate Trigger Intercept (00:00 Midnight Time Pulse)</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>schedsvc.dll Automation Dispatch Engine</span></div>
+                            <div class="terminal-body" id="scheduler-task-terminal">Task engine listening. Advance the cron trigger parameter to observe optimization execution steps.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="windows-ntfs" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 3: Windows Internals</span>
+                <h2>NTFS Core Architecture &amp; Index Mapping</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The New Technology File System (NTFS) uses a structural, transactional database configuration designed for quick file recovery and metadata safety.</p>
+                        <ul>
+                            <li><strong>Master File Table (MFT):</strong> A structural allocation database where every file block on the drive is assigned a tracking entry detailing its precise security ID, attributes, and block clusters.</li>
+                            <li><strong>USN Journaling:</strong> A transactional logging engine that writes asset modifications to an optimization log before committing them to disk blocks, mitigating file corruption during power failures.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: NTFS MFT Visualizer</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="writeNtfsFile()">Commit kernel_update.msi to Storage Volume</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>ntfs.sys Log Analyzer Terminal</span></div>
+                            <div class="terminal-body" id="ntfs-terminal">Awaiting allocation commands. Commit an asset file stream to view transactional log writes and row generation inside the MFT.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="windows-powershell" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 3: Windows Internals</span>
+                <h2>PowerShell Object Pipeline Console</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Unlike legacy text-based shells, PowerShell uses an object-oriented shell configuration built on top of the .NET runtime framework.</p>
+                        <ul>
+                            <li><strong>Cmdlets:</strong> Focused system management tools that follow a strict <code>Verb-Noun</code> naming pattern.</li>
+                            <li><strong>Object Pipelines:</strong> Passes rich data structures with preserved structural properties down the pipeline, rather than flat text strings.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: PowerShell Sandbox Console</h3>
+                        <div class="sim-controls">
+                            <select id="ps-cmd">
+                                <option value="Get-Process">Get-Process | Where-Object Handles -gt 500</option>
+                                <option value="Get-Service">Get-Service | Select-Object Status, Name</option>
+                            </select>
+                            <button class="btn btn-accent" onclick="execPsCmd()">Invoke-Expression</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Windows PowerShell v7.4 Subsystem Console</span></div>
+                            <div class="terminal-body" id="ps-terminal" style="color:#60a5fa;">Windows PowerShell Lab Shell Environment<br>Copyright (C) Microsoft Corporation. All rights reserved.<br><br>PS C:\Users\LabAdministrator&gt; _</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="linux-architecture" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 4: Linux Internals</span>
+                <h2>Linux Architecture &amp; System Calls</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Linux operating system separates execution privileges using a strict boundary layer dividing user-space tasks from kernel operations.</p>
+                        <ul>
+                            <li><strong>User Space:</strong> An unprivileged memory boundary zone where standard user binary packages and shell applications execute.</li>
+                            <li><strong>Kernel Space:</strong> A privileged execution zone housing the core monolithic Linux kernel engine, device drivers, and direct hardware controllers.</li>
+                            <li><strong>System Calls (Syscalls):</strong> The programming interface boundary that lets unprivileged user space tools safely request core system assets.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Syscall Request Tracer</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="traceLinuxSyscall()">Trigger open() / read() Syscall Sequence</button>
+                        </div>
+                        <div class="arch-diagram">
+                            <div class="arch-node" id="lx-user">User Space Binaries (cat /etc/shadow)</div>
+                            <div class="arch-connector">↓ Interrupt Vector Call (syscall / int 0x80)</div>
+                            <div class="arch-node" id="lx-kernel">Kernel Space VFS (Virtual File System Core Check)</div>
+                            <div class="arch-connector">↓ Storage Block Driver Dispatch</div>
+                            <div class="arch-node" id="lx-hw">Physical Hardware Storage Array Device Controller</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>strace Intercept Diagnostic Output</span></div>
+                            <div class="terminal-body" id="linux-arch-terminal">Ready for trace intercept. Trigger an operation to step through the system call lifecycle.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="linux-filesystem" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 4: Linux Internals</span>
+                <h2>Linux Filesystem Hierarchy Standard (FHS)</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Linux environments use a unified single-root tree configuration standard specified by the Filesystem Hierarchy Standard (FHS).</p>
+                        <ul>
+                            <li><code>/etc</code>: The central repository housing all static system configurations and network script files.</li>
+                            <li><code>/var</code>: Variable tracking zone containing transient operational data, runtime logs, and printer spools.</li>
+                            <li><code>/usr</code>: User data block folder holding secondary binary packages, shared library dependencies, and static documentation.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Directory Explorer</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="exploreLinuxDir('/etc')">cd /etc</button>
+                            <button class="btn btn-accent" onclick="exploreLinuxDir('/var/log')">cd /var/log</button>
+                            <button class="btn btn-accent" onclick="exploreLinuxDir('/usr/bin')">cd /usr/bin</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Interactive Bash Shell Terminal Connection</span></div>
+                            <div class="terminal-body" id="linux-fs-terminal">root@cyberlearn-node:~# _</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="linux-permissions" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 4: Linux Internals</span>
+                <h2>Linux Access Control List &amp; Permissions Matrix</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Linux scopes data access rights using a traditional bitmask permissions matrix mapped across three distinct ownership tiers.</p>
+                        <ul>
+                            <li><strong>Ownership Tiers:</strong> <code>User</code> (Owner), <code>Group</code> (Assigned Workgroup), and <code>Other</code> (Global System Profiles).</li>
+                            <li><strong>Bit Values:</strong> Calculated by compounding specific values: <code>Read (4)</code>, <code>Write (2)</code>, and <code>Execute (1)</code> to form octal masks like <code>755</code> or <code>644</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Chmod Bit Mask Lab</h3>
+                        <div class="sim-controls">
+                            <input type="text" id="chmod-octal" value="755" style="width:80px; text-align:center;">
+                            <button class="btn btn-primary" onclick="calcChmod()">Run chmod on launch.sh</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Kernel VFS Security Audit Context</span></div>
+                            <div class="terminal-body" id="chmod-terminal" style="font-size:1.1rem; text-align:center; padding:30px;">
+                                Target Permission Mask Bitmask output: <span style="color:var(--accent-cyan);" id="chmod-string">-rwxr-xr-x</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="linux-systemd" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 4: Linux Internals</span>
+                <h2>Systemd Initialization Daemon Engine</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The systemd initialization framework serves as primary process 1 (PID 1), orchestrating service lifecycles and boot targets.</p>
+                        <ul>
+                            <li>It replaces old structural SysV init execution scripts with declarative configuration files called **Unit files**.</li>
+                            <li>It handles background service initialization concurrently, resolving service dependency maps automatically.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: systemctl Target Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="startSystemdUnit('network.target')">Isolate network.target</button>
+                            <button class="btn btn-primary" onclick="startSystemdUnit('multi-user.target')">Isolate multi-user.target</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>journalctl Core System Logs</span></div>
+                            <div class="terminal-body" id="systemd-terminal">Systemd engine idling. Isolate a run target to analyze unit dependency activations.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="linux-packages" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 4: Linux Internals</span>
+                <h2>Linux Package Allocation Engine</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Package managers automatically resolve upstream binary dependencies from secure remote repositories.</p>
+                        <ul>
+                            <li><strong>APT/DNF:</strong> Core installation tools that parse dependency graphs, check digital signature certificates, and extract files to system directory hierarchies.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Package Manager Engine</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="runAptInstall()">apt-get install nginx</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>APT Package Transaction Log Output</span></div>
+                            <div class="terminal-body" id="apt-terminal">Console clear. Ingest software targets to map network download and script initialization steps.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="linux-bash" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 4: Linux Internals</span>
+                <h2>Bash Shell Processing Terminal</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Bourne Again Shell (Bash) acts as a command interpreter, linking inputs to kernel instructions via redirection controls and data pipes.</p>
+                        <ul>
+                            <li><strong>Pipes (<code>|</code>):</strong> Routes data flows sequentially, feeding the standard output (`stdout`) of one utility directly into the standard input (`stdin`) of the next.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Bash Pipeline Interpreter</h3>
+                        <div class="sim-controls">
+                            <select id="bash-cmd-select">
+                                <option value="ps">ps aux | grep systemd</option>
+                                <option value="env">env | grep USER</option>
+                            </select>
+                            <button class="btn btn-accent" onclick="execBashSandbox()">Execute Command String</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>GNU Bash Command Interface</span></div>
+                            <div class="terminal-body" id="bash-sandbox-terminal">user@cyberlearn-node:~$ _</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="linux-ssh" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 4: Linux Internals</span>
+                <h2>SSH Secure Tunnel Infrastructure</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Secure Shell (SSH) builds encrypted, remote console sessions over untrusted network connections using cryptographic handshakes.</p>
+                        <ul>
+                            <li><strong>Asymmetric Key Exchange:</strong> Employs mathematical key agreements (Diffie-Hellman) to build a shared session key without exposing it to eavesdroppers.</li>
+                            <li><strong>Symmetric Protection:</strong> Encrypts the active session pipeline using fast symmetric ciphers (e.g., AES-GCM) once authentication passes.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: SSH Key Exchange Flow</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="startSshHandshake()">Initialize ssh user@remote_node</button>
+                        </div>
+                        <div class="pipeline-wrapper">
+                            <div class="pipeline-step" id="ssh-1">1. TCP Syn</div>
+                            <div class="pipeline-step" id="ssh-2">2. Key Exchange</div>
+                            <div class="pipeline-step" id="ssh-3">3. Auth Challenge</div>
+                            <div class="pipeline-step" id="ssh-4">4. AES Tunnel</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>OpenSSH Verbose Diagnostics (ssh -v)</span></div>
+                            <div class="terminal-body" id="ssh-terminal">Client disconnected. Initialize connection loop to analyze cryptographic parameters.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="macos-architecture" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 5: macOS Internals</span>
+                <h2>macOS Darwin &amp; XNU Hybrid Kernel</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The macOS structural architecture partitions processing duties using a layered system design model.</p>
+                        <ul>
+                            <li><strong>Cocoa App Framework:</strong> High-level system runtime handling Swift and Objective-C program presentation layers.</li>
+                            <li><strong>XNU Hybrid Kernel:</strong> ("X is Not Unix"). A hybrid core combining the Mach microkernel (managing low-level IPC tasks and thread scheduling) with BSD subsystems (handling POSIX standards and file layer abstractions).</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: XNU Layer Map</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="traceMacSys()">Trigger Cocoa Objective-C Window Draw Event</button>
+                        </div>
+                        <div class="arch-diagram">
+                            <div class="arch-node" id="mac-c">Application Framework Runtime Layer (Cocoa / AppKit)</div>
+                            <div class="arch-connector">↓ Core API Message Translation</div>
+                            <div class="arch-node" id="mac-m">XNU Kernel Module: Mach Messaging System (Mach IPC Processing Ports)</div>
+                            <div class="arch-connector">↓ BSD Security Verification Mapping</div>
+                            <div class="arch-node" id="mac-b">BSD Subsystem Layer (POSIX Compliance layer / Virtual File System)</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>macOS dtrace Telemetry Stream</span></div>
+                            <div class="terminal-body" id="macos-arch-terminal">DTrace module probe listening. Trigger a framework window draw to track hybrid message routing steps.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="macos-launch" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 5: macOS Internals</span>
+                <h2>macOS Launch Services Subsystem</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Launch Services framework coordinates how file formats open and application bundles execute in macOS.</p>
+                        <ul>
+                            <li>It updates an internal registration system tracking type declarations and default document handler associations.</li>
+                            <li>Matches files to appropriate application targets based on system Uniform Type Identifiers (UTIs).</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Application Bundle Resolution</h3>
+                        <div class="sim-controls">
+                            <select id="mac-file-type">
+                                <option value="vector.png">vector.png (public.png static graphics asset)</option>
+                                <option value="script.py">script.py (public.python-script source file)</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="triggerLaunchSvc()">Open Asset Target</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>CoreServices launchd Framework Trace</span></div>
+                            <div class="terminal-body" id="launch-terminal">Select a testing asset file to verify launch uniform type identifier mapping logic.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <section id="macos-keychain" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 5: macOS Internals</span>
+                <h2>macOS Keychain Credential Subsystem</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The macOS Keychain architecture isolates sensitive validation secrets, user certificates, and encryption passphrases inside a secure database container.</p>
+                        <ul>
+                            <li><strong>securityd Daemon:</strong> The core background security framework process that vets application authorization calls and filters database lookup queries.</li>
+                            <li><strong>Hardware Isolation:</strong> Integrates directly with hardware security processors (like the Apple Secure Enclave coprocessor) to wrap master cryptographic keys outside standard system volatile memory banks.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Keychain Storage Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="storeKeychainCred()">Store Web Password Entry</button>
+                            <button class="btn btn-primary" onclick="readKeychainCred()">Query Saved Secret Resource</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>securityd Core Daemon Log Monitor</span></div>
+                            <div class="terminal-body" id="keychain-terminal">Subsystem secure. Trigger database operations to analyze application access validations.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        <section id="sec-auth-flow" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Authentication Flow &amp; Identity Verification</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Authentication verifies the asserted identity of an entity trying to bind into a secure platform session. Systems compound safety tiers using multi-factor elements or enterprise Kerberos tickets.</p>
+                        <ul>
+                            <li><strong>Authentication Lifecycle:</strong> Encompasses initial credential ingestion, transformation, lookup processing, and ephemeral cryptographic token issuance.</li>
+                            <li><strong>MFA:</strong> Combines possession factors (tokens) with knowledge variables (passwords) to disrupt baseline guessing exploits.</li>
+                        </ul>
+                    </div>
+                    <div class="glass-card">
+                        <h3>Authentication Architecture Blueprint</h3>
+                        <div class="arch-diagram" id="sec-auth-arch">
+                            <div class="arch-node" id="auth-node-1">User Front-End Form Entry</div>
+                            <div class="arch-connector">↓ TLS Tunnel Payload</div>
+                            <div class="arch-node" id="auth-node-2">Local Security Authority Subsystem</div>
+                            <div class="arch-connector">↓ Kerberos Ticket Check / DB Query</div>
+                            <div class="arch-node" id="auth-node-3">Authentication Server Engine (Active Directory / Identity Provider)</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Authentication Flow Lab</h3>
+                        <div class="sim-controls">
+                            <input type="password" id="auth-pwd" placeholder="Enter password (use 'cyber123')" value="">
+                            <label><input type="checkbox" id="auth-mfa-toggle"> Enable MFA Check</label>
+                            <button class="btn btn-primary" onclick="runAuthSimulation()">Submit Authenticate Credentials</button>
+                        </div>
+                        <div class="pipeline-wrapper">
+                            <div class="pipeline-step" id="as-form">1. Ingest Form</div>
+                            <div class="pipeline-step" id="as-val">2. Validate Hash</div>
+                            <div class="pipeline-step" id="as-mfa">3. MFA Token</div>
+                            <div class="pipeline-step" id="as-session">4. Token Issued</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>Identity Subsystem Pipeline Log</span></div>
+                            <div class="terminal-body" id="auth-flow-terminal">System awaiting authentication request vectors. Type a password to trace verification.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Credential stuffing and automated brute-force scripts exploit simple single-factor target endpoints.<br><strong>Defense:</strong> Mitigated via multi-factor authentication (MFA) enforcement policies and rate-limiting contextual authentication layers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-auth-models" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Authorization Models &amp; Resource Protection</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Authorization dictates access permissions once an identity is securely validated, enforcing granular system rules.</p>
+                        <ul>
+                            <li><strong>DAC vs MAC:</strong> Discretionary Access Control passes asset assignment rights to object owners. Mandatory Access Control forces multi-level security classifications managed strictly by the kernel.</li>
+                            <li><strong>RBAC vs ABAC:</strong> Role-Based configurations leverage user organizational titles, while Attribute-Based models evaluate contextual variables (IP address, current timestamp) via dynamic engines.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Authorization Decision Engine</h3>
+                        <div class="sim-controls">
+                            <select id="auth-model-sel">
+                                <option value="RBAC">RBAC: Check Role Permissions</option>
+                                <option value="ABAC">ABAC: Check Geo-Location Attribute Block</option>
+                            </select>
+                            <select id="auth-user-role">
+                                <option value="Guest">Role: Guest Profile</option>
+                                <option value="Admin">Role: Domain Administrator</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="evaluateAuthorization()">Run Decision Matrix</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Kernel Policy Evaluation Bus Output</span></div>
+                            <div class="terminal-body" id="auth-models-terminal">Configure identity configurations to watch access parameters determine grant/deny states.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Privilege creeping occurs when accounts systematically collect access permissions without organizational validation.<br><strong>Defense:</strong> Implementing attribute-based authorization constraints to restrict runtime tasks to validated business contexts.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-priv-models" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Privilege Models &amp; Principle of Least Privilege</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Modern computing environments separate execution parameters using user privilege tiers (Standard User, Administrator, Root).</p>
+                        <ul>
+                            <li><strong>Least Privilege:</strong> Restricts operational parameters to the absolute minimum asset rights needed to finish a task, reducing vulnerability exposure profiles.</li>
+                            <li><strong>Privilege Segregation:</strong> Prevents standard applications from tampering with underlying core hardware registers or operating system code bases.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Privilege Escalation Lab</h3>
+                        <div class="sim-controls">
+                            <select id="priv-user-tier">
+                                <option value="Standard">Standard User Context</option>
+                                <option value="Administrator">Administrator / Root Context</option>
+                            </select>
+                            <button class="btn btn-accent" onclick="runPrivAction('read')">Read /public/readme.txt</button>
+                            <button class="btn btn-rose" onclick="runPrivAction('write')">Write System Driver Registry</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>VFS Security Token Monitor</span></div>
+                            <div class="terminal-body" id="priv-models-terminal">Select an operational context and action vector to test system enforcement boundaries.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Zero-day local privilege escalation vulnerabilities overwrite active process token pointers to hijack host controls.<br><strong>Defense:</strong> Stripping administrative permissions away from standard daily execution pipelines to establish secure defensive baselines.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-access-tokens" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Access Tokens &amp; Security Descriptors</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>An Access Token is an object containing the security credentials for a login session, identifying users, security groups, privileges, and operational claims.</p>
+                        <ul>
+                            <li>Every single process spawned inherits a duplicate clone of the parental security token object.</li>
+                            <li><strong>Security Descriptors:</strong> The kernel compares process access token contents with target asset descriptors to calculate authorization logic.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Access Token Visualizer</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="generateTokenStructure()">Generate Session Access Token</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Kernel Token Structure Dump</span></div>
+                            <div class="terminal-body" id="access-tokens-terminal">Initialize a security verification sequence to inspect nested SID objects and privilege bitmasks.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Token manipulation tactics let attackers steal active session handles out of target volatile memory blocks.<br><strong>Defense:</strong> Implementing strict Protected Process Light (PPL) isolation barriers to prevent unauthorized cross-process token cloning.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-uac" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>User Account Control (UAC) Architecture</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Windows User Account Control mitigates software exploitation vectors by forcing administrative accounts to run tasks within standard unprivileged tokens by default.</p>
+                        <ul>
+                            <li>When a privileged system modification task is requested, the system halts thread execution to spawn a secure desktop consent prompt.</li>
+                            <li><strong>Consent Prompt:</strong> Requires explicit confirmation before launching the application process with an elevated token mask.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: UAC Workflow Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-rose" onclick="triggerUacPrompt()">Invoke privileged_installer.exe</button>
+                        </div>
+                        <div class="arch-diagram" id="uac-prompt-box" style="display:none; border-color:var(--accent-amber); background:rgba(245,158,11,0.05);">
+                            <div style="text-align:center; font-weight:bold; color:#fff; margin-bottom:10px;">[USER ACCOUNT CONTROL CONSENT BOX]</div>
+                            <p style="font-size:0.8rem; text-align:center;">Do you want to allow this application to make changes to your device hardware configuration?</p>
+                            <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+                                <button class="btn btn-primary" onclick="resolveUac(true)">Yes, Elevate</button>
+                                <button class="btn" onclick="resolveUac(false)">No, Deny</button>
+                            </div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>Application Elevation Supervisor Log</span></div>
+                            <div class="terminal-body" id="uac-terminal">Awaiting execution requests. Trigger an installer to observe prompt validation states.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> UAC bypass vectors exploit white-listed administrative binaries to execute arbitrary code without displaying prompts.<br><strong>Defense:</strong> Configuring the system policy to always prompt for credentials on secure isolated desktops.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-sandboxing" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Application Isolation &amp; Sandboxing</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Sandboxing locks untrusted software processes into tightly restricted system runtimes, preventing them from accessing global files or system resources.</p>
+                        <ul>
+                            <li><strong>Restricted Environments:</strong> System boundaries strip target application tokens down to bare minimum configurations.</li>
+                            <li><strong>Resource Redirection:</strong> File modification queries are routed to isolated virtual storage paths, protecting real user profiles.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Sandbox Lab</h3>
+                        <div class="sim-controls">
+                            <label><input type="radio" name="sb-mode" value="Unsandboxed" checked> Unsandboxed App Context</label>
+                            <label><input type="radio" name="sb-mode" value="Sandboxed"> Sandboxed App Context</label>
+                            <button class="btn btn-primary" onclick="runSandboxAction()">Execute Web-Browser File Download</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>App Container Token Sandbox Auditor</span></div>
+                            <div class="terminal-body" id="sandbox-terminal">Select an environment container profile and trigger an operation to test resource boundary blocks.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Web browser exploits leverage memory flaws to execute arbitrary malicious code within active app spaces.<br><strong>Defense:</strong> Enforcing strict sandboxing rules prevents compromised browser engines from writing binaries to root storage locations.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-secure-boot" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Secure Boot &amp; Trusted Boot Chains</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Secure Boot establishes a trusted cryptographic verification chain from motherboard firmware options up to active user space processes.</p>
+                        <ul>
+                            <li><strong>Firmware Validation:</strong> Motherboard configurations check the cryptographic digital signatures of bootloaders before handing off system controls.</li>
+                            <li><strong>Trusted Boot Chain:</strong> Each validated component verifies the signature of the next element in the pipeline before loading it into memory.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Secure Boot Visualizer</h3>
+                        <div class="sim-controls">
+                            <select id="boot-signature-state">
+                                <option value="Valid">All Boot Files Signed with Valid Certificates</option>
+                                <option value="Malicious">Modified Bootloader Payload Detected (Untrusted Signature)</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="runSecureBootSim()">Verify Boot Pipeline</button>
+                        </div>
+                        <div class="pipeline-wrapper">
+                            <div class="pipeline-step" id="sb-step-1">Firmware Check</div>
+                            <div class="pipeline-step" id="sb-step-2">Bootloader Load</div>
+                            <div class="pipeline-step" id="sb-step-3">Kernel Mount</div>
+                            <div class="pipeline-step" id="sb-step-4">Drivers Ingested</div>
+                        </div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>UEFI Cryptographic Key Exchange Terminal</span></div>
+                            <div class="terminal-body" id="secure-boot-terminal">System down. Select a certificate state and verify the boot pipeline to analyze firmware security logic.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Rootkits infect low-level storage sectors to execute malicious code before the primary security systems can load.<br><strong>Defense:</strong> Cryptographic verification blocks unauthorized, unsigned boot payloads from staging on the processor.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-tpm" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>TPM (Trusted Platform Module) Hardware Security</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>The Trusted Platform Module is an isolated hardware microchip that secures system configurations by running cryptographic operations directly on dedicated silicon circuits.</p>
+                        <ul>
+                            <li><strong>Platform Integrity:</strong> Employs Platform Configuration Registers (PCRs) to measure and record system state metrics, preventing unauthorized software tempering.</li>
+                            <li><strong>Hardware Key Wrap:</strong> Storage keys are securely sealed inside the chip, keeping cryptographic keys isolated from the host CPU or main memory space.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: TPM Operations Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-accent" onclick="runTpmAction('pcr')">Compute System State Verification (PCR Measure)</button>
+                            <button class="btn btn-primary" onclick="runTpmAction('seal')">Generate Hardware-Backed Storage Key</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>TPM 2.0 Cryptographic Processing Core</span></div>
+                            <div class="terminal-body" id="tpm-terminal">Awaiting low-level system requests. Run operations to query internal chip storage registers.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Physical attackers drain storage contents out of stolen laptop drives by using diagnostic bypass utilities.<br><strong>Defense:</strong> Enforcing full-disk encryption (BitLocker) sealed directly to the host system's hardware TPM chip prevents cross-device drive reading.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-credential-storage" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Credential Storage &amp; Cryptographic Hashing</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Operating systems must avoid saving plain text authentication credentials to persistent storage media blocks.</p>
+                        <ul>
+                            <li><strong>One-Way Hash Functions:</strong> Passwords are run through mathematical hashing algorithms (e.g., bcrypt, SHA-256) to generate unique, fixed-length strings.</li>
+                            <li><strong>Salt Strings:</strong> Random data parameters are appended to passwords before hashing to protect against pre-computed table lookups.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Credential Storage Lab</h3>
+                        <div class="sim-controls">
+                            <input type="text" id="plain-user-password" value="SuperSecurePass123" placeholder="Enter plaintext password">
+                            <button class="btn btn-accent" onclick="runCredentialStorageSimulation()">Commit Password to Database</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>SAM Database Storage Records</span></div>
+                            <div class="terminal-body" id="credential-storage-terminal">Input a credential string to trace database conversion logic and hashing results.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Attackers steal directory databases and extract weak, un-salted plain text hashes using high-speed GPU cracking rigs.<br><strong>Defense:</strong> Utilizing slow, memory-hard hashing functions (Argon2id) with unique per-user salts significantly increases the computational cost of dictionary attacks.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-secret-storage" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Secret Storage Vaults &amp; Token Isolation</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Production environments protect non-user assets (API keys, security tokens, TLS certificates) using dedicated secret management vault engines.</p>
+                        <ul>
+                            <li><strong>Encrypted Vaults:</strong> Centralized databases that encrypt sensitive operational variables at rest and in transit.</li>
+                            <li><strong>Dynamic Audit Logs:</strong> Access paths enforce authentication checks while keeping detailed audit tracking of application configuration lookups.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Secret Vault Lab</h3>
+                        <div class="sim-controls">
+                            <select id="secret-item-type">
+                                <option value="AWS_KEY">production_cloud_aws_api_key</option>
+                                <option value="TLS_CERT">production_ssl_private_certificate</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="retrieveSecretFromVault()">Request Token Extraction</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Secure Vault API Transport Monitor</span></div>
+                            <div class="terminal-body" id="secret-storage-terminal">Awaiting authenticated application requests. Query a token type to view transport parameters.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Attackers scan public code repositories to find plain text authentication credentials accidentally checked into source code files.<br><strong>Defense:</strong> Moving environmental secrets to isolated credential vaults that inject tokens dynamically into memory at runtime.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-process-isolation" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Process Isolation &amp; Protected Memory Spaces</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Operating systems isolate running applications from one another by enforcing hardware-backed memory page boundaries.</p>
+                        <ul>
+                            <li><strong>Process Boundaries:</strong> Every individual process is assigned an isolated virtual address mapping space by the MMU hardware controller.</li>
+                            <li>Processes cannot directly read or overwrite memory addresses belonging to another active application.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Process Isolation Lab</h3>
+                        <div class="sim-controls">
+                            <button class="btn btn-primary" onclick="runProcessIsolationCheck(false)">App A reads private address inside App A</button>
+                            <button class="btn btn-rose" onclick="runProcessIsolationCheck(true)">App B attempts to read App A memory space</button>
+                        </div>
+                        <div class="terminal-container">
+                            <div class="terminal-header"><span>Kernel Memory Protection Intercept Unit</span></div>
+                            <div class="terminal-body" id="process-isolation-terminal">Trigger an cross-process memory access check to view boundary enforcement events.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Spyware binaries scrape passwords out of system memory blocks belonging to active background software applications.<br><strong>Defense:</strong> The kernel blocks unauthorized cross-process memory handle access by throwing standard access violation traps.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-memory-protection" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Security Architecture</span>
+                <h2>Memory Protection Matrix (DEP &amp; ASLR)</h2>
+            </div>
+            <div class="grid-layout">
+                <div>
+                    <div class="glass-card theory-block">
+                        <h3>Core Concepts</h3>
+                        <p>Advanced operating system kernels protect physical volatile memory lines from code-execution exploits by utilizing DEP and ASLR frameworks.</p>
+                        <ul>
+                            <li><strong>DEP (Data Execution Prevention):</strong> Marks storage data blocks (like the heap and stack layouts) as strictly non-executable, preventing raw text data injections from spawning system shells.</li>
+                            <li><strong>ASLR (Address Space Layout Randomization):</strong> Shuffles the memory address layouts of key program segments randomly at boot time, preventing reliable exploit target pointing.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass-card">
+                        <h3>Interactive Simulation: Memory Protection Lab</h3>
+                        <div class="sim-controls">
+                            <label><input type="checkbox" id="dep-toggle" checked> Activate DEP Security Mode</label>
+                            <label><input type="checkbox" id="aslr-toggle" checked> Activate ASLR Security Mode</label>
+                            <button class="btn btn-rose" onclick="simulateBufferOverflowAttack()">Inject Malicious Buffer Overflow Payload</button>
+                        </div>
+                        <div class="memory-matrix" id="sec-memory-grid"></div>
+                        <div class="terminal-container" style="margin-top:20px;">
+                            <div class="terminal-header"><span>MMU Silicon Exception Auditor</span></div>
+                            <div class="terminal-body" id="memory-protection-terminal">Toggle protection options and fire an exploit payload to analyze memory address tracking blocks.</div>
+                        </div>
+                    </div>
+                    <div class="real-world-box">
+                        <h4>Real-World Attack vs Defense</h4>
+                        <p><strong>Attack:</strong> Buffer overflow exploits overwrite active stack registers to hijack the instruction pointer, forcing execution into malicious injected code blocks.<br><strong>Defense:</strong> Combining DEP and ASLR halts execution immediately with an access violation if code tries to run from data segments or target randomized structures.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-capstone-dashboard" class="lab-view">
+            <div class="lab-header">
+                <span class="module-tag">Module 6: Capstone Integration</span>
+                <h2>Advanced Security Operations Visualization Panel</h2>
+            </div>
+            <div class="glass-card">
+                <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 0.95rem;">
+                    This capstone orchestration engine ties all security topics together. Trigger the validation chain to observe how a modern operating system enforces nested, zero-trust security checks from user login all the way to low-level memory block execution.
+                </p>
+                <div class="sim-controls">
+                    <button class="btn btn-accent" style="width:100%; justify-content:center; padding:15px; font-size:1rem;" onclick="runSecurityCapstoneChain()">
+                        ⚡ Trigger Full OS Security Lifecycle Chain Validation
+                    </button>
+                </div>
+                <div class="pipeline-wrapper" style="flex-wrap:wrap; gap:10px; background:rgba(4,6,12,0.9); padding:20px;">
+                    <div class="pipeline-step" id="cap-step-1">1. Authentication</div>
+                    <div class="pipeline-step" id="cap-step-2">2. Token Issued</div>
+                    <div class="pipeline-step" id="cap-step-3">3. UAC Validation</div>
+                    <div class="pipeline-step" id="cap-step-4">4. Privileges Evaluated</div>
+                    <div class="pipeline-step" id="cap-step-5">5. Authorization Check</div>
+                    <div class="pipeline-step" id="cap-step-6">6. Sandbox Boundaries</div>
+                    <div class="pipeline-step" id="cap-step-7">7. Process Isolation</div>
+                    <div class="pipeline-step" id="cap-step-8">8. Memory Protection</div>
+                </div>
+                <div class="terminal-container" style="margin-top:24px;">
+                    <div class="terminal-header"><span>Unified Kernel Security Architecture Orchestrator (Telemetry Capture)</span></div>
+                    <div class="terminal-body" id="capstone-terminal" style="min-height:240px; font-size:0.85rem; line-height:1.6;">
+                        System standing by. Click the master trigger above to orchestrate the validation trace...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    // --- SCROLL WATCHER NAVIGATION ENGINE ---
+    const sections = document.querySelectorAll('.lab-view');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    window.addEventListener('scroll', () => {
+        let currentSectionId = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (window.scrollY >= (sectionTop - 220)) {
+                currentSectionId = section.getAttribute('id');
+            }
+        });
+
+        if (currentSectionId) {
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${currentSectionId}`) {
+                    item.classList.add('active');
+                }
+            });
+        }
+    });
+
+    // --- SIDEBAR SEARCH NAVIGATION FILTER ---
+    function filterLabs() {
+        const val = document.getElementById('search-box').value.toLowerCase().trim();
+        sections.forEach(sec => {
+            const heading = sec.querySelector('h2').textContent.toLowerCase();
+            const rawText = sec.textContent.toLowerCase();
+            if (heading.includes(val) || rawText.includes(val)) {
+                sec.style.display = 'block';
+            } else {
+                sec.style.display = 'none';
+            }
+        });
+    }
+
+    // --- MODULE 1 ENGINE CONTROLLERS ---
+    function runCpuSimulation() {
+        const inst = document.getElementById('cpu-instruction').value;
+        const term = document.getElementById('cpu-terminal');
+        const steps = ['cpu-f', 'cpu-d', 'cpu-e', 'cpu-w'];
+        
+        steps.forEach(s => document.getElementById(s).className = 'pipeline-step');
+        document.querySelectorAll('#cpu-arch-map .arch-node').forEach(n => n.classList.remove('active'));
+
+        let idx = 0;
+        term.innerHTML = `[CLOCK PULSE] Ingesting instruction vector string: <strong>${inst}</strong><br>`;
+
+        function advanceCpu() {
+            if(idx > 0) document.getElementById(steps[idx-1]).className = 'pipeline-step completed';
+            if(idx < 4) {
+                document.getElementById(steps[idx]).className = 'pipeline-step active';
+                if(idx === 0) {
+                    term.innerHTML += `➔ FETCH: Program Counter latch signals internal bus; instruction pulled to core.<br>`;
+                    document.getElementById('node-pc').classList.add('active');
+                } else if(idx === 1) {
+                    term.innerHTML += `➔ DECODE: Control Unit handles bitmask unpacking for operator code string <code>${inst.split('_')[0]}</code>.<br>`;
+                    document.getElementById('node-cu').classList.add('active');
+                } else if(idx === 2) {
+                    term.innerHTML += `➔ EXECUTE: ALU triggers addition sub-circuit arrays to update working binary streams.<br>`;
+                    document.getElementById('node-alu').classList.add('active');
+                } else if(idx === 3) {
+                    term.innerHTML += `➔ WRITE-BACK: Cache registers update state definitions. Incrementing Program Counter.<br>[SUCCESS] Execution cycle step clear.`;
+                    document.getElementById('node-acc').classList.add('active');
+                }
+                idx++;
+                setTimeout(advanceCpu, 500);
+            }
+        }
+        advanceCpu();
+    }
+
+    function initMatrixViews() {
+        const mMatrix = document.getElementById('memory-matrix-view');
+        const dMatrix = document.getElementById('disk-matrix-view');
+        const secMatrix = document.getElementById('sec-memory-grid');
+        
+        if (mMatrix) {
+            mMatrix.innerHTML = '';
+            for(let i=0; i<32; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'matrix-cell';
+                cell.innerText = '0x' + (i * 4).toString(16).toUpperCase().padStart(2, '0');
+                mMatrix.appendChild(cell);
+            }
+        }
+        if (dMatrix) {
+            dMatrix.innerHTML = '';
+            for(let i=0; i<32; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'matrix-cell';
+                cell.innerText = 'B' + i;
+                dMatrix.appendChild(cell);
+            }
+        }
+        if (secMatrix) {
+            secMatrix.innerHTML = '';
+            for(let i=0; i<32; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'matrix-cell';
+                if(i < 8) cell.innerText = 'CODE';
+                else if(i < 16) cell.innerText = 'DATA';
+                else if(i < 24) cell.innerText = 'HEAP';
+                else cell.innerText = 'STCK';
+                secMatrix.appendChild(cell);
+            }
+        }
+    }
+
+    function simulateMemoryAccess(type) {
+        const cells = document.querySelectorAll('#memory-matrix-view .matrix-cell');
+        const term = document.getElementById('memory-terminal');
+        cells.forEach(c => c.className = 'matrix-cell');
+
+        if(type === 'cache') {
+            cells[4].classList.add('hit');
+            term.innerHTML = `[BUS POLL] Seeking memory index: 0x10...<br><span style="color:var(--accent-green);">[SRAM CACHE HIT] Segment located inside microarchitectural L1 cache layout. Latency profile: ~1ns.</span>`;
+        } else if(type === 'ram') {
+            cells[18].classList.add('miss');
+            setTimeout(() => cells[18].className = 'matrix-cell hit', 250);
+            term.innerHTML = `[BUS POLL] Seeking memory index: 0x48...<br><span style="color:var(--accent-amber);">[SRAM L1/L2 CACHE MISS] Querying dynamic DDR system row buffers. Accessing RAM cells. Latency profile: ~60ns.</span>`;
+        } else {
+            cells.forEach(c => c.classList.add('miss'));
+            term.innerHTML = `[BUS POLL] Seeking memory index: 0x7C...<br><span style="color:var(--accent-rose);">[CORE PAGE FAULT ALERT] Virtual translation address vector missing from main RAM footprint! Throwing kernel hardware trap interrupt. Allocating swap index blocks from fallback disk storage space. Latency overhead penalty incurred: ~50,000ns.</span>`;
+        }
+    }
+
+    function diskOperation(action) {
+        const cells = document.querySelectorAll('#disk-matrix-view .matrix-cell');
+        const term = document.getElementById('disk-terminal');
+
+        if(action === 'create') {
+            cells.forEach((c, i) => { if(i%3===0) c.style.background = 'rgba(59, 130, 246, 0.5)'; });
+            term.innerHTML = `[STORAGE DRIVER] Sequentially committing array blocks. Data distributed non-contiguously due to immediate pre-allocated block barriers.`;
+        } else if(action === 'delete') {
+            cells.forEach((c, i) => { if(i%6===0) c.style.background = 'rgba(244, 63, 94, 0.3)'; });
+            term.innerHTML = `[STORAGE DRIVER] Dropping catalog reference handles inside target index tables. <span style="color:var(--accent-rose);">Data blocks marked as unlinked. Volatile file system fragmentation calculation metrics raised.</span>`;
+        } else {
+            cells.forEach(c => c.style.background = 'var(--bg-surface-lit)');
+            term.innerHTML = `[DEFRAG OPTIMIZATION] Reading fragmented maps. Moving file data clusters to match sequential linear address sectors... <span style="color:var(--accent-green);">Optimization complete. Storage latency bottlenecks minimized.</span>`;
+        }
+    }
+
+    // --- MODULE 2 ENGINE CONTROLLERS ---
+    function runSchedulerSim() {
+        const algo = document.getElementById('sched-algo').value;
+        const term = document.getElementById('scheduler-terminal');
+        term.innerHTML = `[DISPATCH ENGINE] Selected Policy Rule: <strong>${algo}</strong><br>Loading testing task parameters: P1 (Pri: 2), P2 (Pri: 1), P3 (Pri: 3)<br>---<br>`;
+        
+        let actions = [];
+        if(algo === 'FCFS') {
+            actions = [
+                "Processing process P1 context loop. Non-preemptive execution phase active.",
+                "Process P1 pipeline terminated clear. Invoking context switch loop to extract P2 task node.",
+                "Processing process P2 thread tasks. Thread queue context cleared successfully."
+            ];
+        } else if(algo === 'RR') {
+            actions = [
+                "Processing task process P1. Time quantum execution window expiration flag encountered. Yielding processor context.",
+                "Invoking Context Switch: Backing up internal register states to process PCB. Restoring P2 tracking nodes.",
+                "Processing process P2 task operations. Quantum boundary hit. Yielding execution handles to P3."
+            ];
+        } else {
+            actions = [
+                "Scanning priority metadata definitions across active Ready Queue chains...",
+                "Process P2 (High Priority Rank: 1) bypasses standard FIFO queues, claiming core context rules.",
+                "Invoking Context Switch: Loading process P1 registry vectors into core CPU execution lines."
+            ];
+        }
+        
+        actions.forEach((act, i) => {
+            setTimeout(() => { term.innerHTML += `[Phase ${i+1}] ${act}<br>`; }, i * 400);
+        });
+    }
+
+    function createFsNode(type) {
+        const name = document.getElementById('fs-filename').value;
+        const tree = document.getElementById('fs-tree-view');
+        const term = document.getElementById('fs-terminal');
+        const nodeNum = Math.floor(Math.random() * 9000) + 1000;
+
+        if(type === 'file') {
+            tree.innerHTML += `<div class="tree-line">&nbsp;&nbsp;└── 📄 ${name} [Virtual File Node Inode #${nodeNum}]</div>`;
+            term.innerHTML = `[VFS SYSTEM CALL] Allocated descriptor table row entry pointing to Inode data block registration #${nodeNum}. Directory path bound.`;
+        } else {
+            tree.innerHTML += `<div class="tree-line">&nbsp;&nbsp;└── 🔗 ${name}.symlink [Cross-Pointer Handle ➔ Inode #${nodeNum}]</div>`;
+            term.innerHTML = `[VFS SYSTEM CALL] Appended symbolic shortcut link mapping path coordinates directly to node index #${nodeNum}. No persistent data block resources consumed.`;
+        }
+    }
+
+    function triggerBootSequence() {
+        const term = document.getElementById('boot-terminal');
+        const steps = ['boot-1', 'boot-2', 'boot-3', 'boot-4', 'boot-5'];
+        steps.forEach(s => document.getElementById(s).className = 'pipeline-step');
+        term.innerHTML = '';
+
+        let i = 0;
+        function stepBoot() {
+            if(i > 0) document.getElementById(steps[i-1]).className = 'pipeline-step completed';
+            if(i < 5) {
+                document.getElementById(steps[i]).className = 'pipeline-step active';
+                if(i===0) term.innerHTML += `[POST DIAGNOSTICS] Verifying processor bus registers, volatile memory timings, and hardware voltage thresholds... Nominal.<br>`;
+                if(i===1) term.innerHTML += `[UEFI NVRAM] Ingesting storage device tables. Located valid EFI system system configuration partition tracks.<br>`;
+                if(i===2) term.innerHTML += `[BOOTLOADER DISPATCH] GRUB engine maps sector chains. Copying compressed Linux kernel binary images to RAM layout lines...<br>`;
+                if(i===3) term.innerHTML += `[KERNEL INIT] Unpacking initialization matrices. Loading basic drivers, process schedulers, and memory translation maps.<br>`;
+                if(i===4) term.innerHTML += `[SYSTEMD INIT] Spawning PID 1 process wrapper. Initializing basic target configurations... Welcome to the lab terminal shell interface.<br>`;
+                i++;
+                setTimeout(stepBoot, 500);
+            }
+        }
+        stepBoot();
+    }
+
+    function controlSvc(svc, action) {
+        const term = document.getElementById('svc-terminal');
+        if(action === 'start') {
+            term.innerHTML = `[SERVICE CONTROLLER] Modifying background state definition for service unit <code>networkd.service</code>.<br><span style="color:var(--accent-green);">[OK] Daemon pipeline initialized completely (PID ${Math.floor(Math.random()*800)+200}). Socket interfaces bound.</span>`;
+        } else if(action === 'stop') {
+            term.innerHTML = `[SERVICE CONTROLLER] Routing kill interrupt signal SIGTERM to target unit supervisor hooks.<br>[INFO] Active thread arrays spun down gracefully. Interface unmapped.`;
+        } else {
+            term.innerHTML = `[DEPENDENCY EXCEPTION] Warning! Underlying asset process daemon <code>db_monitor.service</code> crashed unexpectedly.<br><span style="color:var(--accent-rose);">[CASCADE FAULT DETECTED] Network controller service dropped functional verification health loops due to broken database backend connections.</span>`;
+        }
+    }
+
+    function provisionVm() {
+        const type = document.getElementById('vm-type').value;
+        const term = document.getElementById('vm-terminal');
+        term.innerHTML = `[RESOURCES ALLOCATION] Carving system resource boundaries: provisioning virtual environment profile mappings...<br>`;
+        setTimeout(() => {
+            if(type === 'Hypervisor') {
+                term.innerHTML += `➔ Booting abstract virtual machine framework. Instantiating a separate, dedicated guest OS kernel image.<br><span style="color:var(--accent-amber);">[OVERHEAD METRICS ALERT] High performance friction warning: full hardware simulation wrapper layer active.</span>`;
+            } else {
+                term.innerHTML += `➔ Isolating system process vectors using host control groups (cgroups) and namespace maps.<br><span style="color:var(--accent-green);">[LIGHTWEIGHT PERF] Sharing native parental host kernel engine lines. Virtualization resource overhead footprint minimized.</span>`;
+            }
+        }, 400);
+    }
+
+    // --- MODULE 3 ENGINE CONTROLLERS ---
+    function traceWinRequest() {
+        const u = document.getElementById('win-u');
+        const k = document.getElementById('win-k');
+        const h = document.getElementById('win-h');
+        const term = document.getElementById('win-arch-terminal');
+
+        u.className = 'arch-node active';
+        term.innerHTML = `[PROCMON TELEMETRY] Application process triggers Win32 export function routine <code>WriteFile()</code>.<br>`;
+        
+        setTimeout(() => {
+            u.className = 'arch-node';
+            k.className = 'arch-node active';
+            term.innerHTML += `[PROCMON TELEMETRY] Catching ring transition intercept. ntdll.dll triggers hardware trap execution instruction <code>SYSENTER</code>. Execution privilege escalated to Kernel Mode (Ring 0).<br>`;
+        }, 600);
+
+        setTimeout(() => {
+            k.className = 'arch-node';
+            h.className = 'arch-node active';
+            term.innerHTML += `[PROCMON TELEMETRY] Kernel executive parameters route requests straight to <code>hal.dll</code> drivers, transforming software bits into low-level device controller signals.<br>`;
+        }, 1200);
+    }
+
+    function modifyRegistry(key, val) {
+        const term = document.getElementById('registry-terminal');
+        if(key.includes('DisableTelemetry')) {
+            document.getElementById('reg-telemetry').innerText = `DisableTelemetry = ${val}`;
+            term.innerHTML = `[REGISTRY WRITE SUCCESS] Modified global hardware parameters inside the HKLM policy hive database layers.<br><span style="color:var(--accent-green);">[ENFORCED] Windows telemetry collector service streams halted across all system accounts.</span>`;
+        } else {
+            document.getElementById('reg-theme').innerText = `DarkMode = ${val}`;
+            term.innerHTML = `[REGISTRY WRITE SUCCESS] Modified active profile variables inside user context configuration hive (HKCU).<br>Notification sent: DWM presentation subsystem refresh active.`;
+        }
+    }
+
+    function toggleWinSvc(name) {
+        const term = document.getElementById('win-svc-terminal');
+        const rpcNode = document.getElementById('svc-win-rpc');
+        const spoolerNode = document.getElementById('svc-win-spooler');
+
+        if(name === 'Spooler') {
+            spoolerNode.className = 'arch-node active';
+            spoolerNode.innerText = 'Spooler [Print Spooler Service Subsystem] (Running)';
+            term.innerHTML = `[SCM ACTION] Scanning system service configuration metrics... RpcSs confirmed operational. Instantiating Spooler driver lines cleanly.`;
+        } else {
+            rpcNode.className = 'arch-node';
+            rpcNode.style.borderColor = 'var(--accent-rose)';
+            rpcNode.innerText = 'RpcSs [Remote Procedure Call Engine] (Stopped)';
+            
+            spoolerNode.className = 'arch-node';
+            spoolerNode.style.borderColor = 'var(--accent-rose)';
+            spoolerNode.innerText = 'Spooler [Print Spooler Service Subsystem] (Fallen)';
+            
+            term.innerHTML = `<span style="color:var(--accent-rose);">[CRITICAL SCM ALERT] RPC core service interface mapper (RpcSs) forced offline. Critical cascading exception: Print Spooler and dependent system subsystems crashed due to missing communication hooks.</span>`;
+        }
+    }
+
+    function generateWinLog(channel, text) {
+        const term = document.getElementById('event-terminal');
+        const stamp = new Date().toLocaleTimeString();
+        term.innerHTML = `<span style="color:var(--accent-cyan);">[${stamp}] Channel ID Mapping: ${channel}</span><br>➔ Descriptor Telemetry Value: ${text}<br><br>` + term.innerHTML;
+    }
+
+    function fireTask() {
+        const term = document.getElementById('scheduler-task-terminal');
+        term.innerHTML = `[ALARM PULSE] System timer properties match task validation requirements.<br>Verifying local dependencies: Battery check = AC connected, Session = Idle Mode... Confirmed.<br><span style="color:var(--accent-green);">[LAUNCH] Spawning automated cleanup operations: executing <code>defrag.exe /O</code> under privileged NT AUTHORITY\\SYSTEM context rules.</span>`;
+    }
+
+    function writeNtfsFile() {
+        const term = document.getElementById('ntfs-terminal');
+        term.innerHTML = `[NTFS TRANSACTION LOG] Initializing dynamic write descriptor routine...<br>`;
+        setTimeout(() => {
+            term.innerHTML += `1. Appending modification intents to the transactional USN Journal tracking track indices.<br>` +
+                             `2. Provisioning available database record rows inside the centralized Master File Table (MFT).<br>` +
+                             `3. <span style="color:var(--accent-green);">[TRANSACTION LOCKED] MFT descriptors confirmed. Appending bit strings to raw sector arrays.</span>`;
+        }, 400);
+    }
+
+    function execPsCmd() {
+        const cmd = document.getElementById('ps-cmd').value;
+        const term = document.getElementById('ps-terminal');
+        
+        if(cmd === 'Get-Process') {
+            term.innerHTML += `<br>PS C:\\&gt; Get-Process | Where-Object Handles -gt 500<br><br>` + 
+                             `Handles&nbsp;&nbsp;NPM(K)&nbsp;&nbsp;PM(K)&nbsp;&nbsp;WS(K)&nbsp;&nbsp;&nbsp;&nbsp;CPU(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Id&nbsp;&nbsp;ProcessName<br>` +
+                             `-------&nbsp;&nbsp;------&nbsp;&nbsp;-----&nbsp;&nbsp;----&nbsp;&nbsp;&nbsp;&nbsp;------&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;&nbsp;-----------<br>` +
+                             `1420&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;92&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;151050&nbsp;192220&nbsp;&nbsp;&nbsp;51.20&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;844&nbsp;&nbsp;lsass<br>` +
+                             `740&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;52&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;99120&nbsp;&nbsp;124500&nbsp;&nbsp;&nbsp;18.25&nbsp;&nbsp;&nbsp;&nbsp;2810&nbsp;&nbsp;explorer<br>`;
+        } else {
+            term.innerHTML += `<br>PS C:\\&gt; Get-Service | Select-Object Status, Name<br><br>` +
+                             `Status&nbsp;&nbsp;&nbsp;Name<br>` +
+                             `------&nbsp;&nbsp;&nbsp;----<br>` +
+                             `Running&nbsp;&nbsp;RpcSs<br>` +
+                             `Stopped&nbsp;&nbsp;Spooler<br>`;
+        }
+    }
+
+    // --- MODULE 4 ENGINE CONTROLLERS ---
+    function traceLinuxSyscall() {
+        const u = document.getElementById('lx-user');
+        const k = document.getElementById('lx-kernel');
+        const hw = document.getElementById('lx-hw');
+        const term = document.getElementById('linux-arch-terminal');
+
+        u.className = 'arch-node active';
+        term.innerHTML = `[STRACE RUNTIME] Catching system calls output tracing...<br>`;
+        
+        setTimeout(() => {
+            u.className = 'arch-node';
+            k.className = 'arch-node active';
+            term.innerHTML += `[STRACE RUNTIME] Intercepted call hook: <code>syscall(0x5, "/etc/shadow", O_RDONLY)</code>.<br>Context processing shifted to Kernel VFS (Virtual File System Layer)...<br>`;
+        }, 500);
+
+        setTimeout(() => {
+            k.className = 'arch-node';
+            hw.className = 'arch-node active';
+            term.innerHTML += `[STRACE RUNTIME] Dispatched storage block read instructions to peripheral hardware bus controllers.<br>[STRACE RUNTIME] Syscall context returned operational status code = 0.`;
+        }, 1000);
+    }
+
+    function exploreLinuxDir(path) {
+        const term = document.getElementById('linux-fs-terminal');
+        let dataStr = `user@cyberlearn-node:~$ cd ${path} && ls -la<br>`;
+        if(path === '/etc') {
+            dataStr += `drwxr-xr-x&nbsp;&nbsp;2 root root 4096 Jun 12 10:00 .<br>-rw-r--r--&nbsp;&nbsp;1 root root 2105 Jun 12 09:12 passwd<br>-rw-r-----&nbsp;&nbsp;1 root shadow 942 Jun 12 09:12 shadow`;
+        } else if(path === '/var/log') {
+            dataStr += `drwxr-xr-x&nbsp;&nbsp;2 root root 4096 Jun 12 10:00 .<br>-rw-r-----&nbsp;&nbsp;1 root adm&nbsp;&nbsp;14210 Jun 13 14:22 syslog<br>-rw-r-----&nbsp;&nbsp;1 root adm&nbsp;&nbsp;&nbsp;9120 Jun 13 12:00 auth.log`;
+        } else {
+            dataStr += `-rwxr-xr-x&nbsp;&nbsp;1 root root 48250 Jan 10 2026 bash<br>-rwxr-xr-x&nbsp;&nbsp;1 root root 38140 Jan 10 2026 coreutils`;
+        }
+        term.innerHTML = dataStr;
+    }
+
+    function calcChmod() {
+        const octal = document.getElementById('chmod-octal').value;
+        const outStr = document.getElementById('chmod-string');
+        const gridMap = {
+            '7': 'rwx', '6': 'rw-', '5': 'r-x', '4': 'r--', '3': '-wx', '2': '-w-', '1': '--x', '0': '---'
+        };
+        
+        if(octal.length === 3 && gridMap[octal[0]] && gridMap[octal[1]] && gridMap[octal[2]]) {
+            outStr.innerText = '-' + gridMap[octal[0]] + gridMap[octal[1]] + gridMap[octal[2]];
+        } else {
+            alert('Please configure a valid 3-digit octal permission bitmask.');
+        }
+    }
+
+    function startSystemdUnit(target) {
+        const term = document.getElementById('systemd-terminal');
+        term.innerHTML = `[SYSTEMD PID 1] Isolating automated execution target runstate definition: <strong>${target}</strong><br>`;
+        
+        setTimeout(() => {
+            if(target.includes('network')) {
+                term.innerHTML += `➔ Instantiating network configuration manager dependencies... Success.<br>` +
+                                 `➔ Target state reached connectivity baseline configurations safely.`;
+            } else {
+                term.innerHTML += `➔ Loading configuration target scripts... OK.<br>` +
+                                 `➔ Parsing declarative service rules for multi-user system configuration layers...<br>` +
+                                 `<span style="color:var(--accent-green);">[SUCCESS] Target runstate multi-user.target initialization loops fully active.</span>`;
+            }
+        }, 500);
+    }
+
+    function runAptInstall() {
+        const term = document.getElementById('apt-terminal');
+        term.innerHTML = `user@cyberlearn-node:~$ sudo apt-get install nginx<br>Reading upstream package metadata... Done<br>Calculating missing package dependencies... Done<br>`;
+        setTimeout(() => {
+            term.innerHTML += `The following additional dependencies will be deployed: nginx-core nginx-common<br>` +
+                             `Fetching compressed source archives (412 kB)... Done.<br>` +
+                             `Verifying cryptographic payload integrity keys... Verified.<br>` +
+                             `<span style="color:var(--accent-green);">[SUCCESS] Extracting software components to target directory blocks. Deployment clean.</span>`;
+        }, 600);
+    }
+
+    function execBashSandbox() {
+        const cmd = document.getElementById('bash-cmd-select').value;
+        const term = document.getElementById('bash-sandbox-terminal');
+        
+        if(cmd === 'ps') {
+            term.innerHTML = `user@cyberlearn-node:~$ ps aux | grep systemd<br>` +
+                             `root&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;0.0&nbsp;&nbsp;0.1&nbsp;168420&nbsp;&nbsp;9844 ?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ss&nbsp;&nbsp;&nbsp;Jun12&nbsp;&nbsp;&nbsp;0:02 /sbin/init systemd<br>` +
+                             `user&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5104&nbsp;&nbsp;0.0&nbsp;&nbsp;0.0&nbsp;&nbsp;14212&nbsp;&nbsp;&nbsp;942 pts/0&nbsp;&nbsp;&nbsp;&nbsp;S+&nbsp;&nbsp;&nbsp;15:32&nbsp;&nbsp;&nbsp;0:00 grep systemd`;
+        } else {
+            term.innerHTML = `user@cyberlearn-node:~$ env | grep USER<br>` +
+                             `USER=LabAdministrator<br>` +
+                             `LOGNAME=LabAdministrator`;
+        }
+    }
+
+    function startSshHandshake() {
+        const term = document.getElementById('ssh-terminal');
+        const steps = ['ssh-1', 'ssh-2', 'ssh-3', 'ssh-4'];
+        steps.forEach(s => document.getElementById(s).className = 'pipeline-step');
+        
+        let i = 0;
+        term.innerHTML = `OpenSSH_9.2p1 core pipeline diagnostics, OpenSSL 3.0.8<br>`;
+
+        function advanceSsh() {
+            if(i > 0) document.getElementById(steps[i-1]).className = 'pipeline-step completed';
+            if(i < 4) {
+                document.getElementById(steps[i]).className = 'pipeline-step active';
+                if(i===0) term.innerHTML += `debug1: Constructing socket path to destination node interface ports... Socket connected.<br>`;
+                if(i===1) term.innerHTML += `debug1: Peer exchange flag SSH2_MSG_KEXINIT sent. Computing shared session verification keys using Diffie-Hellman logic... Success.<br>`;
+                if(i===2) term.innerHTML += `debug1: Host asymmetric signature tokens matched. Validating user identity authorization parameters...<br>`;
+                if(i===3) term.innerHTML += `<span style="color:var(--accent-green);">debug1: Symmetric stream cipher tunnel active (AES-256-GCM configuration). Remote terminal interface bound securely.</span><br>`;
+                i++;
+                setTimeout(advanceSsh, 500);
+            }
+        }
+        advanceSsh();
+    }
+
+    // --- MODULE 5 ENGINE CONTROLLERS ---
+    function traceMacSys() {
+        const c = document.getElementById('mac-c');
+        const m = document.getElementById('mac-m');
+        const b = document.getElementById('mac-b');
+        const term = document.getElementById('macos-arch-terminal');
+
+        c.className = 'arch-node active';
+        term.innerHTML = `[DTRACE INTERCEPT] Catching user space application Cocoa framework AppKit design calls...<br>`;
+        
+        setTimeout(() => {
+            c.className = 'arch-node';
+            m.className = 'arch-node active';
+            term.innerHTML += `[DTRACE INTERCEPT] Subsystem requests dispatched down through XNU hybrid boundaries via internal Mach IPC message ports.<br>[DTRACE INTERCEPT] Allocating microkernel processing thread channels...<br>`;
+        }, 600);
+
+        setTimeout(() => {
+            m.className = 'arch-node';
+            b.className = 'arch-node active';
+            term.innerHTML += `[DTRACE INTERCEPT] Binding microkernel outputs to underlying BSD subsystem utilities for POSIX permission rules enforcement.<br>[DTRACE INTERCEPT] Request resolved successfully. Status code returned.`;
+        }, 1200);
+    }
+
+    function triggerLaunchSvc() {
+        const type = document.getElementById('mac-file-type').value;
+        const term = document.getElementById('launch-terminal');
+        term.innerHTML = `[LAUNCH SERVICES Engine] Tracking uniform type matching schemas for target asset: <code>${type}</code><br>`;
+        
+        setTimeout(() => {
+            if(type.includes('png')) {
+                term.innerHTML += `➔ UTI Identity Resolved: <strong>public.png</strong> (Static Graphic Matrix Definition Data)<br>` +
+                                 `➔ Querying internal application bindings mapping tables... Found match register.<br>` +
+                                 `<span style="color:var(--accent-green);">➔ Initializing targeted application wrapper context bundle: Preview.app.</span>`;
+            } else {
+                term.innerHTML += `➔ UTI Identity Resolved: <strong>public.python-script</strong> (Source Code String Object)<br>` +
+                                 `➔ Querying internal application bindings mapping tables... Found match register.<br>` +
+                                 `<span style="color:var(--accent-green);">➔ Initializing targeted application wrapper context bundle: Xcode.app.</span>`;
+            }
+        }, 500);
+    }
+
+    function storeKeychainCred() {
+        const term = document.getElementById('keychain-terminal');
+        term.innerHTML = `[KEYCHAIN TRANSACTION] Catching credit credentials write block invocation from browser instance...<br>` +
+                         `➔ Routing sensitive input streams directly through secure background daemon loops (<code>securityd</code>).<br>` +
+                         `➔ Requesting asymmetric hardware encryption key blocks from local Secure Enclave hardware coprocessor chips...<br>` +
+                         `<span style="color:var(--accent-green);">[OK] Credential blocks wrapped via AES-256 cipher grids and committed securely inside login.keychain database files.</span>`;
+    }
+
+    function readKeychainCred() {
+        const term = document.getElementById('keychain-terminal');
+        term.innerHTML = `[KEYCHAIN TRANSACTION] Intercepting request for credential retrieval...<br>` +
+                         `➔ Checking caller security signature structures... Calling app matches code verification definitions. Access granted.<br>` +
+                         `➔ Interacting with Secure Enclave coprocessor to isolate decryption keys away from main system software memory pools...<br>` +
+                         `➔ Decrypted plaintext string safely injected into the calling application's isolated memory workspace.`;
+    }
+
+    // --- MODULE 6 ENGINE CONTROLLERS ---
+    function runAuthSimulation() {
+        const pwd = document.getElementById('auth-pwd').value;
+        const mfa = document.getElementById('auth-mfa-toggle').checked;
+        const term = document.getElementById('auth-flow-terminal');
+        const steps = ['as-form', 'as-val', 'as-mfa', 'as-session'];
+        
+        steps.forEach(s => document.getElementById(s).className = 'pipeline-step');
+        document.querySelectorAll('#sec-auth-arch .arch-node').forEach(n => n.classList.remove('active'));
+        
+        term.innerHTML = `[AUTH ENGINE] Processing login request sequence...<br>`;
+        document.getElementById('as-form').className = 'pipeline-step active';
+        document.getElementById('auth-node-1').classList.add('active');
+        
+        setTimeout(() => {
+            document.getElementById('as-form').className = 'pipeline-step completed';
+            document.getElementById('as-val').className = 'pipeline-step active';
+            document.getElementById('auth-node-2').classList.add('active');
+            
+            if (pwd === 'cyber123') {
+                term.innerHTML += `➔ Step 2: Cleartext matched against database hash block array context. Identity verified.<br>`;
+                
+                setTimeout(() => {
+                    document.getElementById('as-val').className = 'pipeline-step completed';
+                    document.getElementById('as-mfa').className = 'pipeline-step active';
+                    document.getElementById('auth-node-3').classList.add('active');
+                    
+                    if (mfa) {
+                        term.innerHTML += `➔ Step 3: MFA flag active. Intercepting verification payload challenge code... Token passed successfully.<br>`;
+                        setTimeout(() => {
+                            document.getElementById('as-mfa').className = 'pipeline-step completed';
+                            document.getElementById('as-session').className = 'pipeline-step completed';
+                            term.innerHTML += `<span style="color:var(--accent-green);">[ACCESS GRANTED] User authenticated securely. Kerberos TGT token mapped to active workspace session.</span>`;
+                        }, 500);
+                    } else {
+                        term.innerHTML += `➔ Step 3: MFA checks unassigned. Bypassing step lines...<br>`;
+                        setTimeout(() => {
+                            document.getElementById('as-mfa').className = 'pipeline-step completed';
+                            document.getElementById('as-session').className = 'pipeline-step completed';
+                            term.innerHTML += `<span style="color:var(--accent-green);">[ACCESS GRANTED] Session initialized successfully without secondary checking factors.</span>`;
+                        }, 500);
+                    }
+                }, 500);
+                
+            } else {
+                term.innerHTML += `<span style="color:var(--accent-rose);">➔ [AUTHENTICATION CRASH] Password hash validation check mismatch array error. Access Denied.</span>`;
+                document.getElementById('as-val').className = 'pipeline-step failed';
+            }
+        }, 500);
+    }
+
+    function evaluateAuthorization() {
+        const model = document.getElementById('auth-model-sel').value;
+        const role = document.getElementById('auth-user-role').value;
+        const term = document.getElementById('auth-models-terminal');
+        
+        term.innerHTML = `[ACL EVALUATOR] Method rule selection: <strong>${model}</strong> | Identity Role Profile: <strong>${role}</strong><br>`;
+        
+        if (model === 'RBAC') {
+            if (role === 'Admin') {
+                term.innerHTML += `<span style="color:var(--accent-green);">[PERMITTED] Role 'Admin' contains explicit structural write boundaries to modify configuration matrices.</span>`;
+            } else {
+                term.innerHTML += `<span style="color:var(--accent-rose);">[DENIED] Role 'Guest' restricted to read-only metadata streams. Operation aborted.</span>`;
+            }
+        } else {
+            term.innerHTML += `➔ Checking current context attributes: Source IP context = 10.0.0.4, Location = Local Dev Terminal Lab...<br>`;
+            if (role === 'Admin') {
+                term.innerHTML += `<span style="color:var(--accent-green);">[PERMITTED] Multi-attribute matrix evaluation rules validate system ownership. Task dispatched.</span>`;
+            } else {
+                term.innerHTML += `<span style="color:var(--accent-rose);">[DENIED] Resource attribute parameters prohibit Guest session writes within this time coordinate zone.</span>`;
+            }
+        }
+    }
+
+    function runPrivAction(action) {
+        const tier = document.getElementById('priv-user-tier').value;
+        const term = document.getElementById('priv-test-terminal');
+        const out = document.getElementById('priv-models-terminal');
+        
+        out.innerHTML = `[SECURITY DESCRIPTOR] Current execution level token mask: <strong>${tier}</strong><br>`;
+        if (action === 'read') {
+            out.innerHTML += `<span style="color:var(--accent-green);">[SUCCESS] Public file unmapped. Standard users can consume data channels without privilege changes.</span>`;
+        } else {
+            if (tier === 'Administrator') {
+                out.innerHTML += `<span style="color:var(--accent-green);">[SUCCESS] Kernel Ring 0 register write privilege granted. Registry driver updated.</span>`;
+            } else {
+                out.innerHTML += `<span style="color:var(--accent-rose);">[ACCESS VIOLATION CLASSIFIED] High-level register modification rejected. Standard processes cannot modify physical execution routes.</span>`;
+            }
+        }
+    }
+
+    function generateTokenStructure() {
+        const term = document.getElementById('access-tokens-terminal');
+        term.innerHTML = `[SYSTEM SECURITY ACCOUNT MANAGER] Building active session token payload...<br>` +
+                         `=======================================================================<br>` +
+                         `Token ID Handle : 0x000002F4_SecSession<br>` +
+                         `User Object SID : S-1-5-21-3623811015-3361044348-30300820-500 (Local Admin)<br>` +
+                         `Group Membership: [S-1-5-32-544 (Builtin\\Administrators)] [S-1-5-11 (Authenticated Users)]<br>` +
+                         `Privilege Bitfields: SeDebugPrivilege (ENABLED) | SeShutdownPrivilege (ENABLED)<br>` +
+                         `=======================================================================<br>` +
+                         `<span style="color:var(--accent-green);">[TOKEN CLONED] Thread token cloned to all downstream child execution environments.</span>`;
+    }
+
+    function triggerUacPrompt() {
+        document.getElementById('uac-prompt-box').style.display = 'block';
+        document.getElementById('uac-terminal').innerHTML = `[UAC INTERCEPT] application requested access token elevation elevation flag parameter context rules. Execution halted. Secure desktop rendering triggered.`;
+    }
+
+    function resolveUac(approved) {
+        document.getElementById('uac-prompt-box').style.display = 'none';
+        const term = document.getElementById('uac-terminal');
+        if (approved) {
+            term.innerHTML = `<span style="color:var(--accent-green);">[ELEVATION SUCCESS] Consent token verified. Launching execution threads within privileged Administrator Ring 0 token parameters (PID ${Math.floor(Math.random()*800)+100}).</span>`;
+        } else {
+            term.innerHTML = `<span style="color:var(--accent-rose);">[ELEVATION DENIED] User cancelled prompt workflow. Revoking initialization task context. Task closed down cleanly.</span>`;
+        }
+    }
+
+    function runSandboxAction() {
+        const type = document.querySelector('input[name="sb-mode"]:checked').value;
+        const term = document.getElementById('sandbox-terminal');
+        
+        term.innerHTML = `[VFS CORE] Initializing download operational task within a <strong>${type}</strong> sandbox workspace model...<br>`;
+        if (type === 'Sandboxed') {
+            term.innerHTML += `➔ Intercepted write operation to root path /Windows/system32/patch.exe...<br>` +
+                             `<span style="color:var(--accent-cyan);">[ISOLATION REDIRECTION] File system queries redirected out to sandbox isolation path /AppData/Local/Packages/VirtualStore/patch.exe. Real host workspace secure.</span>`;
+        } else {
+            term.innerHTML += `➔ Committing direct write query track parameters to /Windows/system32/patch.exe...<br>` +
+                             `<span style="color:var(--accent-amber);">[WARNING] Process written straight to real system root memory spaces. Exploitation safety threshold compromised.</span>`;
+        }
+    }
+
+    function runSecureBootSim() {
+        const state = document.getElementById('boot-signature-state').value;
+        const term = document.getElementById('secure-boot-terminal');
+        const steps = ['sb-step-1', 'sb-step-2', 'sb-step-3', 'sb-step-4'];
+        
+        steps.forEach(s => document.getElementById(s).className = 'pipeline-step');
+        term.innerHTML = `[UEFI SECURE BOOT POWER REBOOT] Checking system validation layers...<br>`;
+        document.getElementById('sb-step-1').className = 'pipeline-step active';
+        
+        setTimeout(() => {
+            document.getElementById('sb-step-1').className = 'pipeline-step completed';
+            document.getElementById('sb-step-2').className = 'pipeline-step active';
+            
+            if (state === 'Valid') {
+                term.innerHTML += `➔ Bootloader digital signature matches validated db certificate validation row tracking indices inside motherboard NVRAM. Legitimate platform state confirmed.<br>`;
+                setTimeout(() => {
+                    document.getElementById('sb-step-2').className = 'pipeline-step completed';
+                    document.getElementById('sb-step-3').className = 'pipeline-step active';
+                    term.innerHTML += `➔ Loading kernel image framework. Hash values valid.<br>`;
+                    
+                    setTimeout(() => {
+                        document.getElementById('sb-step-3').className = 'pipeline-step completed';
+                        document.getElementById('sb-step-4').className = 'pipeline-step completed';
+                        term.innerHTML += `<span style="color:var(--accent-green);">[SUCCESSFUL OS BOOT] Cryptographic trust pipeline verified completely. OS initialization complete.</span>`;
+                    }, 400);
+                }, 400);
+            } else {
+                term.innerHTML += `<span style="color:var(--accent-rose);">➔ [FIRMWARE HALT INTERRUPT] Cryptographic check match error! Bootloader payload signature hash values modified by an untrusted source vendor. Boot routine blocked.</span>`;
+                document.getElementById('sb-step-2').className = 'pipeline-step failed';
+            }
+        }, 400);
+    }
+
+    function runTpmAction(type) {
+        const term = document.getElementById('tpm-terminal');
+        if (type === 'pcr') {
+            term.innerHTML = `[TPM HARDWARE ENGINE] Executing core hash measurements across current platform configuration metrics...<br>` +
+                             `➔ PCR0  : 9E3A5B81C4D2E3F40129F8E7... [VALID FIXED BASELINE]<br>` +
+                             `➔ PCR11 : A4F29E01B8C1D4E0312F98A7... [MATCHED VALID SYSTEM STATE]<br>` +
+                             `<span style="color:var(--accent-green);">[INTEGRITY CONFIRMED] Platform operational settings configuration remains untampered.</span>`;
+        } else {
+            term.innerHTML = `[TPM HARDWARE ENGINE] Invoking built-in true random number generator sub-circuits...<br>` +
+                             `➔ Key Handle Created: 0x80000001_RSA_BitLocker_Root<br>` +
+                             `➔ Status: Key pair wrapped natively within isolated silicon core architectures. Key never exposed to CPU memory channels. Secure Enclave active.`;
+        }
+    }
+
+    function runCredentialStorageSimulation() {
+        const raw = document.getElementById('plain-user-password').value;
+        const term = document.getElementById('credential-storage-terminal');
+        
+        term.innerHTML = `[SAM AUTH TRANSACTION] Processing credential ingestion task...<br>` +
+                         `------------------------------------------------------------------------<br>` +
+                         `Plaintext String Ingested : "${raw}"<br>`;
+                         
+        setTimeout(() => {
+            term.innerHTML += `Generated Salt Parameter  : "z8X_91fk!a2m"<br>` +
+                             `Compounded Payload Context: "${raw}z8X_91fk!a2m"<br>` +
+                             `Executing slow-hashing Argon2id mathematical block algorithm execution...<br>` +
+                             `Final Hash Matrix Generated: <span style="color:var(--accent-cyan);">$argon2id$v=19$m=65536,t=3,p=4$z8X_91fk!a2m$7E3A9B...</span><br>` +
+                             `------------------------------------------------------------------------<br>` +
+                             `<span style="color:var(--accent-green);">[DATABASE COMPLETED] Database fields stored cleanly. Plaintext variables deleted entirely from run-time volatile memory pools.</span>`;
+        }, 400);
+    }
+
+    function retrieveSecretFromVault() {
+        const type = document.getElementById('secret-item-type').value;
+        const term = document.getElementById('secret-storage-terminal');
+        
+        term.innerHTML = `[SECRET VAULT LOG] Intercepting fetch query call hook from Application context...<br>` +
+                         `➔ Verifying API request authorization tokens... Signature match verified.<br>`;
+        setTimeout(() => {
+            if (type === 'AWS_KEY') {
+                term.innerHTML += `<span style="color:var(--accent-green);">[VAULT ACCESSED] API Token dynamically injected into process volatile memory space:<br>AWS_ACCESS_KEY_ID = AKIAIOSFODNN7EXAMPLE</span>`;
+            } else {
+                term.innerHTML += `<span style="color:var(--accent-green);">[VAULT ACCESSED] TLS SSL Certificate payload delivered over encrypted channel handles:<br>-----BEGIN RSA PRIVATE KEY----- MIIEowIBAAKCAQEA0Y3...</span>`;
+            }
+        }, 400);
+    }
+
+    function runProcessIsolationCheck(attack) {
+        const term = document.getElementById('process-isolation-terminal');
+        if (!attack) {
+            term.innerHTML = `[MMU PAGE BUS] App A queries internal address index 0x0040A1E...<br>` +
+                             `➔ Base register boundaries checked within translation lookaside buffers... Context Valid.<br>` +
+                             `<span style="color:var(--accent-green);">[SUCCESS] Memory lookup query executed cleanly inside private workspace limits.</span>`;
+        } else {
+            term.innerHTML = `[MMU PAGE BUS] App B requests handle to intercept page mapping allocated to address zone 0x0040A1E (App A Space)...<br>` +
+                             `➔ Access validation logic scans execution token domains... Privilege context flag mismatch encountered.<br>` +
+                             `<span style="color:var(--accent-rose);">[CRITICAL ISOLATION BLOCK INTERCEPT] Access Denied. Raising System Trap Code 0xC0000005: Access Violation Exception. Thread terminated down.</span>`;
+        }
+    }
+
+    function simulateBufferOverflowAttack() {
+        const dep = document.getElementById('dep-toggle').checked;
+        const aslr = document.getElementById('aslr-toggle').checked;
+        const term = document.getElementById('memory-protection-terminal');
+        const cells = document.querySelectorAll('#sec-memory-grid .matrix-cell');
+        
+        cells.forEach(c => c.className = 'matrix-cell');
+        term.innerHTML = `[EXPLOIT INJECTION] Injecting large malicious attack vector payload into thread input row buffer arrays...<br>`;
+        
+        setTimeout(() => {
+            cells[24].classList.add('miss');
+            cells[25].classList.add('miss');
+            cells[26].classList.add('miss');
+            term.innerHTML += `➔ Input parameters overflow stack bounds arrays, cascading data values down into structural tracking registers...<br>`;
+            
+            setTimeout(() => {
+                if (aslr) {
+                    term.innerHTML += `➔ Checking exploit execution pointer destination targets... Target points to non-existent hardcoded offset address due to randomized ASLR configurations.<br>`;
+                } else {
+                    term.innerHTML += `➔ Checking exploit execution pointer destination targets... Target accurately lands on raw execution block due to static memory address space mapping rules.<br>`;
+                }
+                
+                if (dep) {
+                    term.innerHTML += `<span style="color:var(--accent-rose);">[CRITICAL DEP HARDWARE BLOCKED EXECUTION] Processor intercepts instruction fetch inside data stack boundary segments. Execution flag parameter prohibited entirely. Raising Exception Code 0x80000003. Malicious process payload terminated down safely.</span>`;
+                } else {
+                    if (aslr) {
+                        term.innerHTML += `<span style="color:var(--accent-rose);">[CRITICAL ERROR CRASH] Exploit missed target addresses but caused execution core drop errors. System exception raised.</span>`;
+                    } else {
+                        cells.forEach(c => c.style.background = 'rgba(244,63,94,0.6)');
+                        term.innerHTML += `<span style="color:var(--accent-green); font-weight:bold;">[EXPLOIT SUCCESSFUL SUCCESS] Injected assembly logic executed out of non-executable segments. Arbitrary reverse shell launched to terminal port 4444. System compromised.</span>`;
+                    }
+                }
+            }, 500);
+        }, 500);
+    }
+
+    function runSecurityCapstoneChain() {
+        const term = document.getElementById('capstone-terminal');
+        const steps = ['cap-step-1', 'cap-step-2', 'cap-step-3', 'cap-step-4', 'cap-step-5', 'cap-step-6', 'cap-step-7', 'cap-step-8'];
+        steps.forEach(s => document.getElementById(s).className = 'pipeline-step');
+        
+        let i = 0;
+        term.innerHTML = `[CAPSTONE ORCHESTRATION START] Starting complete system validation lifecycle routines...<br>`;
+
+        function advanceChain() {
+            if (i > 0) document.getElementById(steps[i-1]).className = 'pipeline-step completed';
+            if (i < 8) {
+                document.getElementById(steps[i]).className = 'pipeline-step active';
+                
+                if (i===0) term.innerHTML += `⚡ Step 1: User completes password factors. Identity verified against bcrypt hash arrays.<br>`;
+                if (i===1) term.innerHTML += `⚡ Step 2: Session access token built containing SIDs, user groups, and structural privilege masks.<br>`;
+                if (i===2) term.innerHTML += `⚡ Step 3: Application requests administrative tasks. UAC secures confirmation on isolated secure desktop interfaces.<br>`;
+                if (i===3) term.innerHTML += `⚡ Step 4: Token privileges evaluated by kernel supervisors before granting access.<br>`;
+                if (i===4) term.innerHTML += `⚡ Step 5: Authorization engines pass the security token criteria checks against asset descriptor tables.<br>`;
+                if (i===5) term.innerHTML += `⚡ Step 6: Application maps files within an isolated app sandbox container profile environment.<br>`;
+                if (i===6) term.innerHTML += `⚡ Step 7: MMU address translation blocks prevent any external cross-process memory access queries.<br>`;
+                if (i===7) term.innerHTML += `⚡ Step 8: DEP and ASLR protect the running instructions from buffer execution exploits.<br>` +
+                                            `<span style="color:var(--accent-green); font-weight:bold;">[ORCHESTRATION TERMINATED SUCCESSFULLY] Modern zero-trust operating system security mechanisms fully active. End-to-end trust established.</span>`;
+                
+                i++;
+                setTimeout(advanceChain, 450);
+            }
+        }
+        advanceChain();
+    }
+
+    // --- APPLICATION STARTUP MATRIX INITIALIZATION ---
+    window.onload = function() {
+        initMatrixViews();
+    };
+</script>
+</body>
+</html>

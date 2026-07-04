@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T01 — Systems & OS Internals</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --bg2: #13161e;
+  --bg3: #1a1d28;
+  --card: #1e2130;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e8eaf0;
+  --muted: #7c8096;
+  --accent1: #5b8fff;
+  --accent2: #3ecf8e;
+  --accent3: #f7a84a;
+  --accent4: #e25b7c;
+  --accent5: #a78bfa;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Sora', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.75; }
+.page { max-width: 900px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+
+/* header */
+.hero { text-align: center; padding: 3rem 0 4rem; border-bottom: 1px solid var(--border2); margin-bottom: 3rem; }
+.hero .badge { display: inline-block; background: rgba(91,143,255,0.12); color: var(--accent1); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(91,143,255,0.25); margin-bottom: 1.2rem; }
+.hero h1 { font-size: 2.8rem; font-weight: 700; line-height: 1.15; margin-bottom: 0.8rem; background: linear-gradient(135deg, #e8eaf0 30%, #7c8096); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero p { color: var(--muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto; }
+
+/* toc */
+.toc { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 1.8rem 2rem; margin-bottom: 4rem; }
+.toc h2 { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 1rem; }
+.toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; }
+.toc-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: var(--text); font-size: 0.88rem; transition: background 0.15s; }
+.toc-item:hover { background: var(--bg3); }
+.toc-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: var(--mono); flex-shrink: 0; }
+
+/* sections */
+.section { margin-bottom: 5rem; scroll-margin-top: 2rem; }
+.section-header { display: flex; align-items: flex-start; gap: 1.2rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+.section-num { font-family: var(--mono); font-size: 0.75rem; font-weight: 500; color: var(--muted); background: var(--bg3); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border2); flex-shrink: 0; margin-top: 4px; }
+.section-title { font-size: 1.7rem; font-weight: 700; }
+.section-sub { color: var(--muted); font-size: 0.9rem; margin-top: 3px; }
+
+/* blocks */
+.what-box { background: var(--bg2); border-left: 3px solid var(--accent1); border-radius: 0 12px 12px 0; padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; }
+.what-box .label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent1); margin-bottom: 0.4rem; }
+.analogy-box { background: var(--bg2); border-left: 3px solid var(--accent3); border-radius: 0 12px 12px 0; padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; }
+.analogy-box .label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent3); margin-bottom: 0.4rem; }
+.fun-box { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.18); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; font-size: 0.9rem; color: var(--muted); }
+.fun-box strong { color: var(--accent5); }
+.tip-box { background: rgba(62,207,142,0.06); border: 1px solid rgba(62,207,142,0.18); border-radius: 10px; padding: 1rem 1.2rem; margin: 1.5rem 0; font-size: 0.9rem; }
+.tip-box strong { color: var(--accent2); }
+
+/* diagram */
+.diagram-wrap { background: var(--bg3); border: 1px solid var(--border2); border-radius: 14px; padding: 1.5rem; margin: 1.8rem 0; overflow: auto; }
+.diagram-wrap svg { display: block; max-width: 100%; height: auto; }
+
+/* tables */
+.styled-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1.5rem 0; }
+.styled-table th { background: var(--bg3); color: var(--muted); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border2); }
+.styled-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+.styled-table tr:last-child td { border-bottom: none; }
+.styled-table tr:hover td { background: var(--bg2); }
+td code, p code { background: var(--bg3); color: var(--accent2); font-family: var(--mono); font-size: 0.82em; padding: 2px 6px; border-radius: 4px; }
+
+/* key terms */
+.terms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.term-card { background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 1rem 1.2rem; }
+.term-card .term { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+.term-card .def { font-size: 0.85rem; color: var(--muted); }
+
+/* process states */
+.states-row { display: flex; align-items: center; gap: 0; margin: 1.5rem 0; flex-wrap: wrap; }
+.state-box { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.state-arrow { color: var(--muted); padding: 0 6px; font-size: 1.1rem; }
+
+/* step list */
+.step-list { list-style: none; margin: 1.2rem 0; }
+.step-list li { display: flex; gap: 1rem; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.step-list li:last-child { border-bottom: none; }
+.step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; font-family: var(--mono); flex-shrink: 0; margin-top: 2px; }
+.step-content strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+.step-content span { font-size: 0.85rem; color: var(--muted); }
+
+/* colors for numbers */
+.c1 { background: rgba(91,143,255,0.18); color: var(--accent1); }
+.c2 { background: rgba(62,207,142,0.15); color: var(--accent2); }
+.c3 { background: rgba(247,168,74,0.15); color: var(--accent3); }
+.c4 { background: rgba(226,91,124,0.15); color: var(--accent4); }
+.c5 { background: rgba(167,139,250,0.15); color: var(--accent5); }
+.c6 { background: rgba(91,143,255,0.12); color: #79c0ff; }
+.c7 { background: rgba(62,207,142,0.12); color: #73e4b0; }
+.c8 { background: rgba(247,168,74,0.12); color: #f5c57a; }
+.c9 { background: rgba(226,91,124,0.12); color: #f08da4; }
+.c10{ background: rgba(167,139,250,0.12); color: #c0aafe; }
+
+.tag { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.tag-blue { background: rgba(91,143,255,0.15); color: var(--accent1); }
+.tag-green { background: rgba(62,207,142,0.12); color: var(--accent2); }
+.tag-orange { background: rgba(247,168,74,0.12); color: var(--accent3); }
+.tag-red { background: rgba(226,91,124,0.12); color: var(--accent4); }
+.tag-purple { background: rgba(167,139,250,0.12); color: var(--accent5); }
+
+/* memory pyramid */
+.mem-pyramid { margin: 1.5rem 0; }
+.mem-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 8px; }
+.mem-bar { border-radius: 6px; height: 38px; display: flex; align-items: center; padding: 0 14px; font-size: 0.82rem; font-weight: 600; flex-shrink: 0; color: #fff; }
+.mem-info { font-size: 0.82rem; color: var(--muted); }
+.mem-info strong { color: var(--text); }
+
+/* boot steps */
+.boot-steps { margin: 1.5rem 0; }
+.boot-step { display: flex; gap: 1rem; margin-bottom: 12px; align-items: flex-start; }
+.boot-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.boot-text strong { display: block; font-size: 0.9rem; }
+.boot-text span { font-size: 0.83rem; color: var(--muted); }
+.boot-connector { width: 1px; height: 12px; background: var(--border2); margin-left: 17.5px; }
+
+/* comparison cards */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+.compare-card { background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 1.2rem; }
+.compare-card .cc-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px; }
+.compare-card ul { list-style: none; }
+.compare-card ul li { font-size: 0.85rem; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 6px; }
+.compare-card ul li:last-child { border-bottom: none; }
+.compare-card ul li::before { content: '→'; color: var(--accent2); flex-shrink: 0; }
+
+/* divider */
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 5rem 0; }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.8rem; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .terms-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">T01 · Level 1 · Computing Foundations</div>
+  <h1>Systems &amp; OS Internals</h1>
+  <p>10 key topics explained simply — with analogies, diagrams, and examples anyone can understand.</p>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>// table of contents</h2>
+  <div class="toc-grid">
+    <a href="#s1" class="toc-item"><span class="toc-num c1">01</span> Computer Architecture</a>
+    <a href="#s2" class="toc-item"><span class="toc-num c2">02</span> CPU Fundamentals</a>
+    <a href="#s3" class="toc-item"><span class="toc-num c3">03</span> Memory Fundamentals</a>
+    <a href="#s4" class="toc-item"><span class="toc-num c4">04</span> Storage Systems</a>
+    <a href="#s5" class="toc-item"><span class="toc-num c5">05</span> Operating Systems</a>
+    <a href="#s6" class="toc-item"><span class="toc-num c6">06</span> Processes &amp; Threads</a>
+    <a href="#s7" class="toc-item"><span class="toc-num c7">07</span> File Systems</a>
+    <a href="#s8" class="toc-item"><span class="toc-num c8">08</span> System Boot Process</a>
+    <a href="#s9" class="toc-item"><span class="toc-num c9">09</span> Applications &amp; Services</a>
+    <a href="#s10" class="toc-item"><span class="toc-num c10">10</span> Virtualization Basics</a>
+  </div>
+</div>
+
+<!-- ========== SECTION 1 ========== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <div>
+      <div class="section-title" style="color: var(--accent1);">Computer Architecture</div>
+      <div class="section-sub">The blueprint — how all parts are designed and connected</div>
+    </div>
+  </div>
+
+  <div class="what-box">
+    <div class="label">// what is it?</div>
+    <p>Computer Architecture is like the <strong>blueprint of a building</strong>. Before any building gets constructed, an architect draws a plan showing where every room goes, how the corridors connect, where electricity runs, and how people move through the building. Similarly, Computer Architecture is the master plan for a computer — it defines how the CPU, memory, storage, and input/output devices are all organized and how they talk to each other.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">🍕 real-life analogy — pizza restaurant</div>
+    <p>Imagine a pizza restaurant:<br>
+    <strong>Chef</strong> = CPU (does the actual cooking/work) &nbsp;|&nbsp; <strong>Kitchen counter</strong> = RAM (holds the ingredients you're currently using) &nbsp;|&nbsp; <strong>Storage room</strong> = Hard Drive (stores all ingredients long-term) &nbsp;|&nbsp; <strong>Menu board</strong> = Input (tells the chef what to make) &nbsp;|&nbsp; <strong>Pizza box</strong> = Output (delivers the result)</p>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 340" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <defs>
+        <marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#5b8fff" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+      </defs>
+      <!-- Outer box -->
+      <rect x="20" y="20" width="780" height="300" rx="16" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="410" y="50" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="11" font-weight="600" letter-spacing="2">COMPUTER SYSTEM</text>
+
+      <!-- CPU -->
+      <rect x="310" y="70" width="200" height="80" rx="10" fill="rgba(91,143,255,0.15)" stroke="rgba(91,143,255,0.5)" stroke-width="1"/>
+      <text x="410" y="104" text-anchor="middle" fill="#5b8fff" font-size="13" font-weight="700">CPU</text>
+      <text x="410" y="122" text-anchor="middle" fill="#7c8096" font-size="11">Brain — Processes instructions</text>
+
+      <!-- RAM -->
+      <rect x="310" y="200" width="200" height="70" rx="10" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.4)" stroke-width="1"/>
+      <text x="410" y="230" text-anchor="middle" fill="#3ecf8e" font-size="13" font-weight="700">RAM</text>
+      <text x="410" y="248" text-anchor="middle" fill="#7c8096" font-size="11">Temporary fast memory</text>
+
+      <!-- INPUT -->
+      <rect x="60" y="120" width="160" height="70" rx="10" fill="rgba(247,168,74,0.12)" stroke="rgba(247,168,74,0.4)" stroke-width="1"/>
+      <text x="140" y="150" text-anchor="middle" fill="#f7a84a" font-size="13" font-weight="700">INPUT</text>
+      <text x="140" y="168" text-anchor="middle" fill="#7c8096" font-size="11">Keyboard, Mouse, Touch</text>
+
+      <!-- OUTPUT -->
+      <rect x="600" y="120" width="160" height="70" rx="10" fill="rgba(226,91,124,0.12)" stroke="rgba(226,91,124,0.4)" stroke-width="1"/>
+      <text x="680" y="150" text-anchor="middle" fill="#e25b7c" font-size="13" font-weight="700">OUTPUT</text>
+      <text x="680" y="168" text-anchor="middle" fill="#7c8096" font-size="11">Monitor, Speakers, Printer</text>
+
+      <!-- STORAGE -->
+      <rect x="310" y="290" width="200" height="22" rx="6" fill="rgba(167,139,250,0.12)" stroke="rgba(167,139,250,0.4)" stroke-width="1"/>
+      <text x="410" y="305" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">STORAGE (HDD / SSD)</text>
+
+      <!-- Arrows -->
+      <line x1="220" y1="155" x2="308" y2="110" stroke="#5b8fff" stroke-width="1.5" marker-end="url(#arr1)" fill="none"/>
+      <line x1="510" y1="110" x2="598" y2="155" stroke="#5b8fff" stroke-width="1.5" marker-end="url(#arr1)" fill="none"/>
+      <line x1="410" y1="150" x2="410" y2="198" stroke="#5b8fff" stroke-width="1.5" marker-end="url(#arr1)" fill="none"/>
+      <line x1="410" y1="270" x2="410" y2="288" stroke="#5b8fff" stroke-width="1.5" marker-end="url(#arr1)" fill="none"/>
+
+      <!-- Bus label -->
+      <text x="305" y="180" text-anchor="middle" fill="#7c8096" font-size="10">Data Bus</text>
+    </svg>
+  </div>
+
+  <h3 style="font-size:1rem;margin:1.5rem 0 1rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;font-size:0.8rem;">key components</h3>
+  <table class="styled-table">
+    <thead><tr><th>Component</th><th>What it does</th><th>Real example</th><th>Simple analogy</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-blue">CPU</span></td><td>Executes all instructions</td><td>Intel Core i9, AMD Ryzen</td><td>The chef of the restaurant</td></tr>
+      <tr><td><span class="tag tag-green">RAM</span></td><td>Temporary fast storage</td><td>8 GB, 16 GB, 32 GB</td><td>The kitchen counter you work on</td></tr>
+      <tr><td><span class="tag tag-purple">Storage</span></td><td>Permanent data storage</td><td>512 GB SSD, 2 TB HDD</td><td>The storage room / fridge</td></tr>
+      <tr><td><span class="tag tag-orange">Motherboard</span></td><td>Connects all components</td><td>ASUS, MSI boards</td><td>The restaurant building itself</td></tr>
+      <tr><td><span class="tag tag-red">GPU</span></td><td>Handles graphics &amp; parallel compute</td><td>NVIDIA RTX 4090</td><td>A specialized pastry chef just for desserts</td></tr>
+    </tbody>
+  </table>
+
+  <p>The most famous computer design is <strong>Von Neumann Architecture</strong> — where instructions and data share the same memory. This is the basis for virtually every computer you've ever used. The CPU fetches an instruction from memory, decodes what it means, executes it, and then moves to the next. Repeat billions of times per second.</p>
+
+  <div class="fun-box">💡 <strong>Fun fact:</strong> The first computer ENIAC (1945) weighed <strong>30 tons</strong> and filled an entire room. Your smartphone today is over <strong>1 million times more powerful!</strong>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 2 ========== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <div>
+      <div class="section-title" style="color: var(--accent2);">CPU Fundamentals</div>
+      <div class="section-sub">The brain of the computer — does every single calculation</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color: var(--accent2);">
+    <div class="label" style="color:var(--accent2);">// what is it?</div>
+    <p>CPU stands for <strong>Central Processing Unit</strong>. It's the chip that reads your program's instructions and actually executes them — doing math, making decisions, and moving data around. Everything that "happens" on a computer goes through the CPU.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">🧠 real-life analogy — your brain</div>
+    <p>When you solve <strong>5 + 3</strong>, your brain: <em>(1) reads the problem, (2) understands it's addition, (3) calculates the answer, (4) stores the result.</em> The CPU does the exact same 4 steps — called the <strong>Fetch-Decode-Execute cycle</strong> — billions of times every second.</p>
+  </div>
+
+  <!-- Fetch-Decode-Execute Diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 220" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#3ecf8e" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+      </defs>
+      <!-- Steps -->
+      <!-- 1 FETCH -->
+      <rect x="40" y="60" width="155" height="100" rx="10" fill="rgba(91,143,255,0.12)" stroke="rgba(91,143,255,0.4)" stroke-width="1"/>
+      <text x="117" y="95" text-anchor="middle" fill="#5b8fff" font-size="11" font-weight="700" letter-spacing="1">① FETCH</text>
+      <text x="117" y="113" text-anchor="middle" fill="#e8eaf0" font-size="11">Get next instruction</text>
+      <text x="117" y="129" text-anchor="middle" fill="#7c8096" font-size="10">from RAM → CPU</text>
+      <text x="117" y="148" text-anchor="middle" fill="#7c8096" font-size="10">e.g. "ADD 5 + 3"</text>
+
+      <!-- 2 DECODE -->
+      <rect x="232" y="60" width="155" height="100" rx="10" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.4)" stroke-width="1"/>
+      <text x="309" y="95" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="700" letter-spacing="1">② DECODE</text>
+      <text x="309" y="113" text-anchor="middle" fill="#e8eaf0" font-size="11">Figure out the meaning</text>
+      <text x="309" y="129" text-anchor="middle" fill="#7c8096" font-size="10">of the instruction</text>
+      <text x="309" y="148" text-anchor="middle" fill="#7c8096" font-size="10">e.g. "this is addition"</text>
+
+      <!-- 3 EXECUTE -->
+      <rect x="424" y="60" width="155" height="100" rx="10" fill="rgba(247,168,74,0.12)" stroke="rgba(247,168,74,0.4)" stroke-width="1"/>
+      <text x="501" y="95" text-anchor="middle" fill="#f7a84a" font-size="11" font-weight="700" letter-spacing="1">③ EXECUTE</text>
+      <text x="501" y="113" text-anchor="middle" fill="#e8eaf0" font-size="11">Actually do the work</text>
+      <text x="501" y="129" text-anchor="middle" fill="#7c8096" font-size="10">ALU performs 5 + 3</text>
+      <text x="501" y="148" text-anchor="middle" fill="#7c8096" font-size="10">result = 8</text>
+
+      <!-- 4 WRITE BACK -->
+      <rect x="616" y="60" width="164" height="100" rx="10" fill="rgba(226,91,124,0.12)" stroke="rgba(226,91,124,0.4)" stroke-width="1"/>
+      <text x="698" y="95" text-anchor="middle" fill="#e25b7c" font-size="11" font-weight="700" letter-spacing="1">④ WRITE BACK</text>
+      <text x="698" y="113" text-anchor="middle" fill="#e8eaf0" font-size="11">Save the result</text>
+      <text x="698" y="129" text-anchor="middle" fill="#7c8096" font-size="10">store 8 in register</text>
+      <text x="698" y="148" text-anchor="middle" fill="#7c8096" font-size="10">or RAM</text>
+
+      <!-- Arrows -->
+      <line x1="196" y1="110" x2="230" y2="110" stroke="#3ecf8e" stroke-width="1.5" marker-end="url(#arr2)" fill="none"/>
+      <line x1="388" y1="110" x2="422" y2="110" stroke="#3ecf8e" stroke-width="1.5" marker-end="url(#arr2)" fill="none"/>
+      <line x1="580" y1="110" x2="614" y2="110" stroke="#3ecf8e" stroke-width="1.5" marker-end="url(#arr2)" fill="none"/>
+
+      <!-- Loop back arrow -->
+      <path d="M780 160 Q780 195 410 195 Q40 195 40 160" fill="none" stroke="rgba(91,143,255,0.4)" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="410" y="210" text-anchor="middle" fill="#7c8096" font-size="10">↻  repeats billions of times per second</text>
+    </svg>
+  </div>
+
+  <!-- Inside CPU Diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 270" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <!-- Outer CPU chip -->
+      <rect x="40" y="20" width="520" height="230" rx="14" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+      <text x="300" y="44" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10" font-weight="600" letter-spacing="2">CPU CHIP</text>
+
+      <!-- 4 Cores -->
+      <rect x="56" y="55" width="108" height="70" rx="8" fill="rgba(91,143,255,0.13)" stroke="rgba(91,143,255,0.4)" stroke-width="1"/>
+      <text x="110" y="80" text-anchor="middle" fill="#5b8fff" font-size="11" font-weight="700">Core 1</text>
+      <text x="110" y="97" text-anchor="middle" fill="#7c8096" font-size="10">ALU + CU</text>
+      <text x="110" y="113" text-anchor="middle" fill="#7c8096" font-size="10">2 threads</text>
+
+      <rect x="176" y="55" width="108" height="70" rx="8" fill="rgba(91,143,255,0.13)" stroke="rgba(91,143,255,0.4)" stroke-width="1"/>
+      <text x="230" y="80" text-anchor="middle" fill="#5b8fff" font-size="11" font-weight="700">Core 2</text>
+      <text x="230" y="97" text-anchor="middle" fill="#7c8096" font-size="10">ALU + CU</text>
+      <text x="230" y="113" text-anchor="middle" fill="#7c8096" font-size="10">2 threads</text>
+
+      <rect x="296" y="55" width="108" height="70" rx="8" fill="rgba(91,143,255,0.13)" stroke="rgba(91,143,255,0.4)" stroke-width="1"/>
+      <text x="350" y="80" text-anchor="middle" fill="#5b8fff" font-size="11" font-weight="700">Core 3</text>
+      <text x="350" y="97" text-anchor="middle" fill="#7c8096" font-size="10">ALU + CU</text>
+      <text x="350" y="113" text-anchor="middle" fill="#7c8096" font-size="10">2 threads</text>
+
+      <rect x="416" y="55" width="108" height="70" rx="8" fill="rgba(91,143,255,0.13)" stroke="rgba(91,143,255,0.4)" stroke-width="1"/>
+      <text x="470" y="80" text-anchor="middle" fill="#5b8fff" font-size="11" font-weight="700">Core 4</text>
+      <text x="470" y="97" text-anchor="middle" fill="#7c8096" font-size="10">ALU + CU</text>
+      <text x="470" y="113" text-anchor="middle" fill="#7c8096" font-size="10">2 threads</text>
+
+      <!-- Cache levels -->
+      <rect x="56" y="140" width="468" height="30" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="290" y="159" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="600">L2 Cache — 1–16 MB (fast scratch pad, per core)</text>
+
+      <rect x="56" y="182" width="468" height="30" rx="6" fill="rgba(62,207,142,0.08)" stroke="rgba(62,207,142,0.2)" stroke-width="1"/>
+      <text x="290" y="201" text-anchor="middle" fill="#73e4b0" font-size="11">L3 Cache — 16–64 MB (shared across all cores)</text>
+
+      <!-- L1 labels inside cores -->
+      <text x="110" y="132" text-anchor="middle" fill="rgba(62,207,142,0.7)" font-size="9">L1 cache</text>
+      <text x="230" y="132" text-anchor="middle" fill="rgba(62,207,142,0.7)" font-size="9">L1 cache</text>
+      <text x="350" y="132" text-anchor="middle" fill="rgba(62,207,142,0.7)" font-size="9">L1 cache</text>
+      <text x="470" y="132" text-anchor="middle" fill="rgba(62,207,142,0.7)" font-size="9">L1 cache</text>
+
+      <!-- Right side labels -->
+      <text x="595" y="55" fill="#7c8096" font-size="11" font-weight="600">Clock Speed</text>
+      <text x="595" y="72" fill="#7c8096" font-size="10">3 GHz = 3 billion</text>
+      <text x="595" y="87" fill="#7c8096" font-size="10">cycles per second</text>
+
+      <text x="595" y="115" fill="#7c8096" font-size="11" font-weight="600">Cores</text>
+      <text x="595" y="132" fill="#7c8096" font-size="10">Each = separate worker</text>
+      <text x="595" y="147" fill="#7c8096" font-size="10">More cores = more tasks</text>
+
+      <text x="595" y="175" fill="#7c8096" font-size="11" font-weight="600">Threads</text>
+      <text x="595" y="192" fill="#7c8096" font-size="10">4 cores × 2 threads</text>
+      <text x="595" y="207" fill="#7c8096" font-size="10">= 8 simultaneous tasks</text>
+    </svg>
+  </div>
+
+  <div class="terms-grid">
+    <div class="term-card"><div class="term" style="color:var(--accent1)">ALU — Arithmetic Logic Unit</div><div class="def">The actual calculator inside the CPU. Does addition, subtraction, comparisons. Like a super-fast math wizard.</div></div>
+    <div class="term-card"><div class="term" style="color:var(--accent2)">Control Unit (CU)</div><div class="def">The traffic cop of the CPU. Tells other parts what to do and when. It doesn't do math — it manages the flow.</div></div>
+    <div class="term-card"><div class="term" style="color:var(--accent3)">Registers</div><div class="def">Tiny, ultra-fast storage slots inside the CPU core. Think of them as sticky notes right in front of your face.</div></div>
+    <div class="term-card"><div class="term" style="color:var(--accent5)">Clock Speed (GHz)</div><div class="def">How many cycles per second. 3 GHz = 3 billion ticks/sec. Each tick can complete part of an instruction.</div></div>
+  </div>
+
+  <div class="tip-box">
+    <strong>💻 Example:</strong> When you open Chrome and type a search — the CPU fetches your keystrokes from keyboard, decodes them as text input, executes a network request, renders the page — all in milliseconds.
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 3 ========== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <div>
+      <div class="section-title" style="color: var(--accent3);">Memory Fundamentals</div>
+      <div class="section-sub">Where data lives while the computer is actively working</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:var(--accent3);">
+    <div class="label" style="color:var(--accent3);">// what is it?</div>
+    <p><strong>RAM (Random Access Memory)</strong> is the computer's short-term workspace — fast but temporary. When you open an app, it gets loaded from storage into RAM so the CPU can access it quickly. Turn off the computer, and RAM is wiped completely clean.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">🗂️ real-life analogy — your desk</div>
+    <p><strong>RAM</strong> = the desk surface (put stuff here while working — cleared when you leave) &nbsp;|&nbsp; <strong>Hard Drive</strong> = filing cabinet (stores things permanently) &nbsp;|&nbsp; <strong>CPU Cache</strong> = what's in your hand right now (closest, fastest). <em>More RAM = bigger desk = work on more things at once!</em></p>
+  </div>
+
+  <!-- Memory Hierarchy -->
+  <h3 style="font-size:0.8rem;margin:1.5rem 0 1rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">memory hierarchy — fastest → slowest</h3>
+  <div class="mem-pyramid">
+    <div class="mem-row">
+      <div class="mem-bar" style="width:90px;background:rgba(226,91,124,0.7);">Registers</div>
+      <div class="mem-info"><strong>~1 ns</strong> · Bytes · Inside CPU core · Holds current data instantly</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-bar" style="width:150px;background:rgba(247,168,74,0.6);">L1 / L2 / L3 Cache</div>
+      <div class="mem-info"><strong>2–10 ns</strong> · 512KB – 64MB · Built into CPU chip · Stores recently used data</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-bar" style="width:240px;background:rgba(62,207,142,0.5);">RAM (Main Memory)</div>
+      <div class="mem-info"><strong>~100 ns</strong> · 8–64 GB typical · Clears on shutdown · Active programs live here</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-bar" style="width:380px;background:rgba(91,143,255,0.4);">Storage (HDD / SSD)</div>
+      <div class="mem-info"><strong>~1–10 ms</strong> · Hundreds of GB to TBs · Permanent · Slowest but biggest</div>
+    </div>
+  </div>
+
+  <div class="compare-grid" style="margin-top:1.5rem;">
+    <div class="compare-card">
+      <div class="cc-title" style="color:var(--accent2)">✅ Why RAM is fast</div>
+      <ul>
+        <li>Uses electricity to store data — no moving parts</li>
+        <li>CPU can access any location instantly (Random Access)</li>
+        <li>Reading is near-instant, measured in nanoseconds</li>
+      </ul>
+    </div>
+    <div class="compare-card">
+      <div class="cc-title" style="color:var(--accent4)">❌ Why RAM loses data</div>
+      <ul>
+        <li>Volatile — needs constant power to keep data</li>
+        <li>Turn off power = all data erased immediately</li>
+        <li>That's why you must save files before shutting down!</li>
+      </ul>
+    </div>
+  </div>
+
+  <p style="margin-top:1.5rem;">RAM is structured like a giant grid of billions of tiny switches. Each switch is 1 bit (0 or 1). A group of 8 bits = 1 byte. The CPU can jump to <em>any</em> address in RAM directly — that's why it's called <strong>Random Access</strong> Memory.</p>
+
+  <p style="margin-top:1rem;"><strong>Virtual Memory:</strong> When RAM runs full, the OS can use part of your storage drive as "fake RAM." It's much slower but lets big programs run anyway. That's why a PC with very little RAM feels sluggish.</p>
+
+  <div class="fun-box">💡 <strong>Fun fact:</strong> In 1981, Bill Gates reportedly said <em>"640 KB ought to be enough for anybody."</em> Today, a single Chrome browser tab can use more than 640 KB!
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 4 ========== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <div>
+      <div class="section-title" style="color: var(--accent4);">Storage Systems</div>
+      <div class="section-sub">Where data is kept permanently — even with power off</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:var(--accent4);">
+    <div class="label" style="color:var(--accent4);">// what is it?</div>
+    <p>Storage permanently holds your photos, games, documents, and the operating system itself. Unlike RAM, it survives a power cut. When you open a file, the OS copies it from storage into RAM so the CPU can work with it. When you save, it writes back to storage.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">📚 real-life analogy — bookshelf</div>
+    <p>Storage is like a <strong>bookshelf or filing cabinet</strong>. Books (files) sit on the shelf permanently. When you want to read one, you take it off and put it on your desk (RAM). The book stays on the shelf even when you leave the room (power off).</p>
+  </div>
+
+  <!-- Storage comparison diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <!-- HDD -->
+      <rect x="30" y="20" width="185" height="160" rx="10" fill="rgba(91,143,255,0.08)" stroke="rgba(91,143,255,0.3)" stroke-width="1"/>
+      <text x="122" y="45" text-anchor="middle" fill="#5b8fff" font-size="12" font-weight="700">HDD</text>
+      <text x="122" y="62" text-anchor="middle" fill="#7c8096" font-size="10">Hard Disk Drive</text>
+      <!-- Spinning disk symbol -->
+      <circle cx="122" cy="105" r="30" fill="none" stroke="rgba(91,143,255,0.4)" stroke-width="2"/>
+      <circle cx="122" cy="105" r="8" fill="rgba(91,143,255,0.3)"/>
+      <line x1="122" y1="75" x2="130" y2="100" stroke="rgba(91,143,255,0.6)" stroke-width="2"/>
+      <text x="122" y="155" text-anchor="middle" fill="#7c8096" font-size="10">~150 MB/s · Cheap</text>
+      <text x="122" y="170" text-anchor="middle" fill="#7c8096" font-size="10">Moving parts ⚙️</text>
+
+      <!-- SATA SSD -->
+      <rect x="240" y="20" width="165" height="160" rx="10" fill="rgba(62,207,142,0.08)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="322" y="45" text-anchor="middle" fill="#3ecf8e" font-size="12" font-weight="700">SATA SSD</text>
+      <text x="322" y="62" text-anchor="middle" fill="#7c8096" font-size="10">Solid State Drive</text>
+      <!-- Chip grid symbol -->
+      <rect x="296" y="74" width="52" height="52" rx="4" fill="rgba(62,207,142,0.2)" stroke="rgba(62,207,142,0.5)" stroke-width="1"/>
+      <rect x="302" y="80" width="16" height="16" rx="2" fill="rgba(62,207,142,0.4)"/>
+      <rect x="322" y="80" width="16" height="16" rx="2" fill="rgba(62,207,142,0.4)"/>
+      <rect x="302" y="100" width="16" height="16" rx="2" fill="rgba(62,207,142,0.4)"/>
+      <rect x="322" y="100" width="16" height="16" rx="2" fill="rgba(62,207,142,0.4)"/>
+      <text x="322" y="150" text-anchor="middle" fill="#7c8096" font-size="10">~550 MB/s · Moderate</text>
+      <text x="322" y="165" text-anchor="middle" fill="#7c8096" font-size="10">No moving parts ✅</text>
+
+      <!-- NVMe SSD -->
+      <rect x="430" y="20" width="165" height="160" rx="10" fill="rgba(247,168,74,0.08)" stroke="rgba(247,168,74,0.3)" stroke-width="1"/>
+      <text x="512" y="45" text-anchor="middle" fill="#f7a84a" font-size="12" font-weight="700">NVMe SSD</text>
+      <text x="512" y="62" text-anchor="middle" fill="#7c8096" font-size="10">M.2 PCIe slot</text>
+      <!-- M.2 stick symbol -->
+      <rect x="482" y="74" width="60" height="22" rx="4" fill="rgba(247,168,74,0.3)" stroke="rgba(247,168,74,0.5)" stroke-width="1"/>
+      <rect x="486" y="80" width="8" height="10" rx="2" fill="rgba(247,168,74,0.6)"/>
+      <rect x="498" y="80" width="8" height="10" rx="2" fill="rgba(247,168,74,0.6)"/>
+      <rect x="510" y="80" width="8" height="10" rx="2" fill="rgba(247,168,74,0.6)"/>
+      <rect x="522" y="80" width="14" height="10" rx="2" fill="rgba(247,168,74,0.8)"/>
+      <text x="512" y="130" text-anchor="middle" fill="#7c8096" font-size="10">3,000–7,000 MB/s</text>
+      <text x="512" y="150" text-anchor="middle" fill="#f7a84a" font-size="11" font-weight="600">Blazing fast ⚡</text>
+      <text x="512" y="170" text-anchor="middle" fill="#7c8096" font-size="10">Sits on motherboard</text>
+
+      <!-- Cloud -->
+      <rect x="620" y="20" width="175" height="160" rx="10" fill="rgba(167,139,250,0.08)" stroke="rgba(167,139,250,0.3)" stroke-width="1"/>
+      <text x="707" y="45" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="700">Cloud Storage</text>
+      <text x="707" y="62" text-anchor="middle" fill="#7c8096" font-size="10">Remote / Online</text>
+      <!-- Cloud icon simple -->
+      <ellipse cx="707" cy="100" rx="35" ry="20" fill="rgba(167,139,250,0.25)" stroke="rgba(167,139,250,0.5)" stroke-width="1"/>
+      <ellipse cx="690" cy="105" rx="18" ry="14" fill="rgba(167,139,250,0.25)" stroke="rgba(167,139,250,0.5)" stroke-width="1"/>
+      <ellipse cx="724" cy="108" rx="18" ry="14" fill="rgba(167,139,250,0.25)" stroke="rgba(167,139,250,0.5)" stroke-width="1"/>
+      <text x="707" y="145" text-anchor="middle" fill="#7c8096" font-size="10">Google Drive, iCloud</text>
+      <text x="707" y="162" text-anchor="middle" fill="#7c8096" font-size="10">Accessible anywhere 🌐</text>
+    </svg>
+  </div>
+
+  <table class="styled-table">
+    <thead><tr><th>Type</th><th>Speed</th><th>Durability</th><th>Price</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-blue">HDD</span></td><td>~150 MB/s — Slow</td><td>Fragile (moving parts)</td><td>Cheapest</td><td>Bulk storage, backups</td></tr>
+      <tr><td><span class="tag tag-green">SATA SSD</span></td><td>~550 MB/s — Fast</td><td>Very durable</td><td>Moderate</td><td>OS + daily apps</td></tr>
+      <tr><td><span class="tag tag-orange">NVMe SSD</span></td><td>~7000 MB/s — Blazing</td><td>Very durable</td><td>Higher</td><td>Gaming, video editing</td></tr>
+      <tr><td><span class="tag tag-purple">Cloud</span></td><td>Depends on internet</td><td>Backed up remotely</td><td>Subscription</td><td>Sharing, anywhere access</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <strong>📸 Example — Saving a photo:</strong> You take a photo → it's in RAM temporarily → you tap "Save" → the OS writes it to storage → it stays there permanently, even after restart.
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 5 ========== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <div>
+      <div class="section-title" style="color: var(--accent5);">Operating Systems</div>
+      <div class="section-sub">The manager software that runs and controls everything</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:var(--accent5);">
+    <div class="label" style="color:var(--accent5);">// what is it?</div>
+    <p>An <strong>Operating System (OS)</strong> is the master software that sits between your apps and the hardware. Without it, applications would need to know exactly how to speak to every single piece of hardware — an impossible task. The OS handles that complexity so every app can just focus on its job.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">🏫 real-life analogy — school principal</div>
+    <p>The OS is like the <strong>principal of a school</strong>: Students (apps) need resources — classrooms = CPU time, paper = memory. The principal (OS) assigns classrooms, manages schedules, and resolves conflicts. Students never grab classrooms themselves — they always ask the principal!</p>
+  </div>
+
+  <!-- OS Layer Model -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <!-- User Apps layer -->
+      <rect x="40" y="20" width="740" height="52" rx="10" fill="rgba(91,143,255,0.12)" stroke="rgba(91,143,255,0.4)" stroke-width="1"/>
+      <text x="410" y="42" text-anchor="middle" fill="#5b8fff" font-size="12" font-weight="700">USER APPLICATIONS</text>
+      <text x="410" y="60" text-anchor="middle" fill="#7c8096" font-size="11">Chrome · VS Code · Games · Spotify · WhatsApp · Word</text>
+
+      <!-- OS layer -->
+      <rect x="40" y="88" width="740" height="140" rx="10" fill="rgba(62,207,142,0.05)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="410" y="107" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="700" letter-spacing="1">OPERATING SYSTEM KERNEL</text>
+
+      <!-- OS sub-boxes -->
+      <rect x="56" y="116" width="130" height="52" rx="7" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="121" y="138" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="600">Process Mgr</text>
+      <text x="121" y="154" text-anchor="middle" fill="#7c8096" font-size="10">CPU scheduling</text>
+
+      <rect x="202" y="116" width="130" height="52" rx="7" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="267" y="138" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="600">Memory Mgr</text>
+      <text x="267" y="154" text-anchor="middle" fill="#7c8096" font-size="10">RAM allocation</text>
+
+      <rect x="348" y="116" width="130" height="52" rx="7" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="413" y="138" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="600">File System</text>
+      <text x="413" y="154" text-anchor="middle" fill="#7c8096" font-size="10">Files &amp; folders</text>
+
+      <rect x="494" y="116" width="130" height="52" rx="7" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="559" y="138" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="600">Device Drivers</text>
+      <text x="559" y="154" text-anchor="middle" fill="#7c8096" font-size="10">Hardware I/O</text>
+
+      <rect x="640" y="116" width="124" height="52" rx="7" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="702" y="138" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="600">Security</text>
+      <text x="702" y="154" text-anchor="middle" fill="#7c8096" font-size="10">Users &amp; access</text>
+
+      <!-- Hardware layer -->
+      <rect x="40" y="244" width="740" height="44" rx="10" fill="rgba(167,139,250,0.1)" stroke="rgba(167,139,250,0.3)" stroke-width="1"/>
+      <text x="410" y="264" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="700">HARDWARE</text>
+      <text x="410" y="280" text-anchor="middle" fill="#7c8096" font-size="11">CPU · RAM · Disk · GPU · Network Card · Display</text>
+
+      <!-- Connecting arrows between layers -->
+      <line x1="410" y1="72" x2="410" y2="86" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="3 2"/>
+      <line x1="410" y1="228" x2="410" y2="242" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="3 2"/>
+    </svg>
+  </div>
+
+  <table class="styled-table">
+    <thead><tr><th>OS</th><th>Made by</th><th>Used on</th><th>Known for</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-blue">Windows 11</span></td><td>Microsoft</td><td>PCs, Laptops</td><td>Most common desktop OS, games</td></tr>
+      <tr><td><span class="tag tag-orange">macOS</span></td><td>Apple</td><td>Mac computers</td><td>Smooth design, creative work</td></tr>
+      <tr><td><span class="tag tag-green">Linux</span></td><td>Community</td><td>Servers, developer PCs</td><td>Free, open-source, powerful</td></tr>
+      <tr><td><span class="tag tag-green">Android</span></td><td>Google</td><td>Phones, tablets</td><td>Most-used mobile OS globally</td></tr>
+      <tr><td><span class="tag tag-orange">iOS</span></td><td>Apple</td><td>iPhone, iPad</td><td>Smooth, highly secure</td></tr>
+    </tbody>
+  </table>
+
+  <div class="fun-box">💡 <strong>Fun fact:</strong> The Linux kernel powers Android phones, web servers (including Google, Amazon), supercomputers, and even the International Space Station!
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 6 ========== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <div>
+      <div class="section-title" style="color: #79c0ff;">Processes &amp; Threads</div>
+      <div class="section-sub">How the OS runs multiple programs at the same time</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:#79c0ff;">
+    <div class="label" style="color:#79c0ff;">// what is it?</div>
+    <p>A <strong>Process</strong> is a running program. When you open Spotify, the OS creates a process for it. A <strong>Thread</strong> is a smaller unit of work inside a process. One process can have many threads running simultaneously — like multiple workers on the same project.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">🍔 real-life analogy — burger restaurant</div>
+    <p><strong>Each order</strong> = a Process (a running instance of "make a burger") &nbsp;|&nbsp; <strong>Each worker on that order</strong> = a Thread (one grills the patty, one toasts the bun, one adds toppings). Multiple threads on one process = faster burger!</p>
+  </div>
+
+  <!-- Process vs Thread diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 220" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <!-- Process box -->
+      <rect x="30" y="20" width="380" height="180" rx="12" fill="rgba(91,143,255,0.06)" stroke="rgba(91,143,255,0.3)" stroke-width="1"/>
+      <text x="220" y="46" text-anchor="middle" fill="#79c0ff" font-size="12" font-weight="700">PROCESS: Chrome Browser</text>
+      <text x="220" y="62" text-anchor="middle" fill="#7c8096" font-size="10">Own memory space · Own files · Own PID</text>
+
+      <!-- Threads inside -->
+      <rect x="46" y="74" width="350" height="32" rx="6" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="221" y="94" text-anchor="middle" fill="#3ecf8e" font-size="11">Thread 1 — Rendering the webpage</text>
+
+      <rect x="46" y="112" width="350" height="32" rx="6" fill="rgba(247,168,74,0.08)" stroke="rgba(247,168,74,0.25)" stroke-width="1"/>
+      <text x="221" y="132" text-anchor="middle" fill="#f7a84a" font-size="11">Thread 2 — Downloading images</text>
+
+      <rect x="46" y="150" width="350" height="32" rx="6" fill="rgba(167,139,250,0.08)" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+      <text x="221" y="170" text-anchor="middle" fill="#a78bfa" font-size="11">Thread 3 — Playing audio</text>
+
+      <!-- Process States -->
+      <text x="500" y="30" text-anchor="middle" fill="#79c0ff" font-size="11" font-weight="700">PROCESS LIFECYCLE</text>
+      <rect x="440" y="44" width="72" height="28" rx="6" fill="rgba(91,143,255,0.12)" stroke="rgba(91,143,255,0.35)" stroke-width="1"/>
+      <text x="476" y="62" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">NEW</text>
+
+      <line x1="512" y1="58" x2="538" y2="58" stroke="#79c0ff" stroke-width="1.2" marker-end="url(#arr1)" fill="none"/>
+      <rect x="540" y="44" width="72" height="28" rx="6" fill="rgba(62,207,142,0.12)" stroke="rgba(62,207,142,0.35)" stroke-width="1"/>
+      <text x="576" y="62" text-anchor="middle" fill="#3ecf8e" font-size="10" font-weight="600">READY</text>
+
+      <line x1="612" y1="58" x2="638" y2="58" stroke="#79c0ff" stroke-width="1.2" marker-end="url(#arr1)" fill="none"/>
+      <rect x="640" y="44" width="76" height="28" rx="6" fill="rgba(247,168,74,0.12)" stroke="rgba(247,168,74,0.35)" stroke-width="1"/>
+      <text x="678" y="62" text-anchor="middle" fill="#f7a84a" font-size="10" font-weight="600">RUNNING</text>
+
+      <line x1="678" y1="72" x2="678" y2="98" stroke="#79c0ff" stroke-width="1.2" marker-end="url(#arr1)" fill="none"/>
+      <rect x="640" y="100" width="76" height="28" rx="6" fill="rgba(226,91,124,0.12)" stroke="rgba(226,91,124,0.35)" stroke-width="1"/>
+      <text x="678" y="118" text-anchor="middle" fill="#e25b7c" font-size="10" font-weight="600">WAITING</text>
+
+      <line x1="640" y1="114" x2="614" y2="114" stroke="#79c0ff" stroke-width="1.2" marker-end="url(#arr1)" fill="none"/>
+      <line x1="576" y1="100" x2="576" y2="72" stroke="#79c0ff" stroke-width="1.2" marker-end="url(#arr1)" fill="none"/>
+
+      <line x1="716" y1="58" x2="742" y2="58" stroke="#79c0ff" stroke-width="1.2" marker-end="url(#arr1)" fill="none"/>
+      <rect x="744" y="44" width="60" height="28" rx="6" fill="rgba(124,128,150,0.15)" stroke="rgba(124,128,150,0.35)" stroke-width="1"/>
+      <text x="774" y="62" text-anchor="middle" fill="#7c8096" font-size="10" font-weight="600">DONE</text>
+
+      <text x="576" y="150" text-anchor="middle" fill="#7c8096" font-size="10">← back to READY</text>
+      <text x="576" y="165" text-anchor="middle" fill="#7c8096" font-size="10">(when I/O completes)</text>
+
+      <!-- Shared memory label -->
+      <text x="221" y="197" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="10">All threads share the same memory space</text>
+    </svg>
+  </div>
+
+  <table class="styled-table">
+    <thead><tr><th>Feature</th><th>Process</th><th>Thread</th></tr></thead>
+    <tbody>
+      <tr><td>Memory</td><td>Own separate memory space</td><td>Shares the process's memory</td></tr>
+      <tr><td>Speed to create</td><td>Slower (heavy)</td><td>Faster (lightweight)</td></tr>
+      <tr><td>Communication</td><td>Complex (needs IPC)</td><td>Easy (shared memory)</td></tr>
+      <tr><td>If it crashes</td><td>Only that process dies</td><td>Can crash the whole process</td></tr>
+      <tr><td>Example</td><td>Opening Chrome = 1 process</td><td>Each Chrome tab = a thread</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <strong>🎮 Example — Playing Minecraft:</strong><br>
+    Process: The entire Minecraft app &nbsp;|&nbsp; Thread 1: Rendering graphics &nbsp;|&nbsp; Thread 2: Playing background music &nbsp;|&nbsp; Thread 3: Auto-saving your world — all happening simultaneously!
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 7 ========== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <div>
+      <div class="section-title" style="color: var(--accent2);">File Systems</div>
+      <div class="section-sub">How the OS organizes and retrieves data on storage</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:var(--accent2);">
+    <div class="label" style="color:var(--accent2);">// what is it?</div>
+    <p>A <strong>File System</strong> is the method the OS uses to organize, store, find, and manage files on a disk. Without it, your data would be a sea of random 0s and 1s with no way to find anything. It creates the folder-and-file structure you see in Windows Explorer or Finder.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">📖 real-life analogy — library catalog</div>
+    <p>A file system is like a library catalog system: <strong>Files</strong> = individual books &nbsp;|&nbsp; <strong>Folders/Directories</strong> = shelves and sections &nbsp;|&nbsp; <strong>File System</strong> = the catalog that tells you exactly where every book is. Without the catalog, finding a book means searching every shelf randomly!</p>
+  </div>
+
+  <!-- Directory tree diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 290" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono',monospace;">
+      <text x="30" y="28" fill="rgba(62,207,142,0.8)" font-size="11" font-weight="600">/ (root)</text>
+      <line x1="38" y1="32" x2="38" y2="250" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+      <line x1="38" y1="56" x2="60" y2="56" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="66" y="60" fill="#f7a84a" font-size="11">📁 home/</text>
+      <line x1="66" y1="64" x2="66" y2="160" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+        <line x1="66" y1="82" x2="88" y2="82" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="94" y="86" fill="#5b8fff" font-size="11">📁 alice/</text>
+        <line x1="94" y1="90" x2="94" y2="160" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+          <line x1="94" y1="108" x2="116" y2="108" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+          <text x="122" y="112" fill="#e8eaf0" font-size="11">📄 essay.docx</text>
+          <line x1="94" y1="126" x2="116" y2="126" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+          <text x="122" y="130" fill="#e8eaf0" font-size="11">📄 notes.txt</text>
+          <line x1="94" y1="144" x2="116" y2="144" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+          <text x="122" y="148" fill="#e8eaf0" font-size="11">📁 pictures/</text>
+
+        <line x1="66" y1="166" x2="88" y2="166" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="94" y="170" fill="#5b8fff" font-size="11">📁 bob/</text>
+
+      <line x1="38" y1="192" x2="60" y2="192" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="66" y="196" fill="#f7a84a" font-size="11">📁 etc/  </text>
+      <text x="150" y="196" fill="#7c8096" font-size="11">← system config files</text>
+
+      <line x1="38" y1="216" x2="60" y2="216" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="66" y="220" fill="#f7a84a" font-size="11">📁 var/  </text>
+      <text x="150" y="220" fill="#7c8096" font-size="11">← logs and variable data</text>
+
+      <line x1="38" y1="240" x2="60" y2="240" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="66" y="244" fill="#f7a84a" font-size="11">📁 usr/  </text>
+      <text x="150" y="244" fill="#7c8096" font-size="11">← programs and utilities</text>
+
+      <!-- Metadata box -->
+      <rect x="440" y="30" width="340" height="200" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="610" y="54" text-anchor="middle" fill="#7c8096" font-size="10" font-weight="600" letter-spacing="1">FILE METADATA</text>
+      <text x="460" y="80" fill="#3ecf8e" font-size="12" font-weight="600">essay.docx</text>
+      <text x="460" y="100" fill="#7c8096" font-size="11">Size:        45 KB</text>
+      <text x="460" y="118" fill="#7c8096" font-size="11">Created:     2024-01-15</text>
+      <text x="460" y="136" fill="#7c8096" font-size="11">Modified:    2024-03-22</text>
+      <text x="460" y="154" fill="#7c8096" font-size="11">Owner:       alice</text>
+      <text x="460" y="172" fill="#7c8096" font-size="11">Permissions: -rw-r--r--</text>
+      <text x="460" y="190" fill="#7c8096" font-size="11">Disk block:  #48291</text>
+      <text x="460" y="214" fill="rgba(255,255,255,0.15)" font-size="10">Every file has this metadata stored in the inode</text>
+    </svg>
+  </div>
+
+  <table class="styled-table">
+    <thead><tr><th>File System</th><th>Used by</th><th>Max file size</th><th>Key feature</th></tr></thead>
+    <tbody>
+      <tr><td><code>NTFS</code></td><td>Windows</td><td>16 EB (massive)</td><td>Journaling, permissions, encryption</td></tr>
+      <tr><td><code>ext4</code></td><td>Linux</td><td>16 TB</td><td>Reliable, fast, journaling</td></tr>
+      <tr><td><code>APFS</code></td><td>macOS / iOS</td><td>8 EB</td><td>Optimized for SSDs, snapshots</td></tr>
+      <tr><td><code>FAT32</code></td><td>USB drives</td><td>4 GB limit</td><td>Universal compatibility</td></tr>
+      <tr><td><code>exFAT</code></td><td>SD cards / USB</td><td>128 PB</td><td>Large files on portable drives</td></tr>
+    </tbody>
+  </table>
+
+  <div class="fun-box">💡 <strong>Fun fact:</strong> When you "delete" a file, the OS doesn't actually erase the data immediately — it just removes the catalog entry! The data stays until new data overwrites that space. That's exactly why file recovery software works!
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 8 ========== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <div>
+      <div class="section-title" style="color: var(--accent3);">System Boot Process</div>
+      <div class="section-sub">From pressing the power button to seeing the desktop — step by step</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:var(--accent3);">
+    <div class="label" style="color:var(--accent3);">// what is it?</div>
+    <p><strong>Booting</strong> is the process of starting a computer from zero — loading the OS into RAM so it's ready to use. A LOT happens in the few seconds between pressing power and seeing your desktop. The word "boot" comes from "bootstrapping" — pulling yourself up by your own bootstraps.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">☕ real-life analogy — opening a restaurant</div>
+    <p>1. Unlock the door (Power ON) → 2. Check ovens, fridges work (POST) → 3. Get the recipe book (load BIOS/UEFI) → 4. Hire staff for the day (load OS kernel) → 5. Set up all stations (drivers &amp; services) → 6. Open for customers (login screen!)</p>
+  </div>
+
+  <div class="boot-steps">
+    <div class="boot-step">
+      <div class="boot-icon" style="background:rgba(226,91,124,0.15);">⚡</div>
+      <div class="boot-text">
+        <strong style="color:var(--accent4)">1. Power On — electricity flows</strong>
+        <span>CPU gets power and immediately starts reading firmware instructions from ROM chip on the motherboard.</span>
+      </div>
+    </div>
+    <div class="boot-connector"></div>
+    <div class="boot-step">
+      <div class="boot-icon" style="background:rgba(247,168,74,0.15);">🔍</div>
+      <div class="boot-text">
+        <strong style="color:var(--accent3)">2. POST — Power-On Self Test</strong>
+        <span>Firmware checks all hardware: RAM working? Keyboard detected? GPU present? If something fails, you hear beep codes. That single beep on startup = "all clear!"</span>
+      </div>
+    </div>
+    <div class="boot-connector"></div>
+    <div class="boot-step">
+      <div class="boot-icon" style="background:rgba(91,143,255,0.15);">💾</div>
+      <div class="boot-text">
+        <strong style="color:var(--accent1)">3. BIOS / UEFI — firmware takes control</strong>
+        <span>BIOS (old) or UEFI (modern) firmware finds a bootable device — your SSD, HDD, or even a USB stick. UEFI has a mouse-driven interface and supports drives larger than 2 TB.</span>
+      </div>
+    </div>
+    <div class="boot-connector"></div>
+    <div class="boot-step">
+      <div class="boot-icon" style="background:rgba(62,207,142,0.12);">📦</div>
+      <div class="boot-text">
+        <strong style="color:var(--accent2)">4. Bootloader — loads the OS</strong>
+        <span>A small program (GRUB on Linux, WinBoot on Windows) loads. It finds the OS kernel and copies it into RAM. On dual-boot systems, this is where you pick which OS to use.</span>
+      </div>
+    </div>
+    <div class="boot-connector"></div>
+    <div class="boot-step">
+      <div class="boot-icon" style="background:rgba(167,139,250,0.12);">🧠</div>
+      <div class="boot-text">
+        <strong style="color:var(--accent5)">5. OS Kernel loads</strong>
+        <span>The core of the OS initializes memory management, process management, and device drivers. The kernel is now in charge of the entire machine.</span>
+      </div>
+    </div>
+    <div class="boot-connector"></div>
+    <div class="boot-step">
+      <div class="boot-icon" style="background:rgba(247,168,74,0.12);">⚙️</div>
+      <div class="boot-text">
+        <strong style="color:var(--accent3)">6. Services start (systemd / WinInit)</strong>
+        <span>Background services start up: networking, audio, display manager, Wi-Fi, antivirus, etc. On Linux this is <code>systemd</code>, on Windows it's <code>WinInit</code>.</span>
+      </div>
+    </div>
+    <div class="boot-connector"></div>
+    <div class="boot-step">
+      <div class="boot-icon" style="background:rgba(62,207,142,0.12);">🖥️</div>
+      <div class="boot-text">
+        <strong style="color:var(--accent2)">7. Login screen — you're in!</strong>
+        <span>The desktop environment loads and shows the login screen. The whole computer is now ready for you.</span>
+      </div>
+    </div>
+  </div>
+
+  <table class="styled-table" style="margin-top:1.5rem;">
+    <thead><tr><th>Feature</th><th>BIOS (Old)</th><th>UEFI (Modern)</th></tr></thead>
+    <tbody>
+      <tr><td>Boot speed</td><td>Slower</td><td>Much faster (supports fast boot)</td></tr>
+      <tr><td>Max disk size</td><td>2 TB limit</td><td>Over 9 ZB (no practical limit)</td></tr>
+      <tr><td>Interface</td><td>Text only, keyboard only</td><td>Mouse + GUI, graphical</td></tr>
+      <tr><td>Security</td><td>Basic</td><td>Secure Boot — prevents malware</td></tr>
+      <tr><td>Partition table</td><td>MBR (old standard)</td><td>GPT (modern, more partitions)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 9 ========== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <div>
+      <div class="section-title" style="color: var(--accent4);">Applications &amp; Services</div>
+      <div class="section-sub">Programs you use vs background workers keeping things running</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:var(--accent4);">
+    <div class="label" style="color:var(--accent4);">// what is it?</div>
+    <p><strong>Applications</strong> are programs users interact with directly — Chrome, Spotify, VS Code, games. <strong>Services</strong> (called <em>daemons</em> on Linux) are background programs that run silently to keep the system working — Wi-Fi management, antivirus, print spooler, system clock. You don't see them, but they're always there.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">🏨 real-life analogy — hotel</div>
+    <p><strong>Applications</strong> = guests using the rooms (visible, interactive, doing their thing) &nbsp;|&nbsp; <strong>Services</strong> = hotel staff working behind the scenes: housekeeping, security, chef, maintenance — all running 24/7 so guests have a great experience without thinking about it.</p>
+  </div>
+
+  <!-- App vs Service diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 210" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <!-- Apps column -->
+      <text x="195" y="24" text-anchor="middle" fill="#e25b7c" font-size="11" font-weight="700" letter-spacing="1">APPLICATIONS</text>
+      <text x="195" y="40" text-anchor="middle" fill="#7c8096" font-size="10">(you interact with)</text>
+      <rect x="40" y="50" width="310" height="150" rx="10" fill="rgba(226,91,124,0.05)" stroke="rgba(226,91,124,0.2)" stroke-width="1"/>
+
+      <rect x="56" y="64" width="130" height="28" rx="6" fill="rgba(226,91,124,0.1)" stroke="rgba(226,91,124,0.25)" stroke-width="1"/>
+      <text x="121" y="82" text-anchor="middle" fill="#e25b7c" font-size="11">Chrome Browser</text>
+      <rect x="200" y="64" width="130" height="28" rx="6" fill="rgba(226,91,124,0.1)" stroke="rgba(226,91,124,0.25)" stroke-width="1"/>
+      <text x="265" y="82" text-anchor="middle" fill="#e25b7c" font-size="11">VS Code</text>
+
+      <rect x="56" y="100" width="130" height="28" rx="6" fill="rgba(226,91,124,0.08)" stroke="rgba(226,91,124,0.2)" stroke-width="1"/>
+      <text x="121" y="118" text-anchor="middle" fill="#e25b7c" font-size="11">Spotify</text>
+      <rect x="200" y="100" width="130" height="28" rx="6" fill="rgba(226,91,124,0.08)" stroke="rgba(226,91,124,0.2)" stroke-width="1"/>
+      <text x="265" y="118" text-anchor="middle" fill="#e25b7c" font-size="11">Discord</text>
+
+      <rect x="56" y="136" width="130" height="28" rx="6" fill="rgba(226,91,124,0.06)" stroke="rgba(226,91,124,0.15)" stroke-width="1"/>
+      <text x="121" y="154" text-anchor="middle" fill="#e25b7c" font-size="11">Notepad</text>
+      <rect x="200" y="136" width="130" height="28" rx="6" fill="rgba(226,91,124,0.06)" stroke="rgba(226,91,124,0.15)" stroke-width="1"/>
+      <text x="265" y="154" text-anchor="middle" fill="#e25b7c" font-size="11">File Explorer</text>
+
+      <!-- Services column -->
+      <text x="625" y="24" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="700" letter-spacing="1">SERVICES</text>
+      <text x="625" y="40" text-anchor="middle" fill="#7c8096" font-size="10">(invisible background workers)</text>
+      <rect x="470" y="50" width="310" height="150" rx="10" fill="rgba(62,207,142,0.04)" stroke="rgba(62,207,142,0.2)" stroke-width="1"/>
+
+      <rect x="486" y="64" width="130" height="28" rx="6" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
+      <text x="551" y="82" text-anchor="middle" fill="#3ecf8e" font-size="11">Wi-Fi Manager</text>
+      <rect x="630" y="64" width="134" height="28" rx="6" fill="rgba(62,207,142,0.1)" stroke="rgba(62,207,142,0.25)" stroke-width="1"/>
+      <text x="697" y="82" text-anchor="middle" fill="#3ecf8e" font-size="11">Windows Update</text>
+
+      <rect x="486" y="100" width="130" height="28" rx="6" fill="rgba(62,207,142,0.08)" stroke="rgba(62,207,142,0.2)" stroke-width="1"/>
+      <text x="551" y="118" text-anchor="middle" fill="#3ecf8e" font-size="11">Antivirus</text>
+      <rect x="630" y="100" width="134" height="28" rx="6" fill="rgba(62,207,142,0.08)" stroke="rgba(62,207,142,0.2)" stroke-width="1"/>
+      <text x="697" y="118" text-anchor="middle" fill="#3ecf8e" font-size="11">Print Spooler</text>
+
+      <rect x="486" y="136" width="130" height="28" rx="6" fill="rgba(62,207,142,0.06)" stroke="rgba(62,207,142,0.15)" stroke-width="1"/>
+      <text x="551" y="154" text-anchor="middle" fill="#3ecf8e" font-size="11">Clock Sync (NTP)</text>
+      <rect x="630" y="136" width="134" height="28" rx="6" fill="rgba(62,207,142,0.06)" stroke="rgba(62,207,142,0.15)" stroke-width="1"/>
+      <text x="697" y="154" text-anchor="middle" fill="#3ecf8e" font-size="11">SSH Daemon</text>
+    </svg>
+  </div>
+
+  <div class="terms-grid">
+    <div class="term-card"><div class="term" style="color:var(--accent4)">Native Apps</div><div class="def">Built for a specific OS. <code>.exe</code> for Windows, <code>.app</code> for macOS. Fastest performance, most access to hardware.</div></div>
+    <div class="term-card"><div class="term" style="color:var(--accent1)">Web Apps</div><div class="def">Run inside a browser. Gmail, Google Docs, YouTube. No installation — works on any device with a browser.</div></div>
+    <div class="term-card"><div class="term" style="color:var(--accent2)">Mobile Apps</div><div class="def">For phones and tablets. Instagram, Maps, WhatsApp. Distributed through app stores (Play Store, App Store).</div></div>
+    <div class="term-card"><div class="term" style="color:var(--accent3)">System Services</div><div class="def">Part of the OS itself. File Explorer, Terminal, Task Manager. Run at the OS level — always available.</div></div>
+  </div>
+
+  <div class="tip-box">
+    <strong>🔍 Try it:</strong> On Windows, open Task Manager → Services tab. You'll see dozens of background services like <code>Spooler</code> (printing), <code>DHCP Client</code> (gets your IP address), <code>Windows Defender</code> (virus scanning).
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ========== SECTION 10 ========== -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <div>
+      <div class="section-title" style="color: var(--accent5);">Virtualization Basics</div>
+      <div class="section-sub">Running multiple computers inside one physical computer</div>
+    </div>
+  </div>
+
+  <div class="what-box" style="border-color:var(--accent5);">
+    <div class="label" style="color:var(--accent5);">// what is it?</div>
+    <p><strong>Virtualization</strong> lets you run multiple operating systems on one physical machine at the same time. Each Virtual Machine (VM) thinks it has its own hardware — but they're all sharing the same real CPU, RAM, and disk underneath. The software that manages this is called a <strong>Hypervisor</strong>.</p>
+  </div>
+
+  <div class="analogy-box">
+    <div class="label">🏢 real-life analogy — apartment building</div>
+    <p>One big building (physical computer) divided into separate apartments (VMs). Each apartment has its own door, kitchen, bedroom (OS, apps, files). The tenants don't know they're sharing walls, pipes, electricity (CPU, RAM, disk). The building manager (Hypervisor) keeps everything separate and allocates resources!</p>
+  </div>
+
+  <!-- Virtualization Diagram -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 820 290" xmlns="http://www.w3.org/2000/svg" style="font-family:'Sora',sans-serif;">
+      <!-- WITHOUT -->
+      <rect x="30" y="20" width="220" height="250" rx="12" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text x="140" y="40" text-anchor="middle" fill="#7c8096" font-size="10" font-weight="600" letter-spacing="1">WITHOUT VIRTUALIZATION</text>
+      <rect x="46" y="52" width="188" height="44" rx="7" fill="rgba(91,143,255,0.1)" stroke="rgba(91,143,255,0.3)" stroke-width="1"/>
+      <text x="140" y="74" text-anchor="middle" fill="#5b8fff" font-size="12">Windows OS</text>
+      <text x="140" y="88" text-anchor="middle" fill="#7c8096" font-size="10">(only one OS at a time)</text>
+      <rect x="46" y="210" width="188" height="44" rx="7" fill="rgba(167,139,250,0.1)" stroke="rgba(167,139,250,0.3)" stroke-width="1"/>
+      <text x="140" y="232" text-anchor="middle" fill="#a78bfa" font-size="12">Physical Hardware</text>
+      <text x="140" y="248" text-anchor="middle" fill="#7c8096" font-size="10">CPU · RAM · Disk · GPU</text>
+      <line x1="140" y1="96" x2="140" y2="208" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="140" y="145" text-anchor="middle" fill="#7c8096" font-size="10">tied together</text>
+      <text x="140" y="160" text-anchor="middle" fill="#7c8096" font-size="10">can't separate</text>
+
+      <!-- WITH -->
+      <rect x="280" y="20" width="510" height="250" rx="12" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text x="535" y="40" text-anchor="middle" fill="#7c8096" font-size="10" font-weight="600" letter-spacing="1">WITH VIRTUALIZATION</text>
+
+      <rect x="295" y="52" width="228" height="80" rx="8" fill="rgba(91,143,255,0.1)" stroke="rgba(91,143,255,0.3)" stroke-width="1"/>
+      <text x="409" y="72" text-anchor="middle" fill="#5b8fff" font-size="11" font-weight="700">VM 1 — Windows</text>
+      <rect x="305" y="80" width="200" height="40" rx="6" fill="rgba(91,143,255,0.08)"/>
+      <text x="409" y="98" text-anchor="middle" fill="#7c8096" font-size="10">Apps · Files · Own OS</text>
+      <text x="409" y="113" text-anchor="middle" fill="#7c8096" font-size="10">thinks it's the only system</text>
+
+      <rect x="543" y="52" width="228" height="80" rx="8" fill="rgba(62,207,142,0.08)" stroke="rgba(62,207,142,0.3)" stroke-width="1"/>
+      <text x="657" y="72" text-anchor="middle" fill="#3ecf8e" font-size="11" font-weight="700">VM 2 — Linux</text>
+      <rect x="553" y="80" width="200" height="40" rx="6" fill="rgba(62,207,142,0.06)"/>
+      <text x="657" y="98" text-anchor="middle" fill="#7c8096" font-size="10">Apps · Files · Own OS</text>
+      <text x="657" y="113" text-anchor="middle" fill="#7c8096" font-size="10">isolated from VM 1</text>
+
+      <!-- Hypervisor -->
+      <rect x="295" y="150" width="476" height="44" rx="8" fill="rgba(247,168,74,0.1)" stroke="rgba(247,168,74,0.35)" stroke-width="1"/>
+      <text x="533" y="170" text-anchor="middle" fill="#f7a84a" font-size="12" font-weight="700">HYPERVISOR</text>
+      <text x="533" y="186" text-anchor="middle" fill="#7c8096" font-size="10">VMware · VirtualBox · KVM · Hyper-V — manages all VMs</text>
+
+      <!-- Physical hardware -->
+      <rect x="295" y="212" width="476" height="44" rx="8" fill="rgba(167,139,250,0.1)" stroke="rgba(167,139,250,0.3)" stroke-width="1"/>
+      <text x="533" y="232" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="700">ONE Physical Machine</text>
+      <text x="533" y="248" text-anchor="middle" fill="#7c8096" font-size="10">1 real CPU · 1 real RAM · 1 real Disk — shared by all VMs</text>
+
+      <!-- Connecting lines -->
+      <line x1="409" y1="133" x2="409" y2="148" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <line x1="657" y1="133" x2="657" y2="148" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <line x1="533" y1="194" x2="533" y2="210" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <h3 style="font-size:0.8rem;margin:1.5rem 0 1rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">types of hypervisors</h3>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="cc-title" style="color:var(--accent3)">⚡ Type 1 — Bare Metal</div>
+      <ul>
+        <li>Runs <em>directly on hardware</em> — no host OS</li>
+        <li>Fastest performance, used in data centers</li>
+        <li>Examples: VMware ESXi, Microsoft Hyper-V, KVM</li>
+        <li>Powers AWS, Google Cloud, Azure servers</li>
+      </ul>
+    </div>
+    <div class="compare-card">
+      <div class="cc-title" style="color:var(--accent1)">🖥️ Type 2 — Hosted</div>
+      <ul>
+        <li>Runs on top of an existing OS</li>
+        <li>Easier to set up, used by developers and students</li>
+        <li>Examples: VirtualBox, VMware Workstation</li>
+        <li>Slightly slower but very convenient</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="styled-table" style="margin-top:1.5rem;">
+    <thead><tr><th>Feature</th><th>Virtual Machine (VM)</th><th>Container (Docker)</th></tr></thead>
+    <tbody>
+      <tr><td>What it includes</td><td>Full OS + Apps</td><td>App + dependencies only</td></tr>
+      <tr><td>Size</td><td>GBs</td><td>MBs</td></tr>
+      <tr><td>Start time</td><td>Minutes</td><td>Seconds</td></tr>
+      <tr><td>Isolation</td><td>Very strong (full OS boundary)</td><td>Process-level (shares OS kernel)</td></tr>
+      <tr><td>Best use case</td><td>Run different OS, strong isolation</td><td>Deploy apps fast, microservices</td></tr>
+    </tbody>
+  </table>
+
+  <div class="fun-box">💡 <strong>Fun fact:</strong> When you use AWS, Google Cloud, or Azure — you're renting a Virtual Machine running inside a massive data center. One physical server might be shared by hundreds of different customers simultaneously!
+  </div>
+
+  <div class="tip-box" style="margin-top:1.2rem;">
+    <strong>📌 Why virtualization matters:</strong><br>
+    • One server does the job of 10 → massive cost savings<br>
+    • Developers test on VMs without risking their main system<br>
+    • Snapshots — save the VM's exact state like a game save, restore anytime<br>
+    • Powers the entire cloud computing industry
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:3rem 0 1rem;border-top:1px solid var(--border);margin-top:4rem;">
+  <div style="font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.08em;">T01 · Systems &amp; OS Internals · Level 1 — Computing Foundations</div>
+  <div style="font-family:var(--mono);font-size:0.72rem;color:rgba(124,128,150,0.5);margin-top:4px;">10 topics · Internship Study Notes</div>
+</div>
+
+</div>
+</body>
+</html>

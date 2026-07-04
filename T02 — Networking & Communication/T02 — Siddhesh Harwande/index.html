@@ -1,0 +1,2458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Foundations — T02 Interactive Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #0d1220;
+  --bg3: #111827;
+  --card: #141c2e;
+  --card2: #1a2438;
+  --border: #1e2d47;
+  --border2: #243550;
+  --accent: #00d4ff;
+  --accent2: #7c3aed;
+  --accent3: #10b981;
+  --accent4: #f59e0b;
+  --accent5: #ef4444;
+  --accent6: #ec4899;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --glow: 0 0 20px rgba(0,212,255,0.3);
+  --glow2: 0 0 20px rgba(124,58,237,0.3);
+  --radius: 12px;
+  --radius2: 8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Syne',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* STARS BG */
+.stars-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,0.07) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(0,212,255,0.07) 0%,transparent 60%),
+             var(--bg);
+}
+.stars-bg::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,0.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 30% 40%,rgba(255,255,255,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,0.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 80% 60%,rgba(255,255,255,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 50% 80%,rgba(255,255,255,0.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 90% 30%,rgba(255,255,255,0.2) 0%,transparent 100%);
+}
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(10,14,26,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;
+}
+.nav-inner{display:flex;align-items:center;gap:0;overflow-x:auto;height:56px;scrollbar-width:none;}
+.nav-inner::-webkit-scrollbar{display:none;}
+.nav-logo{
+  font-family:'Space Mono',monospace;font-weight:700;font-size:0.85rem;
+  color:var(--accent);white-space:nowrap;margin-right:1.5rem;
+  text-shadow:var(--glow);
+}
+.nav-item{
+  padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;
+  font-size:0.7rem;font-weight:600;white-space:nowrap;
+  color:var(--text2);border:none;background:none;
+  transition:all 0.2s;letter-spacing:0.03em;
+}
+.nav-item:hover,.nav-item.active{color:var(--accent);background:rgba(0,212,255,0.08);}
+/* MAIN */
+main{position:relative;z-index:1;padding-top:56px;}
+/* HERO */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:4rem 2rem;position:relative;overflow:hidden;
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,0.04) 1px,transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 70%);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);
+  padding:0.35rem 1rem;border-radius:50px;
+  font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--accent);
+  margin-bottom:2rem;letter-spacing:0.05em;
+}
+.hero-badge span{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--accent);animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.4);}}
+.hero h1{
+  font-size:clamp(2.5rem,7vw,5.5rem);font-weight:800;line-height:1.05;
+  letter-spacing:-0.02em;margin-bottom:1.5rem;
+}
+.hero h1 span{color:var(--accent);}
+.hero p{
+  font-size:1.15rem;color:var(--text2);max-width:600px;line-height:1.7;
+  margin-bottom:2.5rem;font-family:'Space Mono',monospace;font-size:0.9rem;
+}
+.hero-stats{
+  display:flex;gap:2rem;margin-bottom:3rem;
+  flex-wrap:wrap;justify-content:center;
+}
+.hero-stat{
+  text-align:center;
+  background:var(--card);border:1px solid var(--border);
+  padding:1rem 1.5rem;border-radius:var(--radius);
+}
+.hero-stat .num{font-size:1.8rem;font-weight:800;color:var(--accent);}
+.hero-stat .lbl{font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;margin-top:0.2rem;}
+.btn-primary{
+  background:var(--accent);color:#0a0e1a;
+  padding:0.85rem 2rem;border-radius:8px;font-weight:700;
+  font-size:0.9rem;cursor:pointer;border:none;
+  transition:all 0.2s;letter-spacing:0.02em;
+  box-shadow:0 0 30px rgba(0,212,255,0.4);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 40px rgba(0,212,255,0.6);}
+/* SECTIONS */
+.section{padding:5rem 2rem;max-width:1200px;margin:0 auto;}
+.section-header{text-align:center;margin-bottom:3rem;}
+.section-label{
+  font-family:'Space Mono',monospace;font-size:0.7rem;
+  color:var(--accent);letter-spacing:0.15em;text-transform:uppercase;
+  margin-bottom:0.75rem;display:block;
+}
+.section-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;line-height:1.1;}
+.section-sub{color:var(--text2);margin-top:0.75rem;font-size:1rem;line-height:1.6;}
+/* CARDS */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.5rem;
+  transition:all 0.3s;
+}
+.card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.card-accent{border-left:3px solid var(--accent);}
+/* OSI LAYER INTERACTIVE */
+.osi-wrap{display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;}
+.osi-stack{display:flex;flex-direction:column;gap:6px;min-width:300px;flex:1;}
+.osi-layer{
+  padding:0.9rem 1.2rem;border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;gap:1rem;
+  border:1px solid transparent;transition:all 0.25s;
+  position:relative;overflow:hidden;
+}
+.osi-layer::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3px;transition:width 0.3s;
+}
+.osi-layer:hover,.osi-layer.active{transform:translateX(4px);}
+.osi-layer.active{border-color:currentColor;}
+.osi-layer.active::before{width:100%;opacity:0.08;}
+.layer-num{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1rem;
+  width:28px;text-align:center;
+}
+.layer-name{font-weight:700;font-size:0.9rem;}
+.layer-tag{font-size:0.7rem;opacity:0.7;font-family:'Space Mono',monospace;}
+.osi-detail{
+  flex:2;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:2rem;min-height:400px;
+  position:sticky;top:70px;
+}
+.osi-detail h3{font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;}
+.osi-detail .role{color:var(--text2);margin-bottom:1.5rem;font-size:0.9rem;font-family:'Space Mono',monospace;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;}
+.detail-item{
+  background:var(--card2);padding:1rem;border-radius:var(--radius2);
+  border:1px solid var(--border);
+}
+.detail-item h4{font-size:0.8rem;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.05em;}
+.detail-item p,.detail-item ul{font-size:0.85rem;color:var(--text2);line-height:1.6;}
+.detail-item ul{padding-left:1rem;}
+.proto-list{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.75rem;}
+.proto-badge{
+  padding:0.2rem 0.6rem;border-radius:4px;font-family:'JetBrains Mono',monospace;
+  font-size:0.72rem;font-weight:700;background:rgba(0,212,255,0.1);
+  border:1px solid rgba(0,212,255,0.25);color:var(--accent);
+}
+.proto-badge.udp{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.25);color:var(--accent4);}
+.proto-badge.app{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.25);color:var(--accent3);}
+/* ENCAPSULATION ANIM */
+.encap-demo{margin-top:2rem;}
+.encap-title{font-size:0.8rem;font-family:'Space Mono',monospace;color:var(--text2);margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.05em;}
+.encap-layers{display:flex;flex-direction:column;gap:4px;}
+.encap-layer{
+  display:flex;align-items:center;gap:0.5rem;
+  padding:0.5rem 0.75rem;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:0.75rem;
+  opacity:0;transform:translateX(-20px);transition:all 0.4s;
+}
+.encap-layer.show{opacity:1;transform:translateX(0);}
+/* TCP/IP */
+.tcpip-compare{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem;}
+.model-col{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.model-header{padding:1rem 1.5rem;font-weight:700;font-size:0.9rem;letter-spacing:0.05em;}
+.model-layers-list{padding:1rem;}
+.model-layer-item{
+  padding:0.7rem 1rem;border-radius:6px;margin-bottom:0.4rem;
+  font-size:0.82rem;cursor:pointer;transition:all 0.2s;
+  display:flex;justify-content:space-between;align-items:center;
+}
+/* IP CALCULATOR */
+.ip-calc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;}
+.ip-input-row{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem;}
+.ip-input{
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:8px;padding:0.65rem 1rem;
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:1rem;
+  width:220px;transition:border-color 0.2s;outline:none;
+}
+.ip-input:focus{border-color:var(--accent);}
+.cidr-input{width:70px;}
+.btn-calc{
+  background:var(--accent2);color:white;border:none;
+  padding:0.65rem 1.5rem;border-radius:8px;font-weight:700;
+  cursor:pointer;transition:all 0.2s;font-size:0.85rem;
+}
+.btn-calc:hover{background:#6d28d9;}
+.ip-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;}
+.ip-result-item{
+  background:var(--card2);padding:1rem;border-radius:8px;border:1px solid var(--border);
+}
+.ip-result-item .rlabel{font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:0.3rem;text-transform:uppercase;}
+.ip-result-item .rval{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--accent);}
+/* BIT VISUAL */
+.bit-visual{display:flex;gap:2px;margin-top:1rem;flex-wrap:wrap;}
+.bit-group{display:flex;gap:1px;margin-right:6px;}
+.bit{
+  width:22px;height:26px;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:0.65rem;
+  border-radius:3px;background:var(--card2);border:1px solid var(--border);
+  color:var(--text3);transition:all 0.3s;
+}
+.bit.one{background:rgba(0,212,255,0.15);border-color:var(--accent);color:var(--accent);}
+/* SUBNET CALC */
+.subnet-controls{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem;}
+.subnet-slider{-webkit-appearance:none;appearance:none;height:4px;background:var(--border2);border-radius:2px;outline:none;flex:1;min-width:200px;}
+.subnet-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;
+  border-radius:50%;background:var(--accent);cursor:pointer;
+  box-shadow:0 0 8px rgba(0,212,255,0.5);
+}
+.subnet-val{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;font-size:1.1rem;}
+.subnet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;}
+.subnet-block{
+  padding:1rem;border-radius:8px;
+  background:var(--card2);border:1px solid var(--border);
+  transition:all 0.25s;
+}
+.subnet-block:hover{border-color:var(--accent3);transform:scale(1.02);}
+.subnet-block .snet{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--accent3);font-weight:700;}
+.subnet-block .sinfo{font-size:0.75rem;color:var(--text2);margin-top:0.3rem;}
+/* PACKET TRACER */
+.packet-scene{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:2rem;position:relative;overflow:hidden;
+}
+.packet-track{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:2rem 0;position:relative;gap:1rem;flex-wrap:nowrap;overflow-x:auto;
+}
+.network-node{
+  display:flex;flex-direction:column;align-items:center;gap:0.5rem;
+  min-width:70px;
+}
+.node-icon{
+  width:56px;height:56px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;border:2px solid var(--border2);
+  background:var(--card2);transition:all 0.3s;
+  position:relative;
+}
+.node-icon.active{
+  border-color:var(--accent);
+  box-shadow:0 0 20px rgba(0,212,255,0.4);
+  animation:nodeGlow 0.6s ease;
+}
+@keyframes nodeGlow{0%{transform:scale(1.2);}100%{transform:scale(1);}}
+.node-label{font-size:0.7rem;color:var(--text2);font-family:'Space Mono',monospace;text-align:center;}
+.node-ip{font-size:0.65rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.track-line{
+  flex:1;height:2px;background:var(--border2);position:relative;min-width:30px;
+  display:flex;align-items:center;justify-content:center;
+}
+.packet-dot{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--accent);position:absolute;left:0;
+  box-shadow:0 0 10px rgba(0,212,255,0.8);
+  transition:left 1.2s cubic-bezier(0.4,0,0.2,1);display:none;
+}
+.packet-dot.nat{background:var(--accent4);}
+.packet-dot.show{display:block;}
+.step-log{
+  background:var(--card2);border-radius:8px;padding:1rem;
+  font-family:'JetBrains Mono',monospace;font-size:0.75rem;
+  max-height:150px;overflow-y:auto;color:var(--text2);
+  border:1px solid var(--border);margin-top:1rem;
+}
+.log-line{padding:0.2rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.log-line span{color:var(--accent);}
+.log-line.nat span{color:var(--accent4);}
+.log-line.dns span{color:var(--accent3);}
+.log-line.err span{color:var(--accent5);}
+.btn-row{display:flex;gap:0.75rem;margin-top:1rem;flex-wrap:wrap;}
+.btn-sm{
+  padding:0.5rem 1.2rem;border-radius:6px;font-size:0.8rem;
+  font-weight:700;cursor:pointer;border:none;transition:all 0.2s;
+  font-family:'Syne',sans-serif;
+}
+.btn-green{background:var(--accent3);color:#0a0e1a;}
+.btn-green:hover{filter:brightness(1.1);}
+.btn-blue{background:var(--accent);color:#0a0e1a;}
+.btn-blue:hover{filter:brightness(1.1);}
+.btn-purple{background:var(--accent2);color:white;}
+.btn-purple:hover{filter:brightness(1.2);}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+/* ROUTING TABLE */
+.rtable{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.rtable th{
+  text-align:left;padding:0.7rem 1rem;
+  font-family:'Space Mono',monospace;font-size:0.7rem;
+  color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;
+  background:var(--card2);border-bottom:1px solid var(--border);
+}
+.rtable td{
+  padding:0.7rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);
+  font-family:'JetBrains Mono',monospace;
+}
+.rtable tr:hover td{background:rgba(0,212,255,0.04);}
+.rtable tr.highlight td{background:rgba(0,212,255,0.08);color:var(--accent);}
+/* MAC TABLE */
+.mac-demo{display:grid;grid-template-columns:1fr 1fr;gap:2rem;flex-wrap:wrap;}
+.switch-vis{
+  background:var(--card2);border:2px solid var(--border2);
+  border-radius:12px;padding:1.5rem;text-align:center;
+  position:relative;
+}
+.switch-body{
+  background:linear-gradient(135deg,#1e2d47,#243550);
+  border-radius:8px;padding:1rem;margin:1rem 0;
+  display:flex;gap:4px;flex-wrap:wrap;justify-content:center;
+}
+.switch-port{
+  width:18px;height:24px;border-radius:3px;
+  background:var(--border);border:1px solid var(--border2);
+  cursor:pointer;transition:all 0.2s;
+}
+.switch-port.active{background:var(--accent3);box-shadow:0 0 8px rgba(16,185,129,0.6);}
+.switch-port.learning{background:var(--accent4);box-shadow:0 0 8px rgba(245,158,11,0.6);}
+.mac-table-vis{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;}
+/* NAT TABLE */
+.nat-demo{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.nat-side{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:1rem;}
+.nat-side h4{font-size:0.8rem;color:var(--text3);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;}
+.nat-device{
+  display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;
+  padding:0.4rem 0.6rem;border-radius:6px;background:var(--card);
+  font-family:'JetBrains Mono',monospace;font-size:0.75rem;
+  border:1px solid transparent;transition:all 0.3s;
+  cursor:pointer;
+}
+.nat-device.active{border-color:var(--accent);background:rgba(0,212,255,0.08);}
+.nat-device:hover{border-color:var(--border2);}
+/* DNS FLOW */
+.dns-flow{display:flex;flex-direction:column;gap:0.5rem;}
+.dns-step{
+  display:flex;align-items:center;gap:1rem;padding:0.75rem 1rem;
+  border-radius:8px;background:var(--card2);border:1px solid var(--border);
+  transition:all 0.3s;cursor:default;
+  opacity:0.4;
+}
+.dns-step.active{opacity:1;border-color:var(--accent3);background:rgba(16,185,129,0.08);}
+.dns-step.done{opacity:0.8;border-color:var(--border2);}
+.dns-icon{font-size:1.2rem;width:32px;text-align:center;}
+.dns-content h5{font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;}
+.dns-content p{font-size:0.75rem;color:var(--text2);font-family:'Space Mono',monospace;}
+.dns-arrow{color:var(--accent);font-size:0.7rem;margin-left:auto;font-family:'JetBrains Mono',monospace;}
+/* DHCP DORA */
+.dora-timeline{display:flex;gap:0;position:relative;overflow:hidden;border-radius:12px;margin-top:1.5rem;}
+.dora-phase{
+  flex:1;padding:1.2rem;text-align:center;cursor:pointer;
+  transition:all 0.3s;border-right:1px solid var(--border);
+  position:relative;
+}
+.dora-phase:last-child{border-right:none;}
+.dora-phase .letter{
+  font-size:2rem;font-weight:800;margin-bottom:0.3rem;
+  font-family:'Space Mono',monospace;
+}
+.dora-phase .name{font-size:0.8rem;font-weight:700;margin-bottom:0.3rem;}
+.dora-phase .desc{font-size:0.7rem;color:var(--text2);}
+.dora-phase::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  transform:scaleX(0);transition:transform 0.3s;
+}
+.dora-phase.active::after{transform:scaleX(1);}
+.dora-detail{
+  background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:1.5rem;margin-top:1rem;min-height:120px;
+  transition:all 0.3s;
+}
+/* VLAN VIS */
+.vlan-switch{
+  background:linear-gradient(135deg,#1a2438,#1e2d47);
+  border:2px solid var(--border2);border-radius:12px;padding:1.5rem;
+  position:relative;
+}
+.vlan-port-row{display:flex;gap:4px;justify-content:center;margin:1rem 0;}
+.vlan-port{
+  width:22px;height:28px;border-radius:4px;cursor:pointer;
+  transition:all 0.2s;border:2px solid transparent;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.5rem;font-family:'JetBrains Mono',monospace;
+}
+.vlan-port:hover{transform:scaleY(1.15);}
+.vlan-legend{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;}
+.vlan-chip{
+  display:flex;align-items:center;gap:0.4rem;
+  padding:0.3rem 0.7rem;border-radius:50px;font-size:0.75rem;font-weight:600;
+  border:1px solid transparent;cursor:pointer;transition:all 0.2s;
+}
+/* IPv6 VISUALIZER */
+.ipv6-display{
+  background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:1.5rem;
+  font-family:'JetBrains Mono',monospace;
+}
+.ipv6-groups{display:flex;gap:2px;flex-wrap:wrap;align-items:center;}
+.ipv6-group{
+  padding:0.3rem 0.5rem;border-radius:4px;font-size:0.9rem;font-weight:700;
+  background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;
+  transition:all 0.3s;
+}
+.ipv6-group.zero{
+  background:rgba(255,255,255,0.03);border-color:var(--border);color:var(--text3);
+}
+.ipv6-sep{color:var(--text3);padding:0 1px;}
+.ipv6-comp{color:var(--accent);font-weight:700;}
+/* QUIZ */
+.quiz-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;}
+.quiz-q{font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;line-height:1.5;}
+.quiz-opts{display:flex;flex-direction:column;gap:0.6rem;}
+.quiz-opt{
+  padding:0.8rem 1.2rem;border-radius:8px;cursor:pointer;
+  border:1px solid var(--border2);background:var(--card2);
+  font-size:0.88rem;transition:all 0.2s;text-align:left;
+  font-family:'Syne',sans-serif;color:var(--text);
+}
+.quiz-opt:hover{border-color:var(--accent);background:rgba(0,212,255,0.05);}
+.quiz-opt.correct{border-color:var(--accent3);background:rgba(16,185,129,0.12);color:var(--accent3);}
+.quiz-opt.wrong{border-color:var(--accent5);background:rgba(239,68,68,0.1);color:var(--accent5);}
+.quiz-feedback{
+  margin-top:1rem;padding:1rem;border-radius:8px;
+  font-size:0.85rem;line-height:1.6;display:none;
+}
+.quiz-feedback.show{display:block;}
+.quiz-feedback.good{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--accent3);}
+.quiz-feedback.bad{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;}
+.quiz-score{font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--text2);margin-top:1rem;}
+/* SECTION DIVIDER */
+.divider{
+  height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);
+  margin:0;
+}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+/* TOOLTIP */
+.tooltip-wrap{position:relative;display:inline-block;}
+.tooltip{
+  position:absolute;bottom:110%;left:50%;transform:translateX(-50%);
+  background:#1a2438;border:1px solid var(--border2);
+  padding:0.5rem 0.75rem;border-radius:6px;font-size:0.75rem;
+  white-space:nowrap;color:var(--text);pointer-events:none;
+  opacity:0;transition:opacity 0.2s;z-index:10;
+  font-family:'Space Mono',monospace;
+}
+.tooltip-wrap:hover .tooltip{opacity:1;}
+/* TAG */
+.tag{
+  display:inline-block;padding:0.15rem 0.5rem;border-radius:4px;
+  font-size:0.7rem;font-weight:700;font-family:'Space Mono',monospace;
+}
+.tag-cyan{background:rgba(0,212,255,0.12);color:var(--accent);}
+.tag-purple{background:rgba(124,58,237,0.12);color:#a78bfa;}
+.tag-green{background:rgba(16,185,129,0.12);color:var(--accent3);}
+.tag-amber{background:rgba(245,158,11,0.12);color:var(--accent4);}
+.tag-red{background:rgba(239,68,68,0.12);color:var(--accent5);}
+/* GRID LAYOUTS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+@media(max-width:768px){
+  .two-col,.three-col,.tcpip-compare,.mac-demo,.nat-demo,.detail-grid{grid-template-columns:1fr;}
+  .osi-wrap{flex-direction:column;}
+  .osi-detail{position:static;}
+  .dora-timeline{flex-direction:column;}
+  .hero-stats{gap:1rem;}
+}
+/* PROGRESS */
+.progress-bar{
+  height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:0.5rem;
+}
+.progress-fill{
+  height:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width 0.5s;
+}
+/* ANCHOR FIX */
+section[id]{scroll-margin-top:70px;}
+/* ANIMATED BORDER */
+.animated-border{
+  position:relative;
+  background:var(--card);
+  border-radius:var(--radius);
+}
+.animated-border::before{
+  content:'';position:absolute;inset:-1px;border-radius:calc(var(--radius)+1px);
+  background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3),var(--accent));
+  background-size:300% 300%;
+  animation:borderAnim 6s linear infinite;
+  z-index:-1;
+}
+@keyframes borderAnim{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+/* FLOATING LABELS */
+.float-note{
+  background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);
+  border-radius:8px;padding:0.75rem 1rem;margin-top:0.75rem;
+  font-size:0.8rem;color:var(--text2);line-height:1.6;
+}
+.float-note strong{color:var(--accent);}
+/* INFO BOX */
+.info-box{
+  background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);
+  border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;
+  font-size:0.85rem;color:var(--text2);line-height:1.7;
+}
+.info-box .info-title{color:var(--accent3);font-weight:700;font-size:0.8rem;font-family:'Space Mono',monospace;margin-bottom:0.4rem;}
+.warn-box{
+  background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);
+  border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;
+  font-size:0.85rem;color:var(--text2);line-height:1.7;
+}
+.warn-box .warn-title{color:var(--accent4);font-weight:700;font-size:0.8rem;font-family:'Space Mono',monospace;margin-bottom:0.4rem;}
+</style>
+</head>
+<body>
+<div class="stars-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">◈ NET-T02</div>
+    <button class="nav-item active" onclick="scrollTo('hero')">Home</button>
+    <button class="nav-item" onclick="scrollTo('osi')">OSI Model</button>
+    <button class="nav-item" onclick="scrollTo('tcpip')">TCP/IP</button>
+    <button class="nav-item" onclick="scrollTo('ipv4')">IPv4</button>
+    <button class="nav-item" onclick="scrollTo('ipv6')">IPv6</button>
+    <button class="nav-item" onclick="scrollTo('subnet')">Subnetting</button>
+    <button class="nav-item" onclick="scrollTo('routing')">Routing</button>
+    <button class="nav-item" onclick="scrollTo('switching')">Switching</button>
+    <button class="nav-item" onclick="scrollTo('nat')">NAT</button>
+    <button class="nav-item" onclick="scrollTo('vlan')">VLANs</button>
+    <button class="nav-item" onclick="scrollTo('dns')">DNS</button>
+    <button class="nav-item" onclick="scrollTo('dhcp')">DHCP</button>
+    <button class="nav-item" onclick="scrollTo('e2e')">End-to-End</button>
+    <button class="nav-item" onclick="scrollTo('quiz')">Quiz</button>
+  </div>
+</nav>
+
+<main>
+<!-- HERO -->
+<section id="hero" class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge"><span></span>Interactive Network Foundations — T02</div>
+  <h1>Master <span>Computer</span><br>Networking</h1>
+  <p>// Deep-dive into every layer, protocol, and concept — with live simulations, interactive tools, and real-time packet tracing.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">11</div><div class="lbl">Core Topics</div></div>
+    <div class="hero-stat"><div class="num">7</div><div class="lbl">OSI Layers</div></div>
+    <div class="hero-stat"><div class="num">∞</div><div class="lbl">Subnets</div></div>
+    <div class="hero-stat"><div class="num">Live</div><div class="lbl">Simulations</div></div>
+  </div>
+  <button class="btn-primary" onclick="scrollTo('osi')">Start Learning →</button>
+</section>
+
+<div class="divider"></div>
+
+<!-- OSI MODEL -->
+<section id="osi">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 01</span>
+    <h2 class="section-title">OSI Model — 7-Layer Architecture</h2>
+    <p class="section-sub">The Open Systems Interconnection model is the universal blueprint for how network communication is structured. Click each layer to explore deeply.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">📖 What is the OSI Model?</div>
+    OSI (Open Systems Interconnection) is a conceptual framework developed by ISO that divides network communication into 7 distinct layers. Each layer has a specific responsibility and communicates only with the layers directly above and below it. It's NOT a physical implementation — it's a theoretical model used for designing, troubleshooting, and understanding networks. Think of it like a factory assembly line: each station adds something specific to the product before passing it along.
+  </div>
+
+  <div class="osi-wrap">
+    <div class="osi-stack" id="osiStack"></div>
+    <div class="osi-detail" id="osiDetail">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+        <div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;" id="detailIcon"></div>
+        <div>
+          <h3 id="detailTitle" style="font-size:1.4rem;"></h3>
+          <div class="role" id="detailRole"></div>
+        </div>
+      </div>
+      <div id="detailBody"></div>
+      <div class="encap-demo" id="encapDemo">
+        <div class="encap-title">📦 Data unit at this layer</div>
+        <div class="encap-layers" id="encapLayers"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="float-note" style="margin-top:2rem;">
+    <strong>Mnemonic (Top→Bottom):</strong> <em>"All People Seem To Need Data Processing"</em> — Application, Presentation, Session, Transport, Network, Data Link, Physical
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TCP/IP -->
+<section id="tcpip">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 02</span>
+    <h2 class="section-title">TCP/IP Model — The Real Internet</h2>
+    <p class="section-sub">The practical 4-layer model that actually runs the internet today. OSI is the theory; TCP/IP is the reality.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🌐 OSI vs TCP/IP</div>
+    While OSI has 7 layers for conceptual clarity, TCP/IP consolidates these into 4 layers that map directly to real protocols in use. The internet was designed around TCP/IP, not OSI. OSI is like the architect's blueprint; TCP/IP is the actual building.
+  </div>
+
+  <div class="tcpip-compare">
+    <div class="model-col">
+      <div class="model-header" style="background:rgba(0,212,255,0.1);color:var(--accent);">◈ OSI Model (7 Layers)</div>
+      <div class="model-layers-list" id="osiModelList"></div>
+    </div>
+    <div class="model-col">
+      <div class="model-header" style="background:rgba(124,58,237,0.1);color:#a78bfa;">◈ TCP/IP Model (4 Layers)</div>
+      <div class="model-layers-list" id="tcpipModelList"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem;" class="two-col">
+    <div class="card">
+      <h3 style="color:var(--accent);margin-bottom:1rem;font-size:1rem;">🔒 TCP — Transmission Control Protocol</h3>
+      <p style="font-size:0.85rem;color:var(--text2);line-height:1.7;margin-bottom:1rem;">TCP is connection-oriented and reliable. Before sending data, TCP performs a <strong style="color:var(--text);">3-Way Handshake</strong>:</p>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+        <div style="padding:0.5rem 0.8rem;background:var(--card2);border-radius:6px;border-left:2px solid var(--accent);">① SYN — Client: "I want to talk. My seq=100"</div>
+        <div style="padding:0.5rem 0.8rem;background:var(--card2);border-radius:6px;border-left:2px solid var(--accent3);">② SYN-ACK — Server: "OK. My seq=200, ack=101"</div>
+        <div style="padding:0.5rem 0.8rem;background:var(--card2);border-radius:6px;border-left:2px solid var(--accent2);">③ ACK — Client: "Got it. ack=201" → Connected!</div>
+      </div>
+      <div class="info-box" style="margin-top:1rem;">
+        <div class="info-title">USE CASES</div>
+        Web pages (HTTP/HTTPS), Email (SMTP/IMAP), File Transfer (FTP), SSH — anything needing guaranteed delivery.
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent4);margin-bottom:1rem;font-size:1rem;">⚡ UDP — User Datagram Protocol</h3>
+      <p style="font-size:0.85rem;color:var(--text2);line-height:1.7;margin-bottom:1rem;">UDP is connectionless and fast. No handshake, no guarantee, no retransmission. Just fire and forget.</p>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+        <div style="padding:0.5rem 0.8rem;background:var(--card2);border-radius:6px;border-left:2px solid var(--accent4);">➤ No connection setup — immediate sending</div>
+        <div style="padding:0.5rem 0.8rem;background:var(--card2);border-radius:6px;border-left:2px solid var(--accent4);">➤ No ACK — sender doesn't know if received</div>
+        <div style="padding:0.5rem 0.8rem;background:var(--card2);border-radius:6px;border-left:2px solid var(--accent4);">➤ Very low overhead — super fast</div>
+      </div>
+      <div class="warn-box" style="margin-top:1rem;">
+        <div class="warn-title">USE CASES</div>
+        Live streaming, Video calls (Zoom/Meet), Online gaming, DNS lookups, DHCP — speed matters more than perfection.
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem;" class="card">
+    <h3 style="margin-bottom:1rem;font-size:1rem;">🔌 Common Port Numbers (Must Know)</h3>
+    <div style="overflow-x:auto;">
+      <table class="rtable">
+        <thead><tr><th>Protocol</th><th>Port</th><th>Transport</th><th>Purpose</th></tr></thead>
+        <tbody id="portTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- IPv4 -->
+<section id="ipv4">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 03</span>
+    <h2 class="section-title">IPv4 — 32-bit Internet Addressing</h2>
+    <p class="section-sub">Every device needs an address. IPv4 is the classic system using 32-bit numbers written in dotted decimal notation.</p>
+  </div>
+
+  <div class="two-col" style="margin-bottom:2rem;">
+    <div>
+      <div class="info-box">
+        <div class="info-title">📌 IPv4 Structure</div>
+        An IPv4 address is 32 bits = 4 groups of 8 bits (called octets), each ranging from 0–255, written as <strong style="color:var(--accent);font-family:'JetBrains Mono',monospace;">W.X.Y.Z</strong>. Example: <strong style="color:var(--accent);font-family:'JetBrains Mono',monospace;">192.168.1.10</strong>
+      </div>
+      <div class="warn-box">
+        <div class="warn-title">⚠️ Network vs Host</div>
+        An IP address has two parts: <strong style="color:var(--accent4);">Network Part</strong> (identifies your network — like your street) and <strong style="color:var(--accent4);">Host Part</strong> (identifies your device — like your house number). The subnet mask tells you which part is which.
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h4 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text2);">🔢 Binary Breakdown Tool</h4>
+        <div class="ip-input-row">
+          <input class="ip-input" id="binInput" type="text" placeholder="192.168.1.10" value="192.168.1.10">
+          <button class="btn-calc" onclick="showBinary()">Convert</button>
+        </div>
+        <div id="binaryVis" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:1.5rem;font-size:1rem;">📊 IPv4 Address Classes</h3>
+    <div id="ipClassVis"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3 style="font-size:1rem;margin-bottom:1rem;">🔒 Private IPv4 Ranges</h3>
+      <p style="font-size:0.83rem;color:var(--text2);line-height:1.6;margin-bottom:1rem;">Private addresses are used inside local networks (home, office). They are NOT routable on the internet. NAT translates them to public IPs when needed.</p>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;" id="privateRanges"></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:1rem;margin-bottom:1rem;">⭐ Special IPv4 Addresses</h3>
+      <div id="specialIPs"></div>
+    </div>
+  </div>
+
+  <!-- IP CALCULATOR -->
+  <div style="margin-top:1.5rem;" class="animated-border" style="padding:2px;">
+    <div class="ip-calc" style="border-radius:var(--radius);">
+      <h3 style="margin-bottom:0.5rem;font-size:1.1rem;">🧮 IP Address & Subnet Calculator</h3>
+      <p style="font-size:0.8rem;color:var(--text2);margin-bottom:1.5rem;">Enter any IPv4 address with CIDR notation to compute all network details instantly.</p>
+      <div class="ip-input-row">
+        <input class="ip-input" id="calcIP" type="text" placeholder="192.168.1.50" value="192.168.1.50">
+        <span style="color:var(--text3);font-family:'JetBrains Mono',monospace;">/</span>
+        <input class="ip-input cidr-input" id="calcCIDR" type="number" min="1" max="32" value="24">
+        <button class="btn-calc" onclick="calcIP()">Calculate</button>
+      </div>
+      <div class="ip-results" id="ipResults"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- IPv6 -->
+<section id="ipv6">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 04</span>
+    <h2 class="section-title">IPv6 — 128-bit Next Generation</h2>
+    <p class="section-sub">IPv4 only has ~4.3 billion addresses and they're almost gone. IPv6 brings 340 undecillion addresses and built-in improvements.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🚀 Why IPv6?</div>
+    By 2011, IANA exhausted the last IPv4 /8 blocks. IoT (billions of smart devices), mobile devices, and the growth of the internet made IPv6 inevitable. IPv6 isn't just "more addresses" — it also removes NAT, improves routing efficiency, mandates IPsec support, and eliminates broadcast (replaced with multicast/anycast).
+  </div>
+
+  <div class="two-col" style="margin-bottom:1.5rem;">
+    <div>
+      <div class="card" style="margin-bottom:1rem;">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">🔢 IPv6 Format Visualizer</h3>
+        <div class="ipv6-display">
+          <p style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:0.5rem;">FULL FORM (8 groups × 4 hex digits):</p>
+          <div class="ipv6-groups" id="ipv6Full"></div>
+          <p style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;margin:0.75rem 0 0.5rem;">COMPRESSED FORM (leading zeros removed, :: for longest zero run):</p>
+          <div class="ipv6-groups" id="ipv6Short"></div>
+        </div>
+        <div class="ip-input-row" style="margin-top:1rem;">
+          <input class="ip-input" id="ipv6Input" style="width:100%;" type="text" placeholder="2001:0db8:0000:0000:0000:8a2e:0370:7334" value="2001:0db8:0000:0000:0000:8a2e:0370:7334">
+          <button class="btn-calc" onclick="visualizeIPv6()">Visualize</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">📊 IPv4 vs IPv6 Comparison</h3>
+        <table class="rtable">
+          <thead><tr><th>Feature</th><th>IPv4</th><th>IPv6</th></tr></thead>
+          <tbody id="ipv6Compare"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:0.95rem;margin-bottom:1rem;">🎯 IPv6 Address Types</h3>
+    <div class="three-col" id="ipv6Types"></div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SUBNETTING -->
+<section id="subnet">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 05</span>
+    <h2 class="section-title">Subnetting — Divide & Conquer</h2>
+    <p class="section-sub">Subnetting lets you split a large IP block into smaller logical networks. Drag the slider to see subnets update live.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🧩 Why Subnet?</div>
+    Without subnetting, a company with 1000 devices all in one /16 network would have 65,534 devices receiving every broadcast. That's chaos. Subnetting creates smaller, quieter, more secure segments — just like dividing a city into neighborhoods, each with its own local mail delivery.
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem;">
+    <h3 style="font-size:1rem;margin-bottom:1.5rem;">⚙️ Live Subnet Calculator</h3>
+    <div class="subnet-controls">
+      <div>
+        <div style="font-size:0.75rem;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:0.4rem;">BASE NETWORK</div>
+        <input class="ip-input" id="subnetBase" type="text" value="192.168.1.0" style="width:180px;">
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.4rem;">
+          <span style="font-size:0.75rem;color:var(--text3);font-family:'Space Mono',monospace;">CIDR PREFIX</span>
+          <span class="subnet-val">/<span id="subnetCIDRVal">24</span></span>
+        </div>
+        <input type="range" class="subnet-slider" id="subnetSlider" min="16" max="30" value="24" oninput="updateSubnet()">
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:0.75rem;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:0.2rem;">SUBNETS</div>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--accent2);" id="subnetCount">1</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:0.75rem;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:0.2rem;">HOSTS/SUBNET</div>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--accent3);" id="hostsPerSubnet">254</div>
+      </div>
+    </div>
+    <div class="subnet-grid" id="subnetGrid"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3 style="font-size:0.95rem;margin-bottom:1rem;">📐 Subnet Mask Explained</h3>
+      <p style="font-size:0.83rem;color:var(--text2);line-height:1.6;margin-bottom:1rem;">A subnet mask has all 1s in the network bits and all 0s in the host bits. When ANDed with an IP, it reveals the network address.</p>
+      <div id="maskExplainer"></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.95rem;margin-bottom:1rem;">📋 Common CIDR Reference</h3>
+      <table class="rtable">
+        <thead><tr><th>CIDR</th><th>Subnet Mask</th><th>Hosts</th><th>Class</th></tr></thead>
+        <tbody id="cidrTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ROUTING -->
+<section id="routing">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 06</span>
+    <h2 class="section-title">Routing — GPS for Data Packets</h2>
+    <p class="section-sub">Routers connect networks and decide the best path for each packet. Click Simulate to watch a packet travel.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🗺️ What is Routing?</div>
+    Routing is the process of forwarding packets from a source network to a destination network, often across many intermediate networks. A router is a Layer 3 device that maintains a routing table — a map of known networks and how to reach them. When a packet arrives, the router looks up the destination IP, finds the best matching route, and forwards the packet out the appropriate interface.
+  </div>
+
+  <div class="two-col" style="margin-bottom:1.5rem;">
+    <div>
+      <div class="card" style="margin-bottom:1rem;">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">📊 Interactive Routing Table</h3>
+        <p style="font-size:0.8rem;color:var(--text2);margin-bottom:1rem;">Enter a destination IP to see which route is selected (longest prefix match):</p>
+        <div class="ip-input-row" style="margin-bottom:1rem;">
+          <input class="ip-input" id="routeLookup" type="text" placeholder="8.8.8.8" value="8.8.8.8">
+          <button class="btn-calc" onclick="lookupRoute()">Lookup</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="rtable">
+            <thead><tr><th>Destination</th><th>Mask</th><th>Next Hop</th><th>Interface</th><th>Metric</th></tr></thead>
+            <tbody id="routeTable"></tbody>
+          </table>
+        </div>
+        <div id="routeResult" style="margin-top:0.75rem;font-size:0.82rem;font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">⚖️ Static vs Dynamic Routing</h3>
+        <div id="routingTypes"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:0.95rem;margin-bottom:1rem;">🌐 Routing Protocols</h3>
+    <div id="routingProtocols"></div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SWITCHING -->
+<section id="switching">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 07</span>
+    <h2 class="section-title">Switching — Local Delivery via MAC</h2>
+    <p class="section-sub">Switches forward frames inside a LAN using hardware MAC addresses. Watch the MAC table build itself as devices communicate.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🔌 What is Switching?</div>
+    A switch is a Layer 2 device that operates within a single network segment (LAN). Unlike a router (which moves packets between networks), a switch moves frames between devices on the same network. It uses MAC addresses — unique 48-bit hardware identifiers burned into each NIC — to figure out exactly which port to send each frame to.
+  </div>
+
+  <div class="mac-demo">
+    <div>
+      <div class="switch-vis">
+        <h4 style="font-size:0.85rem;color:var(--text2);font-family:'Space Mono',monospace;margin-bottom:0.5rem;">NETWORK SWITCH — 24 PORTS</h4>
+        <div class="switch-body" id="switchPorts"></div>
+        <div style="display:flex;gap:1rem;justify-content:center;font-size:0.7rem;font-family:'Space Mono',monospace;margin-top:0.5rem;">
+          <span style="color:var(--border2);">■ Inactive</span>
+          <span style="color:var(--accent3);">■ Active</span>
+          <span style="color:var(--accent4);">■ Learning</span>
+        </div>
+        <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.4rem;" id="pcList"></div>
+      </div>
+      <div class="btn-row" style="margin-top:1rem;">
+        <button class="btn-sm btn-green" onclick="simulateSwitch()">▶ Simulate Frame</button>
+        <button class="btn-sm btn-outline" onclick="resetSwitch()">↺ Reset</button>
+      </div>
+      <div class="step-log" id="switchLog" style="margin-top:0.75rem;"></div>
+    </div>
+    <div>
+      <div class="mac-table-vis">
+        <h4 style="font-size:0.85rem;color:var(--text2);font-family:'Space Mono',monospace;margin-bottom:1rem;">MAC ADDRESS TABLE</h4>
+        <table class="rtable">
+          <thead><tr><th>MAC Address</th><th>Port</th><th>VLAN</th><th>Age</th></tr></thead>
+          <tbody id="macTable"></tbody>
+        </table>
+        <div id="macTableEmpty" style="text-align:center;color:var(--text3);font-family:'Space Mono',monospace;font-size:0.75rem;padding:1rem;">Table empty — start simulation</div>
+      </div>
+
+      <div class="card" style="margin-top:1rem;">
+        <h3 style="font-size:0.9rem;margin-bottom:1rem;">🆚 Hub vs Switch</h3>
+        <table class="rtable">
+          <thead><tr><th>Feature</th><th>Hub</th><th>Switch</th></tr></thead>
+          <tbody id="hubVsSwitch"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.5rem;">
+    <h3 style="font-size:0.95rem;margin-bottom:1rem;">💥 Collision Domain vs Broadcast Domain</h3>
+    <div id="domainExplainer"></div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- NAT -->
+<section id="nat">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 08</span>
+    <h2 class="section-title">NAT — Network Address Translation</h2>
+    <p class="section-sub">NAT allows many devices with private IPs to share one public IP. The router acts as a smart translator between your private network and the internet.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🔄 What is NAT?</div>
+    Without NAT, every device in your home would need a unique public IP address. Since IPv4 only has ~4.3 billion addresses and there are billions of devices, NAT solves this by allowing your entire home network (with private addresses like 192.168.x.x) to share a single public IP from your ISP. The router maintains a NAT translation table to track which internal device each external connection belongs to.
+  </div>
+
+  <div style="margin-bottom:1.5rem;" class="card">
+    <h3 style="font-size:1rem;margin-bottom:1.5rem;">🎮 NAT Simulation — Home Network</h3>
+    <div class="nat-demo" id="natDemo">
+      <div class="nat-side">
+        <h4>🏠 PRIVATE NETWORK</h4>
+        <div id="natDevices"></div>
+      </div>
+      <div class="nat-side" style="text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;">
+        <div style="font-size:2rem;">🌐</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--accent4);">ROUTER / NAT</div>
+        <div style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;">Public IP:</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);">203.0.113.10</div>
+        <button class="btn-sm btn-blue" onclick="runNAT()" style="margin-top:0.5rem;">▶ Send Packet</button>
+        <button class="btn-sm btn-outline" onclick="resetNAT()" style="margin-top:0.3rem;">↺ Reset</button>
+      </div>
+      <div class="nat-side">
+        <h4>🌍 INTERNET SERVER</h4>
+        <div style="padding:0.8rem;background:var(--card);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+          <div style="color:var(--accent3);">example.com</div>
+          <div style="color:var(--text3);">93.184.216.34</div>
+          <div style="color:var(--text3);">Port: 80 (HTTP)</div>
+        </div>
+        <div id="serverResponse" style="margin-top:0.5rem;font-size:0.75rem;font-family:'JetBrains Mono',monospace;color:var(--text3);"></div>
+      </div>
+    </div>
+    <div style="margin-top:1rem;">
+      <h4 style="font-size:0.8rem;font-family:'Space Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">NAT Translation Table</h4>
+      <table class="rtable">
+        <thead><tr><th>Private IP</th><th>Priv Port</th><th>Public IP</th><th>Pub Port</th><th>Remote IP</th><th>Remote Port</th><th>Status</th></tr></thead>
+        <tbody id="natTable"></tbody>
+      </table>
+      <div id="natEmpty" style="text-align:center;color:var(--text3);font-family:'Space Mono',monospace;font-size:0.75rem;padding:0.75rem;">No active translations</div>
+    </div>
+    <div class="step-log" id="natLog" style="margin-top:0.75rem;"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:0.95rem;margin-bottom:1rem;">🏷️ Types of NAT</h3>
+    <div id="natTypes"></div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- VLAN -->
+<section id="vlan">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 09</span>
+    <h2 class="section-title">VLANs — Virtual Network Segmentation</h2>
+    <p class="section-sub">VLANs let you create logical network segments on the same physical switch. Click ports to assign them to different VLANs.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🏢 What are VLANs?</div>
+    Imagine a company where HR, IT, and Sales all plug into the same physical switch. Without VLANs, all traffic is shared — everyone can see everything. With VLANs, the switch logically divides into separate broadcast domains. HR traffic stays in VLAN 10, IT in VLAN 20, Sales in VLAN 30. Even if physically on the same switch, they behave as if on completely separate networks.
+  </div>
+
+  <div class="two-col" style="margin-bottom:1.5rem;">
+    <div>
+      <div class="card">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">🎮 Interactive VLAN Switch</h3>
+        <p style="font-size:0.78rem;color:var(--text2);margin-bottom:1rem;">Click any port to assign it to a VLAN. Observe how broadcast domains are separated.</p>
+        <div class="vlan-switch">
+          <div style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:0.5rem;text-align:center;">24-PORT SWITCH</div>
+          <div class="vlan-port-row" id="vlanPorts"></div>
+          <div style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;margin-top:0.3rem;text-align:center;">Ports 1–24 (click to cycle VLAN)</div>
+        </div>
+        <div class="vlan-legend" id="vlanLegend" style="margin-top:1rem;"></div>
+        <div id="vlanStats" style="margin-top:1rem;display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">🔄 Inter-VLAN Routing</h3>
+        <p style="font-size:0.83rem;color:var(--text2);line-height:1.6;margin-bottom:1rem;">By default, VLANs cannot talk to each other. Inter-VLAN routing requires Layer 3 involvement:</p>
+        <div id="interVlanMethods"></div>
+        <div class="warn-box" style="margin-top:1rem;">
+          <div class="warn-title">⚠️ TRUNK PORTS</div>
+          When a switch connects to a router or another switch, the link between them carries traffic for multiple VLANs. This is a "trunk" link. Each frame is tagged with an 802.1Q header indicating its VLAN ID (12-bit field = up to 4094 VLANs).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:0.95rem;margin-bottom:1rem;">✅ VLAN Benefits Summary</h3>
+    <div id="vlanBenefits"></div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DNS -->
+<section id="dns">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 10</span>
+    <h2 class="section-title">DNS — The Internet's Phone Book</h2>
+    <p class="section-sub">DNS translates human-readable domain names into IP addresses. Simulate the complete DNS resolution process step by step.</p>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="card" style="margin-bottom:1rem;">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">🔍 DNS Resolution Simulator</h3>
+        <div class="ip-input-row" style="margin-bottom:1rem;">
+          <input class="ip-input" id="dnsQuery" type="text" placeholder="www.example.com" value="www.example.com" style="flex:1;">
+          <button class="btn-calc" onclick="runDNS()">Resolve</button>
+        </div>
+        <div class="dns-flow" id="dnsFlow"></div>
+        <div id="dnsResult" style="margin-top:1rem;padding:0.75rem;background:var(--card2);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;display:none;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="font-size:0.95rem;margin-bottom:1rem;">📋 DNS Record Types</h3>
+        <div id="dnsRecords"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem;" class="card">
+    <h3 style="font-size:0.95rem;margin-bottom:1rem;">⏱️ DNS Caching & TTL</h3>
+    <div class="two-col">
+      <div>
+        <p style="font-size:0.83rem;color:var(--text2);line-height:1.7;">TTL (Time To Live) tells DNS resolvers how long to cache a record before checking again. Short TTL = faster propagation of changes but more DNS queries. Long TTL = fewer queries but slower change propagation.</p>
+        <div id="ttlExamples" style="margin-top:1rem;"></div>
+      </div>
+      <div>
+        <div style="background:var(--card2);border-radius:8px;padding:1rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+          <div style="color:var(--text3);margin-bottom:0.5rem;">$ dig example.com A</div>
+          <div style="color:var(--accent3);">; &lt;&lt;&gt;&gt; DiG 9.18 &lt;&lt;&gt;&gt; example.com A</div>
+          <div style="color:var(--text2);margin-top:0.5rem;">;; QUESTION SECTION:</div>
+          <div style="color:var(--text);">; example.com. IN A</div>
+          <div style="color:var(--text2);margin-top:0.5rem;">;; ANSWER SECTION:</div>
+          <div style="color:var(--accent);">example.com. 3600 IN A 93.184.216.34</div>
+          <div style="color:var(--text2);margin-top:0.5rem;">;; Query time: 12 msec</div>
+          <div style="color:var(--text2);">;; SERVER: 8.8.8.8#53</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DHCP -->
+<section id="dhcp">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 11</span>
+    <h2 class="section-title">DHCP — Automatic IP Configuration</h2>
+    <p class="section-sub">DHCP automatically configures devices when they join a network. Watch the DORA process unfold in real time.</p>
+  </div>
+
+  <div class="info-box">
+    <div class="info-title">🤝 What is DHCP?</div>
+    Without DHCP, every device on your network would need manual configuration of IP, subnet mask, gateway, and DNS — imagine doing that for 500 office computers! DHCP automates this. When a device joins a network, it broadcasts a request and the DHCP server responds with all necessary configuration. The IP is "leased" for a limited time and must be renewed.
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem;">
+    <h3 style="font-size:1rem;margin-bottom:0.5rem;">🎬 DORA Process — Live Simulation</h3>
+    <p style="font-size:0.8rem;color:var(--text2);margin-bottom:0;font-family:'Space Mono',monospace;">Discover → Offer → Request → Acknowledge</p>
+    <div class="dora-timeline" id="doraTimeline" style="margin-top:1rem;"></div>
+    <div class="dora-detail" id="doraDetail">
+      <p style="color:var(--text3);font-size:0.85rem;font-family:'Space Mono',monospace;">Click a phase above to learn what happens in that step of the DORA process.</p>
+    </div>
+    <div class="btn-row" style="margin-top:1rem;">
+      <button class="btn-sm btn-green" onclick="runDORA()">▶ Auto-Play DORA</button>
+      <button class="btn-sm btn-outline" onclick="resetDORA()">↺ Reset</button>
+    </div>
+    <div class="step-log" id="doraLog" style="margin-top:0.75rem;"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3 style="font-size:0.95rem;margin-bottom:1rem;">📋 DHCP Provides</h3>
+      <div id="dhcpProvides"></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:0.95rem;margin-bottom:1rem;">⏰ Lease Renewal Process</h3>
+      <div id="dhcpLease"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- END TO END -->
+<section id="e2e">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 12</span>
+    <h2 class="section-title">End-to-End — Full Packet Journey</h2>
+    <p class="section-sub">Watch a complete network journey: from connecting to Wi-Fi, getting an IP, resolving DNS, and loading a webpage — with every protocol in action.</p>
+  </div>
+
+  <div class="packet-scene">
+    <h3 style="font-size:0.9rem;color:var(--text2);font-family:'Space Mono',monospace;margin-bottom:1rem;">SCENARIO: Laptop opens example.com via home Wi-Fi</h3>
+    <div class="packet-track" id="packetTrack"></div>
+    <div id="e2eStepInfo" style="margin-top:1rem;padding:1rem;background:var(--card2);border-radius:8px;font-size:0.83rem;line-height:1.6;min-height:60px;display:none;"></div>
+    <div class="step-log" id="e2eLog"></div>
+    <div class="btn-row">
+      <button class="btn-sm btn-blue" onclick="runE2E()">▶ Full Simulation</button>
+      <button class="btn-sm btn-green" id="e2eNextBtn" onclick="e2eNext()" style="display:none;">Next Step →</button>
+      <button class="btn-sm btn-outline" onclick="resetE2E()">↺ Reset</button>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem;" class="card">
+    <h3 style="font-size:0.95rem;margin-bottom:1rem;">🏗️ OSI Layers at Each Step</h3>
+    <div id="e2eOSImap"></div>
+  </div>
+</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- QUIZ -->
+<section id="quiz">
+<div class="section">
+  <div class="section-header">
+    <span class="section-label">Module 13</span>
+    <h2 class="section-title">Knowledge Check — Quiz</h2>
+    <p class="section-sub">Test your understanding of all concepts. 15 questions covering OSI, TCP/IP, subnetting, routing, switching, NAT, VLANs, DNS, and DHCP.</p>
+  </div>
+
+  <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;">
+    <div class="quiz-score" id="quizScore">Question 1 of 15 &nbsp;|&nbsp; Score: 0/0</div>
+    <div style="flex:1;"><div class="progress-bar"><div class="progress-fill" id="quizProgress" style="width:0%"></div></div></div>
+    <button class="btn-sm btn-outline" onclick="restartQuiz()">↺ Restart</button>
+  </div>
+
+  <div class="quiz-card" id="quizCard">
+    <div class="quiz-q" id="quizQ"></div>
+    <div class="quiz-opts" id="quizOpts"></div>
+    <div class="quiz-feedback" id="quizFeedback"></div>
+    <div class="btn-row" style="margin-top:1.5rem;">
+      <button class="btn-sm btn-purple" id="quizNext" onclick="nextQuestion()" style="display:none;">Next Question →</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer style="text-align:center;padding:3rem 2rem;color:var(--text3);font-family:'Space Mono',monospace;font-size:0.72rem;border-top:1px solid var(--border);">
+  <div style="margin-bottom:0.5rem;color:var(--text2);font-size:0.8rem;">Network Foundations T02 — Interactive Study Guide</div>
+  <div>OSI · TCP/IP · IPv4 · IPv6 · Subnetting · Routing · Switching · NAT · VLANs · DNS · DHCP</div>
+</footer>
+
+</main>
+
+<script>
+// ======= UTILITIES =======
+function scrollTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function ipToNum(ip){
+  const parts=ip.split('.').map(Number);
+  return (parts[0]<<24|parts[1]<<16|parts[2]<<8|parts[3])>>>0;
+}
+function numToIP(n){
+  return [(n>>>24)&0xff,(n>>>16)&0xff,(n>>>8)&0xff,n&0xff].join('.');
+}
+function cidrToMask(cidr){
+  return cidr===0?0:((0xffffffff<<(32-cidr))>>>0);
+}
+function maskToStr(mask){return numToIP(mask);}
+function decToBin(n){return n.toString(2).padStart(8,'0');}
+
+// ======= NAV ACTIVE =======
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+      const id=e.target.id;
+      document.querySelectorAll('.nav-item').forEach(b=>{if(b.textContent.toLowerCase().includes(id.substring(0,4))||b.onclick?.toString().includes("'"+id+"'"))b.classList.add('active');});
+    }
+  });
+},{threshold:0.2,rootMargin:'-60px 0px 0px 0px'});
+document.querySelectorAll('section[id]').forEach(s=>observer.observe(s));
+
+// ======= OSI MODEL =======
+const osiLayers=[
+  {n:7,name:'Application',color:'#00d4ff',icon:'🖥️',pdu:'Data',protocols:['HTTP','HTTPS','FTP','SMTP','POP3','IMAP','DNS','DHCP','Telnet','SSH','SNMP'],job:'Provides network services directly to end-user applications. This is the layer that applications use to communicate over a network.',analogy:'You opening WhatsApp, typing a message, and hitting send.',detail:{protocols:'HTTP/HTTPS (web), FTP (files), SMTP (send email), POP3/IMAP (receive email), DNS (name resolution), DHCP (IP config), SSH (remote access), SNMP (network monitoring)',functions:'Data input/output to apps, user authentication, privacy, resource availability',devices:'Web browsers, Email clients, FTP clients, DNS resolvers',realworld:'Every app you use that communicates over a network operates here: browsers, email, streaming apps.'}},
+  {n:6,name:'Presentation',color:'#7c3aed',icon:'🎨',pdu:'Data',protocols:['SSL/TLS','JPEG','MPEG','ASCII','UTF-8','GIF','PNG'],job:'Translates data between application format and network format. Handles encryption, compression, and data conversion.',analogy:'Translating your message into encrypted code that only the recipient can decode.',detail:{protocols:'SSL/TLS (encryption), JPEG/PNG/GIF (image formats), MPEG (video), ASCII/UTF-8/Unicode (character encoding), MIME (email attachments)',functions:'Data translation, encryption/decryption, compression/decompression, format conversion',devices:'SSL certificates, codecs, encryption chips',realworld:'When HTTPS encrypts your web traffic, or when a JPEG image is decoded — that\'s Layer 6 at work.'}},
+  {n:5,name:'Session',color:'#10b981',icon:'🤝',pdu:'Data',protocols:['NetBIOS','RPC','PPTP','SIP','H.245'],job:'Establishes, manages, and terminates sessions (ongoing conversations) between applications. Handles authentication and reconnection.',analogy:'Staying logged into a video call without having to re-authenticate for every sentence.',detail:{protocols:'NetBIOS (Windows networking), RPC (Remote Procedure Call), PPTP (VPN), SIP (VoIP session setup), H.245 (multimedia sessions)',functions:'Session establishment, maintenance, termination, synchronization, dialog control, checkpointing',devices:'Session managers, authentication servers',realworld:'When you stream Netflix, Layer 5 keeps your session alive. If interrupted, it can resume from where you left off using synchronization points.'}},
+  {n:4,name:'Transport',color:'#f59e0b',icon:'📦',pdu:'Segment (TCP) / Datagram (UDP)',protocols:['TCP','UDP','SCTP','DCCP'],job:'Provides end-to-end communication, data segmentation, error control, flow control, and port addressing. Ensures complete data transfer.',analogy:'A courier who checks that all packages in your shipment arrived, and resends missing ones.',detail:{protocols:'TCP (reliable, connection-oriented), UDP (fast, connectionless), SCTP (stream control for telephony), DCCP (datagram, congestion control)',functions:'Segmentation & reassembly, connection management (TCP), error detection & recovery, flow control, port multiplexing',devices:'Firewalls, load balancers',realworld:'Port 80 = HTTP, Port 443 = HTTPS, Port 22 = SSH. The port number at Layer 4 directs data to the right application on the destination machine.'}},
+  {n:3,name:'Network',color:'#ef4444',icon:'🗺️',pdu:'Packet',protocols:['IP (v4/v6)','ICMP','OSPF','BGP','RIP','ARP*','IPSec'],job:'Handles logical addressing (IP addresses) and routing of packets between different networks. Determines the best path for data.',analogy:'The GPS system: knows your destination address and computes the optimal route through many roads.',detail:{protocols:'IPv4/IPv6 (addressing), ICMP (ping, error messages), OSPF/BGP/RIP (routing protocols), IPSec (IP security), GRE (tunneling)',functions:'Logical addressing (IP), routing, fragmentation & reassembly, path selection, congestion control',devices:'Routers, Layer 3 switches, firewalls',realworld:'When you ping google.com, ICMP (a Layer 3 protocol) sends an echo request and receives an echo reply. Routers use Layer 3 to forward your packets hop-by-hop across the internet.'}},
+  {n:2,name:'Data Link',color:'#ec4899',icon:'🔗',pdu:'Frame',protocols:['Ethernet','Wi-Fi (802.11)','PPP','HDLC','ARP','VLAN (802.1Q)','STP','MAC'],job:'Provides node-to-node data transfer within the same network segment using MAC addresses. Handles error detection in frames.',analogy:'The local post office that knows every house on your street by their mailbox (MAC address).',detail:{protocols:'Ethernet (IEEE 802.3), Wi-Fi (IEEE 802.11), PPP (dial-up), VLAN tagging (802.1Q), STP (loop prevention), ARP (IP to MAC mapping)',functions:'Framing, MAC addressing, error detection (CRC), flow control, media access control, VLAN tagging',devices:'Switches, bridges, NIC cards, Wi-Fi access points',realworld:'When your PC sends data to your router, it uses the router\'s MAC address in the frame. The switch uses this MAC to forward the frame to the correct port. ARP discovers MAC addresses from IP addresses.'}},
+  {n:1,name:'Physical',color:'#64748b',icon:'⚡',pdu:'Bits (0s and 1s)',protocols:['Ethernet (physical)','802.11 (RF)','USB','DSL','Fiber','Bluetooth'],job:'Transmits raw bits over a physical medium (copper wire, fiber optic, radio waves). Deals with electrical signals, light pulses, or radio frequencies.',analogy:'The actual roads, trucks, and physical infrastructure that carry the packages.',detail:{protocols:'RJ-45 (copper connector), SFP (fiber modules), DSL (telephone line internet), 802.11a/b/g/n/ac/ax (Wi-Fi standards), Bluetooth, USB',functions:'Bit transmission, encoding (Manchester, NRZ), signal modulation, synchronization, medium specifications, topology (star, bus, ring)',devices:'Hubs, repeaters, cables, connectors, NICs (physical), modems, antennas',realworld:'When Wi-Fi sends data, Layer 1 encodes the bits as radio waves at 2.4GHz or 5GHz. Ethernet converts bits to electrical voltage changes on copper wire. Fiber uses light pulses.'}},
+];
+
+function renderOSI(){
+  const stack=document.getElementById('osiStack');
+  stack.innerHTML='';
+  osiLayers.forEach((l,i)=>{
+    const div=document.createElement('div');
+    div.className='osi-layer';
+    div.style.cssText=`color:${l.color};background:rgba(${hexToRgb(l.color)},0.05);`;
+    div.innerHTML=`<span class="layer-num">${l.n}</span><div><div class="layer-name">${l.name}</div><div class="layer-tag">PDU: ${l.pdu}</div></div><span style="margin-left:auto;font-size:0.7rem;opacity:0.7;">${l.icon}</span>`;
+    div.onclick=()=>showOSILayer(l,div);
+    stack.appendChild(div);
+  });
+  showOSILayer(osiLayers[0],stack.children[0]);
+}
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+function showOSILayer(l,el){
+  document.querySelectorAll('.osi-layer').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  const d=l.detail;
+  document.getElementById('detailIcon').style.cssText=`background:rgba(${hexToRgb(l.color)},0.1);border:1px solid rgba(${hexToRgb(l.color)},0.3);font-size:1.4rem;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;`;
+  document.getElementById('detailIcon').textContent=l.icon;
+  document.getElementById('detailTitle').innerHTML=`Layer ${l.n} — ${l.name}`;
+  document.getElementById('detailTitle').style.color=l.color;
+  document.getElementById('detailRole').textContent=l.job;
+  
+  document.getElementById('detailBody').innerHTML=`
+    <div class="detail-grid">
+      <div class="detail-item"><h4>📡 Protocols</h4><p>${d.protocols}</p></div>
+      <div class="detail-item"><h4>⚙️ Functions</h4><p>${d.functions}</p></div>
+      <div class="detail-item"><h4>🔧 Devices</h4><p>${d.devices}</p></div>
+      <div class="detail-item"><h4>🌍 Real World</h4><p>${d.realworld}</p></div>
+    </div>
+    <div style="margin-top:1rem;">
+      <div class="encap-title">🏷️ Protocols at this layer</div>
+      <div class="proto-list">${l.protocols.map(p=>`<span class="proto-badge">${p}</span>`).join('')}</div>
+    </div>
+    <div class="float-note" style="margin-top:1rem;"><strong>Analogy:</strong> ${l.analogy}</div>
+  `;
+
+  // PDU encapsulation viz
+  const units=['Bits','Frame','Packet','Segment','Data','Data','Data'];
+  const colors=['#64748b','#ec4899','#ef4444','#f59e0b','#10b981','#7c3aed','#00d4ff'];
+  const layerIdx=7-l.n;
+  const el2=document.getElementById('encapLayers');
+  el2.innerHTML='';
+  for(let i=0;i<=layerIdx;i++){
+    const lnum=7-i;
+    const wrap=document.createElement('div');
+    wrap.className='encap-layer';
+    wrap.style.cssText=`background:rgba(${hexToRgb(colors[i])},0.08);border:1px solid rgba(${hexToRgb(colors[i])},0.25);color:${colors[i]};margin-left:${i*8}px;`;
+    wrap.innerHTML=`<span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">[L${lnum} Header]</span> <span>${i===layerIdx?'<strong>← Current Layer</strong>':'Inner data'}</span>`;
+    el2.appendChild(wrap);
+    setTimeout(()=>wrap.classList.add('show'),i*100);
+  }
+}
+renderOSI();
+
+// ======= TCP/IP MODEL =======
+function renderTCPIP(){
+  const osiItems=[
+    {n:7,name:'Application',c:'#00d4ff'},
+    {n:6,name:'Presentation',c:'#7c3aed'},
+    {n:5,name:'Session',c:'#10b981'},
+    {n:4,name:'Transport',c:'#f59e0b'},
+    {n:3,name:'Network',c:'#ef4444'},
+    {n:2,name:'Data Link',c:'#ec4899'},
+    {n:1,name:'Physical',c:'#64748b'},
+  ];
+  document.getElementById('osiModelList').innerHTML=osiItems.map(l=>`
+    <div class="model-layer-item" style="background:rgba(${hexToRgb(l.c)},0.06);border:1px solid rgba(${hexToRgb(l.c)},0.15);color:${l.c};">
+      <span>L${l.n} — ${l.name}</span>
+      <span style="font-size:0.65rem;opacity:0.6;font-family:'Space Mono',monospace;">Layer ${l.n}</span>
+    </div>`).join('');
+
+  const tcpItems=[
+    {name:'Application',covers:'Layers 5, 6, 7',c:'#00d4ff',protos:'HTTP, HTTPS, DNS, DHCP, FTP, SMTP, SSH'},
+    {name:'Transport',covers:'Layer 4',c:'#f59e0b',protos:'TCP, UDP, ports'},
+    {name:'Internet',covers:'Layer 3',c:'#ef4444',protos:'IP (v4/v6), ICMP, routing protocols'},
+    {name:'Network Access',covers:'Layers 1, 2',c:'#ec4899',protos:'Ethernet, Wi-Fi, MAC, cables'},
+  ];
+  document.getElementById('tcpipModelList').innerHTML=tcpItems.map(l=>`
+    <div class="model-layer-item" style="background:rgba(${hexToRgb(l.c)},0.06);border:1px solid rgba(${hexToRgb(l.c)},0.15);">
+      <div>
+        <div style="color:${l.c};font-weight:700;font-size:0.85rem;">${l.name}</div>
+        <div style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;margin-top:0.2rem;">${l.covers} | ${l.protos}</div>
+      </div>
+    </div>`).join('');
+
+  const ports=[
+    ['FTP','20, 21','TCP','File Transfer Protocol — data and control'],
+    ['SSH','22','TCP','Secure Shell — encrypted remote access'],
+    ['Telnet','23','TCP','Unencrypted remote access (legacy/insecure)'],
+    ['SMTP','25','TCP','Send email between servers'],
+    ['DNS','53','TCP/UDP','Name resolution (UDP for queries, TCP for zone transfers)'],
+    ['DHCP','67/68','UDP','IP auto-configuration (server/client ports)'],
+    ['HTTP','80','TCP','Web traffic — unencrypted'],
+    ['POP3','110','TCP','Download email from server'],
+    ['IMAP','143','TCP','Access email on server (sync)'],
+    ['HTTPS','443','TCP','Encrypted web traffic (HTTP + TLS)'],
+    ['RDP','3389','TCP','Remote Desktop Protocol'],
+    ['MySQL','3306','TCP','Database access'],
+    ['DNS (alt)','5353','UDP','mDNS — local network name resolution'],
+  ];
+  document.getElementById('portTable').innerHTML=ports.map(p=>`
+    <tr>
+      <td><span class="tag tag-cyan">${p[0]}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--accent4);">${p[1]}</td>
+      <td><span class="tag ${p[2]==='TCP'?'tag-purple':p[2]==='UDP'?'tag-amber':'tag-green'}">${p[2]}</span></td>
+      <td style="color:var(--text2);">${p[3]}</td>
+    </tr>`).join('');
+}
+renderTCPIP();
+
+// ======= IPv4 =======
+function showBinary(){
+  const ip=document.getElementById('binInput').value.trim();
+  const parts=ip.split('.').map(Number);
+  if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255)){
+    document.getElementById('binaryVis').innerHTML='<span style="color:var(--accent5);">Invalid IP address</span>';return;
+  }
+  let html='<div style="margin-bottom:0.5rem;color:var(--text3);font-size:0.7rem;">Binary representation:</div>';
+  html+='<div style="display:flex;gap:4px;flex-wrap:wrap;">';
+  parts.forEach((p,i)=>{
+    const bin=decToBin(p);
+    html+=`<div>`;
+    html+=`<div style="display:flex;gap:1px;">`;
+    for(const b of bin)html+=`<div class="bit ${b==='1'?'one':''}">${b}</div>`;
+    html+=`</div><div style="text-align:center;font-size:0.7rem;color:var(--accent);margin-top:3px;">${p}</div></div>`;
+    if(i<3)html+=`<div style="display:flex;align-items:center;padding:0 2px;color:var(--text3);">.</div>`;
+  });
+  html+='</div>';
+  document.getElementById('binaryVis').innerHTML=html;
+}
+showBinary();
+
+function renderIPClasses(){
+  const classes=[
+    {cls:'A',range:'1.0.0.0 – 126.255.255.255',net:8,host:24,max:'16,777,214',color:'var(--accent)',ex:'Large ISPs, cloud providers (10.0.0.0 private)'},
+    {cls:'B',range:'128.0.0.0 – 191.255.255.255',net:16,host:16,max:'65,534',color:'var(--accent2)',ex:'Universities, large organizations (172.16-31.x.x private)'},
+    {cls:'C',range:'192.0.0.0 – 223.255.255.255',net:24,host:8,max:'254',color:'var(--accent3)',ex:'Small businesses, home networks (192.168.x.x private)'},
+    {cls:'D',range:'224.0.0.0 – 239.255.255.255',net:null,host:null,max:'N/A',color:'var(--accent4)',ex:'Multicast groups (streaming, routing protocols like OSPF)'},
+    {cls:'E',range:'240.0.0.0 – 255.255.255.255',net:null,host:null,max:'N/A',color:'var(--accent5)',ex:'Reserved for research and experimental use'},
+  ];
+  document.getElementById('ipClassVis').innerHTML=`<div style="overflow-x:auto;"><table class="rtable"><thead><tr><th>Class</th><th>First Octet Range</th><th>Network Bits</th><th>Host Bits</th><th>Max Hosts/Network</th><th>Typical Use</th></tr></thead><tbody>${
+    classes.map(c=>`<tr><td><strong style="color:${c.color};font-family:'JetBrains Mono',monospace;font-size:1rem;">${c.cls}</strong></td><td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;">${c.range}</td><td>${c.net??'—'}</td><td>${c.host??'—'}</td><td style="color:var(--accent3);">${c.max}</td><td style="color:var(--text2);font-size:0.8rem;">${c.ex}</td></tr>`).join('')
+  }</tbody></table></div>`;
+}
+renderIPClasses();
+
+function renderPrivateRanges(){
+  const ranges=[
+    {cidr:'10.0.0.0/8',range:'10.0.0.0 – 10.255.255.255',hosts:'16,777,214',cls:'A',use:'Large enterprise networks, data centers, VPNs'},
+    {cidr:'172.16.0.0/12',range:'172.16.0.0 – 172.31.255.255',hosts:'1,048,574',cls:'B',use:'Mid-size corporate networks, Docker default ranges'},
+    {cidr:'192.168.0.0/16',range:'192.168.0.0 – 192.168.255.255',hosts:'65,534',cls:'C',use:'Home networks, SOHO, most common private range'},
+  ];
+  document.getElementById('privateRanges').innerHTML=ranges.map(r=>`
+    <div style="padding:0.75rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:0.88rem;">${r.cidr}</span>
+        <span class="tag tag-purple">Class ${r.cls}</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text3);font-family:'Space Mono',monospace;">${r.range}</div>
+      <div style="font-size:0.75rem;color:var(--text2);margin-top:0.3rem;">${r.use}</div>
+    </div>`).join('');
+}
+renderPrivateRanges();
+
+function renderSpecialIPs(){
+  const ips=[
+    {ip:'127.0.0.1',name:'Loopback',tag:'localhost',desc:'Points back to yourself. Used to test network software without sending traffic on the wire. The entire 127.0.0.0/8 range is loopback.'},
+    {ip:'0.0.0.0',name:'Unspecified',tag:'all interfaces',desc:'Means "any/all interfaces" when used by a server. Also used as source IP before DHCP assigns an address.'},
+    {ip:'255.255.255.255',name:'Limited Broadcast',tag:'broadcast',desc:'Sends to ALL devices on the local network segment. Not routed — stays on the local LAN only.'},
+    {ip:'169.254.x.x',name:'APIPA',tag:'link-local',desc:'Automatic Private IP Addressing. Assigned automatically when DHCP fails. Range: 169.254.0.0/16. Only works on local segment — no internet access.'},
+    {ip:'224.0.0.0/4',name:'Multicast Range',tag:'one-to-many',desc:'Class D addresses for multicast groups. Devices subscribe to groups. Used by routing protocols (OSPF: 224.0.0.5), streaming.'},
+  ];
+  document.getElementById('specialIPs').innerHTML=`<div style="display:flex;flex-direction:column;gap:0.6rem;">${ips.map(s=>`
+    <div style="padding:0.7rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--accent4);font-size:0.85rem;">${s.ip}</span>
+        <span class="tag tag-amber">${s.tag}</span>
+      </div>
+      <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">${s.name}</div>
+      <div style="font-size:0.76rem;color:var(--text2);">${s.desc}</div>
+    </div>`).join('')}</div>`;
+}
+renderSpecialIPs();
+
+function calcIP(){
+  const ip=document.getElementById('calcIP').value.trim();
+  const cidr=parseInt(document.getElementById('calcCIDR').value);
+  const parts=ip.split('.').map(Number);
+  if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255)||isNaN(cidr)||cidr<1||cidr>32){
+    document.getElementById('ipResults').innerHTML='<p style="color:var(--accent5);">Invalid input</p>';return;
+  }
+  const mask=cidrToMask(cidr);
+  const ipNum=ipToNum(ip);
+  const network=ipNum&mask;
+  const broadcast=network|(~mask>>>0);
+  const firstHost=network+1;
+  const lastHost=broadcast-1;
+  const hosts=Math.max(0,broadcast-network-1);
+  const wc=(~mask)>>>0;
+
+  document.getElementById('ipResults').innerHTML=[
+    ['Network Address',numToIP(network)],
+    ['Subnet Mask',maskToStr(mask)],
+    ['Wildcard Mask',numToIP(wc)],
+    ['CIDR Notation',`${numToIP(network)}/${cidr}`],
+    ['Broadcast Address',numToIP(broadcast)],
+    ['First Host',numToIP(firstHost)],
+    ['Last Host',numToIP(lastHost)],
+    ['Usable Hosts',hosts.toLocaleString()],
+    ['Host Bits',32-cidr],
+    ['Network Bits',cidr],
+  ].map(([l,v])=>`<div class="ip-result-item"><div class="rlabel">${l}</div><div class="rval">${v}</div></div>`).join('');
+}
+calcIP();
+
+// ======= IPv6 =======
+function visualizeIPv6(){
+  const raw=document.getElementById('ipv6Input').value.trim();
+  const groups=raw.split(':');
+  if(groups.length!==8){document.getElementById('ipv6Full').innerHTML='<span style="color:var(--accent5);">Must have exactly 8 groups separated by colons</span>';return;}
+  
+  const padded=groups.map(g=>g.padStart(4,'0'));
+  document.getElementById('ipv6Full').innerHTML=padded.map((g,i)=>`<span class="ipv6-group">${g}</span>${i<7?'<span class="ipv6-sep">:</span>':''}`).join('');
+  
+  // Compress
+  const stripped=groups.map(g=>g.replace(/^0+/,'')||'0');
+  // Find longest run of zeros
+  let maxStart=-1,maxLen=0,curStart=-1,curLen=0;
+  stripped.forEach((g,i)=>{if(g==='0'){if(curStart===-1)curStart=i;curLen++;if(curLen>maxLen){maxLen=curLen;maxStart=curStart;}}else{curStart=-1;curLen=0;}});
+  
+  let shortHtml='';
+  if(maxStart!==-1&&maxLen>1){
+    for(let i=0;i<8;i++){
+      if(i===maxStart){shortHtml+='<span class="ipv6-comp">::</span>';i+=maxLen-1;}
+      else{shortHtml+=`<span class="ipv6-group">${stripped[i]}</span>`;if(i<7&&!(i===maxStart-1))shortHtml+='<span class="ipv6-sep">:</span>';}
+    }
+  } else {
+    shortHtml=stripped.map((g,i)=>`<span class="ipv6-group">${g}</span>${i<7?'<span class="ipv6-sep">:</span>':''}`).join('');
+  }
+  document.getElementById('ipv6Short').innerHTML=shortHtml;
+}
+visualizeIPv6();
+
+function renderIPv6(){
+  const cmp=[
+    ['Address Size','32 bits','128 bits'],
+    ['Notation','Dotted decimal','Hex colon-separated'],
+    ['Total Addresses','~4.3 billion','~340 undecillion'],
+    ['Configuration','Manual or DHCP','SLAAC, DHCPv6, manual'],
+    ['NAT Required','Usually yes','No (direct addressing)'],
+    ['IPsec','Optional','Mandated support'],
+    ['Broadcast','Yes (255.255.255.255)','No — uses multicast'],
+    ['Header Checksum','Yes','No (simplified header)'],
+    ['Fragmentation','Sender & routers','Sender only'],
+    ['Header Size','20–60 bytes','Fixed 40 bytes'],
+  ];
+  document.getElementById('ipv6Compare').innerHTML=cmp.map(r=>`<tr><td>${r[0]}</td><td style="color:var(--accent5);">${r[1]}</td><td style="color:var(--accent3);">${r[2]}</td></tr>`).join('');
+  
+  const types=[
+    {type:'Unicast',icon:'🎯',desc:'One-to-one. A packet is sent to a single specific interface.',sub:'Global Unicast (2000::/3): Routable on internet, like public IPv4. Link-Local (fe80::/10): Auto-configured, only valid on local segment. Unique Local (fc00::/7): Like private IPv4 — not internet-routable.'},
+    {type:'Multicast',icon:'📡',desc:'One-to-many. A packet is sent to all members of a group.',sub:'Replaces broadcast in IPv4. ff02::1 = all nodes on link. ff02::2 = all routers. ff02::5/6 = OSPF routers.'},
+    {type:'Anycast',icon:'🎲',desc:'One-to-nearest. A packet is sent to the nearest member of a group.',sub:'Same address assigned to multiple interfaces. Router delivers to the closest one. Used for CDNs, DNS root servers.'},
+  ];
+  document.getElementById('ipv6Types').innerHTML=types.map(t=>`
+    <div class="card" style="border-color:rgba(124,58,237,0.3);">
+      <div style="font-size:1.5rem;margin-bottom:0.5rem;">${t.icon}</div>
+      <h4 style="color:#a78bfa;margin-bottom:0.4rem;">${t.type}</h4>
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:0.5rem;">${t.desc}</p>
+      <p style="font-size:0.75rem;color:var(--text3);">${t.sub}</p>
+    </div>`).join('');
+}
+renderIPv6();
+
+// ======= SUBNETTING =======
+function updateSubnet(){
+  const cidr=parseInt(document.getElementById('subnetSlider').value);
+  const base=document.getElementById('subnetBase').value.trim()||'192.168.0.0';
+  document.getElementById('subnetCIDRVal').textContent=cidr;
+  const baseCIDR=16; // We compare against /16 base
+  const borrowed=cidr-baseCIDR;
+  const numSubnets=borrowed>=0?Math.pow(2,borrowed):1;
+  const hostBits=32-cidr;
+  const hostsPerSubnet=Math.max(0,Math.pow(2,hostBits)-2);
+  document.getElementById('subnetCount').textContent=numSubnets>1000?numSubnets.toLocaleString():numSubnets;
+  document.getElementById('hostsPerSubnet').textContent=hostsPerSubnet.toLocaleString();
+  
+  // Generate subnets
+  const grid=document.getElementById('subnetGrid');
+  grid.innerHTML='';
+  const maxShow=Math.min(numSubnets,16);
+  const baseNum=ipToNum(base.indexOf('/')!==-1?base.split('/')[0]:base);
+  const mask=cidrToMask(cidr);
+  const network=baseNum&cidrToMask(baseCIDR);
+  for(let i=0;i<maxShow;i++){
+    const subnetAddr=numToIP(network+(i*Math.pow(2,hostBits)));
+    const broadcastAddr=numToIP(network+(i*Math.pow(2,hostBits))+Math.pow(2,hostBits)-1);
+    const div=document.createElement('div');
+    div.className='subnet-block';
+    div.innerHTML=`<div class="snet">${subnetAddr}/${cidr}</div><div class="sinfo">Network: ${subnetAddr}<br>Broadcast: ${broadcastAddr}<br>Hosts: ${hostsPerSubnet.toLocaleString()}</div>`;
+    grid.appendChild(div);
+  }
+  if(numSubnets>maxShow){
+    const div=document.createElement('div');
+    div.className='subnet-block';
+    div.style.cssText='display:flex;align-items:center;justify-content:center;color:var(--text3);font-family:Space Mono,monospace;font-size:0.75rem;';
+    div.textContent=`... and ${(numSubnets-maxShow).toLocaleString()} more`;
+    grid.appendChild(div);
+  }
+}
+updateSubnet();
+
+function renderMaskExplainer(){
+  document.getElementById('maskExplainer').innerHTML=`
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;display:flex;flex-direction:column;gap:0.3rem;">
+      <div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
+        <span style="color:var(--text3);width:140px;">IP Address:</span>
+        <span style="color:var(--accent);">11000000.10101000.00000001.00001010</span>
+        <span style="color:var(--text3);">(192.168.1.10)</span>
+      </div>
+      <div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
+        <span style="color:var(--text3);width:140px;">Subnet Mask /24:</span>
+        <span style="color:var(--accent3);">11111111.11111111.11111111.00000000</span>
+        <span style="color:var(--text3);">(255.255.255.0)</span>
+      </div>
+      <div style="border-top:1px solid var(--border);margin:0.3rem 0;"></div>
+      <div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
+        <span style="color:var(--text3);width:140px;">AND result:</span>
+        <span style="color:var(--accent4);">11000000.10101000.00000001.00000000</span>
+        <span style="color:var(--text3);">(192.168.1.0 = Network)</span>
+      </div>
+    </div>
+    <div class="float-note" style="margin-top:0.75rem;">The AND operation keeps bits where the mask has <strong>1</strong> (network portion) and zeroes out where mask has <strong>0</strong> (host portion). Result = Network Address.</div>
+  `;
+}
+renderMaskExplainer();
+
+function renderCIDRTable(){
+  const rows=[
+    ['/8','255.0.0.0','16,777,214','A'],
+    ['/12','255.240.0.0','1,048,574','A/B boundary'],
+    ['/16','255.255.0.0','65,534','B'],
+    ['/20','255.255.240.0','4,094','B sub'],
+    ['/24','255.255.255.0','254','C'],
+    ['/25','255.255.255.128','126','C sub'],
+    ['/26','255.255.255.192','62','C sub'],
+    ['/27','255.255.255.224','30','C sub'],
+    ['/28','255.255.255.240','14','C sub'],
+    ['/29','255.255.255.248','6','Small'],
+    ['/30','255.255.255.252','2','Point-to-point links'],
+    ['/31','255.255.255.254','0(2)*','P2P (RFC 3021)'],
+    ['/32','255.255.255.255','1(host)','Single host route'],
+  ];
+  document.getElementById('cidrTable').innerHTML=rows.map(r=>`
+    <tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);">${r[0]}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">${r[1]}</td>
+    <td style="color:var(--accent3);">${r[2]}</td>
+    <td style="color:var(--text2);font-size:0.75rem;">${r[3]}</td></tr>`).join('');
+}
+renderCIDRTable();
+
+// ======= ROUTING =======
+const routingTable=[
+  {dest:'192.168.1.0',mask:'255.255.255.0',cidr:24,hop:'Directly connected',iface:'eth0',metric:0,type:'C'},
+  {dest:'10.0.0.0',mask:'255.0.0.0',cidr:8,hop:'192.168.1.254',iface:'eth0',metric:1,type:'S'},
+  {dest:'172.16.0.0',mask:'255.255.0.0',cidr:16,hop:'192.168.1.253',iface:'eth0',metric:110,type:'O'},
+  {dest:'8.8.0.0',mask:'255.255.0.0',cidr:16,hop:'203.0.113.1',iface:'eth1',metric:1,type:'S'},
+  {dest:'0.0.0.0',mask:'0.0.0.0',cidr:0,hop:'203.0.113.1',iface:'eth1',metric:1,type:'S'},
+];
+function renderRoutingTable(highlight=-1){
+  document.getElementById('routeTable').innerHTML=routingTable.map((r,i)=>`
+    <tr class="${i===highlight?'highlight':''}">
+      <td style="font-family:'JetBrains Mono',monospace;">${r.dest}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">${r.mask}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;">${r.hop}</td>
+      <td><span class="tag tag-cyan">${r.iface}</span></td>
+      <td>${r.metric}</td>
+    </tr>`).join('');
+}
+renderRoutingTable();
+
+function lookupRoute(){
+  const ip=document.getElementById('routeLookup').value.trim();
+  const parts=ip.split('.').map(Number);
+  if(parts.length!==4||parts.some(p=>isNaN(p))){
+    document.getElementById('routeResult').innerHTML='<span style="color:var(--accent5);">Invalid IP</span>';return;
+  }
+  const ipNum=ipToNum(ip);
+  let best=-1,bestCIDR=-1;
+  routingTable.forEach((r,i)=>{
+    const maskNum=cidrToMask(r.cidr);
+    const netNum=ipToNum(r.dest);
+    if((ipNum&maskNum)===netNum&&r.cidr>bestCIDR){bestCIDR=r.cidr;best=i;}
+  });
+  renderRoutingTable(best);
+  if(best!==-1){
+    const r=routingTable[best];
+    document.getElementById('routeResult').innerHTML=`<span style="color:var(--accent3);">✓ Longest Prefix Match:</span> ${ip} → Via <strong style="color:var(--accent);">${r.hop}</strong> on <strong>${r.iface}</strong> (/${r.cidr} route, metric ${r.metric})`;
+  } else {
+    document.getElementById('routeResult').innerHTML='<span style="color:var(--accent5);">✗ No route found — packet dropped</span>';
+  }
+}
+
+function renderRoutingTypes(){
+  document.getElementById('routingTypes').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <div style="padding:1rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent3);">
+        <div style="font-weight:700;color:var(--accent3);margin-bottom:0.4rem;">Static Routing</div>
+        <p style="font-size:0.82rem;color:var(--text2);line-height:1.6;">Routes manually configured by admin. Fixed, predictable, no protocol overhead. Perfect for small networks or where security and control are paramount. Does NOT adapt to failures — if a link goes down, traffic stops until manually updated.</p>
+        <div style="margin-top:0.5rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--accent3);background:var(--card);padding:0.5rem;border-radius:4px;">ip route 10.0.0.0 255.0.0.0 192.168.1.1</div>
+      </div>
+      <div style="padding:1rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent2);">
+        <div style="font-weight:700;color:#a78bfa;margin-bottom:0.4rem;">Dynamic Routing</div>
+        <p style="font-size:0.82rem;color:var(--text2);line-height:1.6;">Routers exchange routing information using protocols, automatically learn and update routes. Adapts to failures, scales to thousands of routers. Uses more CPU/bandwidth but is essential for large networks and the internet.</p>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;">
+          <span class="tag tag-purple">RIP</span><span class="tag tag-purple">OSPF</span><span class="tag tag-purple">EIGRP</span><span class="tag tag-purple">BGP</span><span class="tag tag-purple">IS-IS</span>
+        </div>
+      </div>
+    </div>`;
+}
+renderRoutingTypes();
+
+function renderRoutingProtocols(){
+  const protos=[
+    {name:'RIP',full:'Routing Information Protocol',type:'Distance Vector',metric:'Hop Count (max 15)',use:'Small networks, educational use only — too slow for production',adm:120,color:'var(--accent3)'},
+    {name:'OSPF',full:'Open Shortest Path First',type:'Link State',metric:'Cost (based on bandwidth)',use:'Enterprise networks, ISPs — most common interior gateway protocol',adm:110,color:'var(--accent)'},
+    {name:'EIGRP',full:'Enhanced IGRP',type:'Hybrid (advanced distance vector)',metric:'Composite (bandwidth, delay, reliability)',use:'Cisco environments, faster convergence than OSPF',adm:90,color:'var(--accent2)'},
+    {name:'BGP',full:'Border Gateway Protocol',type:'Path Vector',metric:'Policy-based (AS path, attributes)',use:'THE internet routing protocol — connects autonomous systems (ISPs, companies)',adm:20,color:'var(--accent4)'},
+  ];
+  document.getElementById('routingProtocols').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;">${
+    protos.map(p=>`<div style="padding:1rem;background:var(--card2);border-radius:8px;border:1px solid var(--border);border-top:2px solid ${p.color};">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${p.color};font-size:1rem;">${p.name}</span>
+        <span style="font-size:0.65rem;color:var(--text3);font-family:'Space Mono',monospace;">AD: ${p.adm}</span>
+      </div>
+      <div style="font-size:0.75rem;font-weight:700;margin-bottom:0.25rem;">${p.full}</div>
+      <div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.3rem;">Type: ${p.type}</div>
+      <div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.4rem;">Metric: ${p.metric}</div>
+      <div style="font-size:0.75rem;color:var(--text2);">${p.use}</div>
+    </div>`).join('')
+  }</div>`;
+}
+renderRoutingProtocols();
+
+// ======= SWITCHING =======
+const switchDevices=[
+  {name:'PC1',mac:'AA:BB:CC:11:00:01',ip:'192.168.1.1',port:1,color:'var(--accent)'},
+  {name:'PC2',mac:'AA:BB:CC:22:00:02',ip:'192.168.1.2',port:5,color:'var(--accent2)'},
+  {name:'PC3',mac:'AA:BB:CC:33:00:03',ip:'192.168.1.3',port:12,color:'var(--accent3)'},
+  {name:'PC4',mac:'AA:BB:CC:44:00:04',ip:'192.168.1.4',port:18,color:'var(--accent4)'},
+];
+let macTableEntries=[];
+let switchLogLines=[];
+let switchSimStep=0;
+
+function renderSwitch(){
+  const ports=document.getElementById('switchPorts');
+  ports.innerHTML='';
+  for(let i=1;i<=24;i++){
+    const p=document.createElement('div');
+    p.className='switch-port';
+    p.id=`sport${i}`;
+    const dev=switchDevices.find(d=>d.port===i);
+    if(dev)p.style.background='var(--border2)';
+    ports.appendChild(p);
+  }
+  
+  document.getElementById('pcList').innerHTML=switchDevices.map(d=>`
+    <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.6rem;background:var(--card);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.73rem;">
+      <div style="width:8px;height:8px;border-radius:50%;background:${d.color};"></div>
+      <span style="color:${d.color};font-weight:700;">${d.name}</span>
+      <span style="color:var(--text3);">Port ${d.port}</span>
+      <span style="color:var(--text2);">${d.mac}</span>
+    </div>`).join('');
+}
+renderSwitch();
+
+function addSwitchLog(msg,cls=''){
+  switchLogLines.push(`<div class="log-line ${cls}">${msg}</div>`);
+  document.getElementById('switchLog').innerHTML=switchLogLines.join('');
+  document.getElementById('switchLog').scrollTop=999;
+}
+
+function renderMacTable(){
+  if(macTableEntries.length===0){
+    document.getElementById('macTable').innerHTML='';
+    document.getElementById('macTableEmpty').style.display='block';
+    return;
+  }
+  document.getElementById('macTableEmpty').style.display='none';
+  document.getElementById('macTable').innerHTML=macTableEntries.map(e=>`
+    <tr><td style="font-family:'JetBrains Mono',monospace;">${e.mac}</td>
+    <td style="color:var(--accent);">${e.port}</td>
+    <td><span class="tag tag-cyan">VLAN 1</span></td>
+    <td style="color:var(--text3);">${e.age}s</td></tr>`).join('');
+}
+
+const switchScenarios=[
+  {src:0,dst:1,type:'unicast',firstTime:true},
+  {src:1,dst:2,type:'unicast',firstTime:true},
+  {src:2,dst:0,type:'unicast',firstTime:false},
+  {src:0,dst:3,type:'unicast',firstTime:true},
+  {src:3,dst:1,type:'unicast',firstTime:false},
+  {src:0,dst:-1,type:'broadcast'},
+];
+
+async function simulateSwitch(){
+  const scenario=switchScenarios[switchSimStep%switchScenarios.length];
+  switchSimStep++;
+  const src=switchDevices[scenario.src];
+  
+  // Light up source
+  document.getElementById(`sport${src.port}`).className='switch-port learning';
+  
+  if(scenario.type==='broadcast'){
+    addSwitchLog(`<span>[FRAME]</span> ${src.name} sends BROADCAST — Dest MAC: FF:FF:FF:FF:FF:FF`);
+    await sleep(400);
+    if(!macTableEntries.find(e=>e.mac===src.mac)){
+      macTableEntries.push({mac:src.mac,port:src.port,age:0});
+      addSwitchLog(`<span>[LEARN]</span> MAC ${src.mac} → Port ${src.port}`);
+    }
+    addSwitchLog(`[FLOOD] No specific MAC — flooding to ALL ports except port ${src.port}`);
+    switchDevices.forEach(d=>{if(d.port!==src.port)document.getElementById(`sport${d.port}`).className='switch-port learning';});
+    await sleep(600);
+    renderMacTable();
+    switchDevices.forEach(d=>document.getElementById(`sport${d.port}`).className='switch-port active');
+  } else {
+    const dst=switchDevices[scenario.dst];
+    addSwitchLog(`<span>[FRAME]</span> ${src.name} → ${dst.name} | Src MAC: ${src.mac} | Dst MAC: ${dst.mac}`);
+    await sleep(400);
+    
+    if(!macTableEntries.find(e=>e.mac===src.mac)){
+      macTableEntries.push({mac:src.mac,port:src.port,age:0});
+      addSwitchLog(`<span>[LEARN]</span> Learned ${src.mac} on Port ${src.port}`);
+    }
+    
+    const known=macTableEntries.find(e=>e.mac===dst.mac);
+    if(known){
+      addSwitchLog(`[FORWARD] MAC table hit → Sending ONLY to Port ${dst.port} (${dst.name})`);
+      document.getElementById(`sport${dst.port}`).className='switch-port active';
+    } else {
+      addSwitchLog(`[FLOOD] ${dst.mac} not in table → Flooding all ports`);
+      switchDevices.forEach(d=>{if(d.port!==src.port)document.getElementById(`sport${d.port}`).className='switch-port learning';});
+      await sleep(400);
+      addSwitchLog(`<span>[LEARN]</span> ${dst.name} replies → Learned ${dst.mac} on Port ${dst.port}`);
+      macTableEntries.push({mac:dst.mac,port:dst.port,age:0});
+      switchDevices.forEach(d=>document.getElementById(`sport${d.port}`).className='switch-port');
+      document.getElementById(`sport${dst.port}`).className='switch-port active';
+    }
+    renderMacTable();
+  }
+  await sleep(800);
+  switchDevices.forEach(d=>document.getElementById(`sport${d.port}`).className='switch-port active');
+}
+
+function resetSwitch(){
+  macTableEntries=[];switchLogLines=[];switchSimStep=0;
+  renderMacTable();
+  document.getElementById('switchLog').innerHTML='';
+  switchDevices.forEach(d=>document.getElementById(`sport${d.port}`).className='switch-port');
+}
+
+function renderHubVsSwitch(){
+  const rows=[
+    ['Layer','1 (Physical)','2 (Data Link)'],
+    ['Intelligence','None — dumb repeater','Learns MAC addresses'],
+    ['Forwarding','Sends to ALL ports always','Only to correct port'],
+    ['Collisions','One big collision domain','Per-port collision domain'],
+    ['Bandwidth','Shared among all','Dedicated per port'],
+    ['Half/Full Duplex','Half duplex only','Full duplex capable'],
+    ['Speed','10–100 Mbps','Up to 100 Gbps+'],
+    ['Security','Very poor','Better (port isolation)'],
+    ['VLAN support','No','Yes'],
+    ['In use today','Basically obsolete','Universal standard'],
+  ];
+  document.getElementById('hubVsSwitch').innerHTML=rows.map(r=>`
+    <tr><td>${r[0]}</td>
+    <td style="color:var(--accent5);font-size:0.82rem;">${r[1]}</td>
+    <td style="color:var(--accent3);font-size:0.82rem;">${r[2]}</td></tr>`).join('');
+}
+renderHubVsSwitch();
+
+function renderDomainExplainer(){
+  document.getElementById('domainExplainer').innerHTML=`
+    <div class="two-col">
+      <div>
+        <h4 style="color:var(--accent5);margin-bottom:0.75rem;font-size:0.9rem;">💥 Collision Domain</h4>
+        <p style="font-size:0.82rem;color:var(--text2);line-height:1.6;margin-bottom:0.75rem;">A network segment where two or more devices could transmit simultaneously and cause a data collision. Both devices must then wait and retransmit.</p>
+        <div style="padding:0.75rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:0.8rem;color:var(--text2);">
+          <strong style="color:var(--accent5);">Hub:</strong> ALL ports share ONE collision domain. If PC1 and PC2 both send at once — collision! <br><br>
+          <strong style="color:var(--accent3);">Switch:</strong> EACH port is its own collision domain. Full-duplex eliminates collisions entirely.
+        </div>
+      </div>
+      <div>
+        <h4 style="color:var(--accent4);margin-bottom:0.75rem;font-size:0.9rem;">📢 Broadcast Domain</h4>
+        <p style="font-size:0.82rem;color:var(--text2);line-height:1.6;margin-bottom:0.75rem;">The set of devices that receive a broadcast frame (destination MAC FF:FF:FF:FF:FF:FF). Too many devices in one broadcast domain = excessive broadcast traffic = poor performance.</p>
+        <div style="padding:0.75rem;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:0.8rem;color:var(--text2);">
+          <strong style="color:var(--accent4);">Switch (without VLANs):</strong> All ports = ONE broadcast domain. <br><br>
+          <strong style="color:var(--accent3);">VLANs:</strong> Each VLAN = separate broadcast domain. <br><br>
+          <strong style="color:var(--accent3);">Routers:</strong> Never forward broadcasts — always a broadcast domain boundary.
+        </div>
+      </div>
+    </div>`;
+}
+renderDomainExplainer();
+
+// ======= NAT =======
+const natDeviceList=[
+  {name:'📱 Phone',ip:'192.168.1.2',port:5001},
+  {name:'💻 Laptop',ip:'192.168.1.3',port:5002},
+  {name:'🖥️ Desktop',ip:'192.168.1.4',port:5003},
+];
+let natTableEntries=[];
+let natLogLines=[];
+let selectedNatDevice=0;
+
+function renderNATDevices(){
+  document.getElementById('natDevices').innerHTML=natDeviceList.map((d,i)=>`
+    <div class="nat-device ${i===selectedNatDevice?'active':''}" onclick="selectNatDevice(${i})">
+      <span>${d.name}</span><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${d.ip}</span>
+    </div>`).join('');
+}
+renderNATDevices();
+
+function selectNatDevice(i){selectedNatDevice=i;renderNATDevices();}
+
+function addNATLog(msg,cls=''){
+  natLogLines.push(`<div class="log-line ${cls}">${msg}</div>`);
+  document.getElementById('natLog').innerHTML=natLogLines.join('');
+  document.getElementById('natLog').scrollTop=999;
+}
+
+async function runNAT(){
+  const dev=natDeviceList[selectedNatDevice];
+  const pubPort=40000+Math.floor(Math.random()*20000);
+  addNATLog(`<span>[${dev.name}]</span> Sending packet to 93.184.216.34:80 from ${dev.ip}:${dev.port}`);
+  await sleep(600);
+  addNATLog(`<span class="nat">[ROUTER NAT]</span> Translating: ${dev.ip}:${dev.port} → 203.0.113.10:${pubPort}`,'nat');
+  await sleep(400);
+  natTableEntries.push({priv:dev.ip,privPort:dev.port,pub:'203.0.113.10',pubPort,remote:'93.184.216.34',remPort:80,status:'ACTIVE'});
+  renderNATTable();
+  addNATLog(`<span>[INTERNET]</span> Packet traveling as 203.0.113.10:${pubPort} → 93.184.216.34:80`);
+  await sleep(800);
+  document.getElementById('serverResponse').innerHTML='<span style="color:var(--accent3);">✓ Request received from 203.0.113.10</span>';
+  addNATLog(`<span>[SERVER]</span> 93.184.216.34 responds to 203.0.113.10:${pubPort}`);
+  await sleep(600);
+  addNATLog(`<span class="nat">[ROUTER NAT]</span> Reverse translation: 203.0.113.10:${pubPort} → ${dev.ip}:${dev.port}`,'nat');
+  await sleep(400);
+  addNATLog(`<span>[${dev.name}]</span> Received response — webpage loaded!`);
+  natTableEntries=natTableEntries.map(e=>e.pubPort===pubPort?{...e,status:'ESTABLISHED'}:e);
+  renderNATTable();
+}
+
+function renderNATTable(){
+  if(natTableEntries.length===0){document.getElementById('natEmpty').style.display='block';document.getElementById('natTable').innerHTML='';return;}
+  document.getElementById('natEmpty').style.display='none';
+  document.getElementById('natTable').innerHTML=natTableEntries.map(e=>`
+    <tr><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">${e.priv}</td>
+    <td style="font-family:'JetBrains Mono',monospace;">${e.privPort}</td>
+    <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);">${e.pub}</td>
+    <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);">${e.pubPort}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">${e.remote}</td>
+    <td style="font-family:'JetBrains Mono',monospace;">${e.remPort}</td>
+    <td><span class="tag ${e.status==='ACTIVE'?'tag-amber':'tag-green'}">${e.status}</span></td></tr>`).join('');
+}
+
+function resetNAT(){natTableEntries=[];natLogLines=[];renderNATTable();document.getElementById('natLog').innerHTML='';document.getElementById('serverResponse').innerHTML='';}
+
+function renderNATTypes(){
+  const types=[
+    {name:'Static NAT',desc:'One-to-one fixed mapping between a private IP and a public IP. The same private address ALWAYS maps to the same public address. Used when an internal server needs a consistent public IP (e.g., web server, mail server).',ex:'192.168.1.10 ↔ 203.0.113.50 (always)',color:'var(--accent)'},
+    {name:'Dynamic NAT',desc:'A pool of public IPs is maintained. Private IPs are dynamically assigned a public IP from the pool when they need internet access. When the session ends, the public IP returns to the pool. Less common — wastes IPs if pool is large.',ex:'192.168.1.x → random IP from pool {203.0.113.50–203.0.113.60}',color:'var(--accent3)'},
+    {name:'PAT / NAT Overload',desc:'MOST COMMON. Many private IPs share a SINGLE public IP, distinguished by different source port numbers. This is what your home router uses. Also called "IP masquerading" on Linux.',ex:'192.168.1.2:5000, 192.168.1.3:5001, 192.168.1.4:5002 → ALL appear as 203.0.113.10:40001, 40002, 40003',color:'var(--accent4)'},
+  ];
+  document.getElementById('natTypes').innerHTML=`<div style="display:flex;flex-direction:column;gap:1rem;">${
+    types.map(t=>`<div style="padding:1rem;background:var(--card2);border-radius:8px;border-left:3px solid ${t.color};">
+      <div style="font-weight:700;color:${t.color};margin-bottom:0.4rem;">${t.name}</div>
+      <p style="font-size:0.82rem;color:var(--text2);line-height:1.6;margin-bottom:0.4rem;">${t.desc}</p>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text3);background:var(--card);padding:0.4rem 0.6rem;border-radius:4px;">Example: ${t.ex}</div>
+    </div>`).join('')
+  }</div>`;
+}
+renderNATTypes();
+
+// ======= VLANs =======
+const vlanConfig=[
+  {id:10,name:'HR',color:'#00d4ff',icon:'👔'},
+  {id:20,name:'IT',color:'#7c3aed',icon:'💻'},
+  {id:30,name:'Sales',color:'#10b981',icon:'💼'},
+  {id:0,name:'Unassigned',color:'#334155',icon:'—'},
+];
+let vlanPorts=new Array(24).fill(3); // index into vlanConfig, 3=unassigned
+
+function renderVLAN(){
+  const portDiv=document.getElementById('vlanPorts');
+  portDiv.innerHTML='';
+  vlanPorts.forEach((vi,i)=>{
+    const cfg=vlanConfig[vi];
+    const p=document.createElement('div');
+    p.className='vlan-port';
+    p.style.cssText=`background:${cfg.color};border-color:${cfg.color};opacity:${vi===3?0.3:0.9};`;
+    p.title=`Port ${i+1}: VLAN ${cfg.id} (${cfg.name})`;
+    p.textContent=i+1;
+    p.onclick=()=>{vlanPorts[i]=(vi+1)%4;renderVLAN();};
+    portDiv.appendChild(p);
+  });
+  
+  document.getElementById('vlanLegend').innerHTML=vlanConfig.slice(0,3).map((v,i)=>`
+    <div class="vlan-chip" style="background:rgba(${hexToRgb(v.color)},0.1);border-color:rgba(${hexToRgb(v.color)},0.4);color:${v.color};" onclick="assignVLAN(${i})">
+      ${v.icon} VLAN ${v.id} — ${v.name}
+    </div>`).join('');
+  
+  const stats=document.getElementById('vlanStats');
+  stats.innerHTML=vlanConfig.slice(0,3).map(v=>{
+    const count=vlanPorts.filter(p=>vlanConfig[p].id===v.id).length;
+    return `<div style="text-align:center;padding:0.6rem;background:rgba(${hexToRgb(v.color)},0.08);border-radius:6px;border:1px solid rgba(${hexToRgb(v.color)},0.2);">
+      <div style="font-size:1.2rem;font-weight:800;color:${v.color};">${count}</div>
+      <div style="font-size:0.65rem;color:var(--text3);font-family:'Space Mono',monospace;">${v.name} ports</div>
+    </div>`;
+  }).join('');
+}
+renderVLAN();
+
+function assignVLAN(vi){vlanPorts=vlanPorts.map((p,i)=>i<8?vi:i<16?Math.min(vi+1,2):Math.min(vi+2,2));renderVLAN();}
+
+function renderInterVLAN(){
+  document.getElementById('interVlanMethods').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <div style="padding:0.75rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent);">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:0.3rem;">Method 1: Router on a Stick</div>
+        <p style="font-size:0.8rem;color:var(--text2);line-height:1.5;">One physical router interface connects to the switch via a trunk port. The interface is divided into sub-interfaces (one per VLAN), each with its own IP (default gateway).</p>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text3);margin-top:0.4rem;background:var(--card);padding:0.4rem;border-radius:4px;">
+          interface eth0.10 → encap dot1q 10 → ip 10.0.10.1<br>
+          interface eth0.20 → encap dot1q 20 → ip 10.0.20.1
+        </div>
+      </div>
+      <div style="padding:0.75rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent3);">
+        <div style="font-weight:700;color:var(--accent3);margin-bottom:0.3rem;">Method 2: Layer 3 Switch (SVI)</div>
+        <p style="font-size:0.8rem;color:var(--text2);line-height:1.5;">A Layer 3 switch has Switch Virtual Interfaces (SVIs) — one per VLAN. The switch routes between VLANs internally at wire speed, no external router needed.</p>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text3);margin-top:0.4rem;background:var(--card);padding:0.4rem;border-radius:4px;">
+          interface vlan 10 → ip address 10.0.10.1 255.255.255.0<br>
+          interface vlan 20 → ip address 10.0.20.1 255.255.255.0
+        </div>
+      </div>
+    </div>`;
+}
+renderInterVLAN();
+
+function renderVLANBenefits(){
+  const benefits=[
+    {icon:'🔒',title:'Security',desc:'HR, IT, and Sales traffic is isolated. Even if on the same physical switch, VLAN 10 devices cannot see VLAN 20 traffic without explicit routing.'},
+    {icon:'📢',title:'Broadcast Reduction',desc:'Broadcasts stay within each VLAN. A broadcast storm in VLAN 10 doesn\'t affect VLAN 20 or 30. Dramatically improves network performance.'},
+    {icon:'🏗️',title:'Flexibility',desc:'Move a device between VLANs by changing port config — no physical cable changes needed. A Sales rep moving desks stays in VLAN 30 automatically.'},
+    {icon:'💰',title:'Cost Efficiency',desc:'One physical switch serves multiple logical networks. No need to buy separate switches per department.'},
+    {icon:'🎯',title:'QoS Priority',desc:'Mark VLAN traffic with different Quality of Service levels. VoIP traffic in VLAN 40 gets priority over general browsing in VLAN 10.'},
+    {icon:'🔧',title:'Management',desc:'Easier troubleshooting — network problems are isolated to one VLAN. Simpler access control policies per VLAN.'},
+  ];
+  document.getElementById('vlanBenefits').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;">${
+    benefits.map(b=>`<div style="padding:1rem;background:var(--card2);border-radius:8px;border:1px solid var(--border);">
+      <div style="font-size:1.3rem;margin-bottom:0.4rem;">${b.icon}</div>
+      <div style="font-weight:700;margin-bottom:0.3rem;font-size:0.88rem;">${b.title}</div>
+      <p style="font-size:0.78rem;color:var(--text2);line-height:1.5;">${b.desc}</p>
+    </div>`).join('')
+  }</div>`;
+}
+renderVLANBenefits();
+
+// ======= DNS =======
+const dnsSteps=[
+  {icon:'💻',title:'1. Check Local Cache',desc:'Browser checks its own cache → OS checks /etc/hosts → OS checks its DNS cache','time':'~0ms if cached'},
+  {icon:'🏠',title:'2. Ask Recursive Resolver',desc:'Query goes to your ISP or configured DNS resolver (8.8.8.8, 1.1.1.1). Resolver checks its own cache first.','time':'~1ms'},
+  {icon:'🌍',title:'3. Root DNS Server',desc:'Resolver asks one of 13 root server clusters. Root server says: "For .com, ask TLD server at 192.5.6.30"','time':'~20ms'},
+  {icon:'📂',title:'4. TLD (.com) Server',desc:'TLD server for .com says: "For example.com, the authoritative NS is ns1.example.com at 205.251.196.1"','time':'~30ms'},
+  {icon:'📋',title:'5. Authoritative DNS Server',desc:'The real owner of example.com\'s DNS. Returns the A record: "example.com → 93.184.216.34 (TTL: 86400)"','time':'~40ms'},
+  {icon:'✅',title:'6. Resolver Returns Answer',desc:'Resolver caches the response for TTL duration, returns IP to your browser. Browser connects to 93.184.216.34.','time':'~41ms total'},
+];
+
+let dnsRunning=false;
+function renderDNSFlow(){
+  document.getElementById('dnsFlow').innerHTML=dnsSteps.map((s,i)=>`
+    <div class="dns-step" id="dstep${i}">
+      <span class="dns-icon">${s.icon}</span>
+      <div class="dns-content">
+        <h5>${s.title}</h5>
+        <p>${s.desc}</p>
+      </div>
+      <span class="dns-arrow" id="darrow${i}">${s.time}</span>
+    </div>`).join('');
+}
+renderDNSFlow();
+
+async function runDNS(){
+  if(dnsRunning)return;
+  dnsRunning=true;
+  const domain=document.getElementById('dnsQuery').value||'www.example.com';
+  document.getElementById('dnsResult').style.display='none';
+  renderDNSFlow();
+  for(let i=0;i<dnsSteps.length;i++){
+    document.getElementById(`dstep${i}`).className='dns-step active';
+    if(i>0)document.getElementById(`dstep${i-1}`).className='dns-step done';
+    await sleep(800);
+  }
+  document.getElementById(`dstep${dnsSteps.length-1}`).className='dns-step done';
+  document.getElementById('dnsResult').style.display='block';
+  document.getElementById('dnsResult').innerHTML=`<span style="color:var(--accent3);">✓ DNS Resolution complete!</span><br>
+  <span style="color:var(--text3);">${domain}</span> → <span style="color:var(--accent);">93.184.216.34</span><br>
+  <span style="color:var(--text3);">TTL: 86400s (24 hours) — cached for next lookup</span>`;
+  dnsRunning=false;
+}
+
+function renderDNSRecords(){
+  const records=[
+    {type:'A',purpose:'Map domain to IPv4',example:'example.com → 93.184.216.34',color:'var(--accent)'},
+    {type:'AAAA',purpose:'Map domain to IPv6',example:'example.com → 2606:2800::1',color:'var(--accent2)'},
+    {type:'CNAME',purpose:'Alias — domain to domain',example:'www.example.com → example.com',color:'var(--accent3)'},
+    {type:'MX',purpose:'Mail server for domain',example:'example.com mail → mail.example.com (priority 10)',color:'var(--accent4)'},
+    {type:'TXT',purpose:'Text data (SPF, DKIM, verification)',example:'v=spf1 include:_spf.google.com ~all',color:'var(--accent5)'},
+    {type:'NS',purpose:'Authoritative name servers',example:'example.com NS ns1.example.com',color:'#a78bfa'},
+    {type:'PTR',purpose:'Reverse DNS (IP to domain)',example:'34.216.184.93.in-addr.arpa → example.com',color:'#67e8f9'},
+    {type:'SOA',purpose:'Start of Authority — zone metadata',example:'Primary NS, admin email, serial, refresh timers',color:'#86efac'},
+    {type:'SRV',purpose:'Service location records',example:'_sip._tcp.example.com → sipserver.example.com:5060',color:'#fcd34d'},
+  ];
+  document.getElementById('dnsRecords').innerHTML=records.map(r=>`
+    <div style="display:flex;gap:0.75rem;padding:0.6rem;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${r.color};min-width:50px;">${r.type}</span>
+      <div>
+        <div style="font-size:0.8rem;font-weight:600;margin-bottom:0.2rem;">${r.purpose}</div>
+        <div style="font-size:0.72rem;color:var(--text3);font-family:'Space Mono',monospace;">${r.example}</div>
+      </div>
+    </div>`).join('');
+}
+renderDNSRecords();
+
+function renderTTLExamples(){
+  const examples=[
+    {record:'Root hints','ttl':'48 hours','reason':'Very stable, rarely changes'},
+    {record:'TLD (.com)','ttl':'2 days','reason':'TLD servers are highly stable'},
+    {record:'Regular A record','ttl':'1–24 hours','reason':'Normal websites, balance between caching and flexibility'},
+    {record:'A record (migration)','ttl':'5 minutes','reason':'Set low before migration so changes propagate fast'},
+    {record:'MX record','ttl':'1 hour','reason':'Mail shouldn\'t change often'},
+    {record:'TTL=0','ttl':'0 seconds','reason':'No caching — every query hits authoritative server (stress test/debug only)'},
+  ];
+  document.getElementById('ttlExamples').innerHTML=examples.map(e=>`
+    <div style="display:flex;gap:0.75rem;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.78rem;">
+      <span style="color:var(--text2);min-width:150px;">${e.record}</span>
+      <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;min-width:80px;">${e.ttl}</span>
+      <span style="color:var(--text3);">${e.reason}</span>
+    </div>`).join('');
+}
+renderTTLExamples();
+
+// ======= DHCP =======
+const doraPhases=[
+  {letter:'D',name:'Discover',color:'#00d4ff',bg:'rgba(0,212,255,0.08)',
+   msg:'New device broadcasts to 255.255.255.255. "Is there a DHCP server? I need an IP address!" Source IP: 0.0.0.0 (no IP yet). Destination: 255.255.255.255. UDP port 67 (server) / 68 (client). The Discover packet contains the client\'s MAC address so the server can track it.',
+   packet:'DHCP Discover\nSrc IP: 0.0.0.0\nDst IP: 255.255.255.255\nClient MAC: 00:1A:2B:3C:4D:5E\nTransaction ID: 0x3903F326'},
+  {letter:'O',name:'Offer',color:'#7c3aed',bg:'rgba(124,58,237,0.08)',
+   msg:'DHCP server receives Discover and responds with an Offer: "I can give you IP 192.168.1.10, subnet mask 255.255.255.0, gateway 192.168.1.1, DNS 8.8.8.8, for a lease of 86400 seconds (24 hours)." The server tentatively reserves this IP.',
+   packet:'DHCP Offer\nSrc IP: 192.168.1.1 (Server)\nDst IP: 255.255.255.255 (broadcast)\nOffered IP: 192.168.1.10\nSubnet: 255.255.255.0\nGateway: 192.168.1.1\nDNS: 8.8.8.8\nLease: 86400s'},
+  {letter:'R',name:'Request',color:'#10b981',bg:'rgba(16,185,129,0.08)',
+   msg:'Client selects one offer (usually first received, in case multiple servers responded). Broadcasts: "I want to use IP 192.168.1.10 from server 192.168.1.1." This broadcast also tells OTHER DHCP servers their offers were rejected, freeing their reserved IPs.',
+   packet:'DHCP Request\nSrc IP: 0.0.0.0\nDst IP: 255.255.255.255\nRequested IP: 192.168.1.10\nServer ID: 192.168.1.1\nClient MAC: 00:1A:2B:3C:4D:5E'},
+  {letter:'A',name:'Acknowledge',color:'#f59e0b',bg:'rgba(245,158,11,0.08)',
+   msg:'DHCP server confirms: "The IP 192.168.1.10 is yours for 86400 seconds. Here are all your settings." Client now configures its network interface. If IP was taken between Offer and ACK, server sends DHCP NACK (negative acknowledgment) instead, and client restarts from Discover.',
+   packet:'DHCP ACK\nSrc IP: 192.168.1.1\nDst IP: 255.255.255.255\nYour IP: 192.168.1.10\nSubnet: 255.255.255.0\nGateway: 192.168.1.1\nDNS: 8.8.8.8, 8.8.4.4\nLease Time: 86400s (24h)'},
+];
+let doraActive=-1;
+let doraPlaying=false;
+let doraLogLines=[];
+
+function renderDORA(){
+  document.getElementById('doraTimeline').innerHTML=doraPhases.map((p,i)=>`
+    <div class="dora-phase ${i===doraActive?'active':''}" 
+         style="background:${i===doraActive?p.bg:'var(--card2)'};cursor:pointer;"
+         onclick="showDORA(${i})">
+      <div class="letter" style="color:${p.color};">${p.letter}</div>
+      <div class="name">${p.name}</div>
+      <div class="desc">${i===0?'Broadcast from client':i===1?'Server responds':i===2?'Client confirms':i===3?'Server confirms':''}</div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:${i<=doraActive?p.color:'transparent'};border-radius:0 0 3px 3px;"></div>
+    </div>`).join('');
+}
+renderDORA();
+
+function showDORA(i){
+  doraActive=i;
+  const p=doraPhases[i];
+  renderDORA();
+  document.getElementById('doraDetail').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div>
+        <h4 style="color:${p.color};margin-bottom:0.75rem;">DHCP ${p.name}</h4>
+        <p style="font-size:0.83rem;color:var(--text2);line-height:1.7;">${p.msg}</p>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;white-space:pre-line;color:var(--text2);">${p.packet}</div>
+      </div>
+    </div>`;
+}
+
+async function runDORA(){
+  if(doraPlaying)return;
+  doraPlaying=true;doraActive=-1;doraLogLines=[];
+  document.getElementById('doraLog').innerHTML='';
+  for(let i=0;i<4;i++){
+    showDORA(i);
+    doraLogLines.push(`<div class="log-line"><span>[${doraPhases[i].letter}] ${doraPhases[i].name.toUpperCase()}</span> — ${i===0?'Client → Broadcast':i===1?'Server → Client':i===2?'Client → Broadcast':i===3?'Server → Client':''}</div>`);
+    document.getElementById('doraLog').innerHTML=doraLogLines.join('');
+    await sleep(1200);
+  }
+  doraLogLines.push(`<div class="log-line"><span>✓ DORA Complete</span> — Client configured with IP 192.168.1.10/24, GW: 192.168.1.1, DNS: 8.8.8.8</div>`);
+  document.getElementById('doraLog').innerHTML=doraLogLines.join('');
+  doraPlaying=false;
+}
+
+function resetDORA(){doraActive=-1;doraPlaying=false;doraLogLines=[];renderDORA();document.getElementById('doraDetail').innerHTML='<p style="color:var(--text3);font-size:0.85rem;font-family:Space Mono,monospace;">Click a phase above to learn what happens in that step of the DORA process.</p>';document.getElementById('doraLog').innerHTML='';}
+
+function renderDHCPProvides(){
+  const items=[
+    {k:'IP Address',v:'192.168.1.10',desc:'Unique logical address for the device on this network'},
+    {k:'Subnet Mask',v:'255.255.255.0 (/24)',desc:'Defines which part is network and which is host'},
+    {k:'Default Gateway',v:'192.168.1.1',desc:'Router IP — used for traffic going outside the local network'},
+    {k:'DNS Server(s)',v:'8.8.8.8, 8.8.4.4',desc:'Used for domain name resolution (hostname → IP)'},
+    {k:'Lease Time',v:'86400 seconds (24h)',desc:'How long the IP assignment is valid before renewal'},
+    {k:'Domain Name',v:'local.example.com',desc:'Optional — local domain suffix for short hostname lookups'},
+    {k:'NTP Server',v:'time.google.com',desc:'Optional — time synchronization server'},
+  ];
+  document.getElementById('dhcpProvides').innerHTML=items.map(item=>`
+    <div style="padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div style="display:flex;justify-content:space-between;gap:0.5rem;">
+        <span style="font-weight:700;font-size:0.83rem;">${item.k}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);">${item.v}</span>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text3);margin-top:0.2rem;">${item.desc}</p>
+    </div>`).join('');
+}
+renderDHCPProvides();
+
+function renderDHCPLease(){
+  document.getElementById('dhcpLease').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:0.6rem;">
+      <div style="padding:0.75rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent3);">
+        <strong style="color:var(--accent3);font-size:0.82rem;">T1 (50% of lease) — Renewal attempt</strong>
+        <p style="font-size:0.78rem;color:var(--text2);margin-top:0.3rem;">Client unicasts a DHCP Request to the ORIGINAL server at 50% of lease time. If server responds with ACK → lease renewed for full duration.</p>
+      </div>
+      <div style="padding:0.75rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent4);">
+        <strong style="color:var(--accent4);font-size:0.82rem;">T2 (87.5% of lease) — Rebinding</strong>
+        <p style="font-size:0.78rem;color:var(--text2);margin-top:0.3rem;">If T1 failed (server down), client broadcasts at 87.5% to ANY DHCP server. Any server can renew the lease. Critical failover mechanism.</p>
+      </div>
+      <div style="padding:0.75rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent5);">
+        <strong style="color:var(--accent5);font-size:0.82rem;">Lease Expiry → APIPA</strong>
+        <p style="font-size:0.78rem;color:var(--text2);margin-top:0.3rem;">If T2 also fails, lease expires. Client immediately loses the IP address and enters initialization state. Tries DORA again. If no server found → APIPA (169.254.x.x).</p>
+      </div>
+      <div style="padding:0.75rem;background:var(--card2);border-radius:8px;border-left:3px solid var(--accent);">
+        <strong style="color:var(--accent);font-size:0.82rem;">DHCP Release (graceful)</strong>
+        <p style="font-size:0.78rem;color:var(--text2);margin-top:0.3rem;">When you disconnect or shut down properly, the client sends a DHCP Release to return the IP to the pool immediately, making it available for other devices.</p>
+      </div>
+    </div>`;
+}
+renderDHCPLease();
+
+// ======= END-TO-END =======
+const e2eNodes=[
+  {label:'Laptop',icon:'💻',ip:'192.168.1.10',mac:'AA:BB:CC:11'},
+  {label:'Wi-Fi AP',icon:'📡',ip:'192.168.1.1',mac:'DD:EE:FF:22'},
+  {label:'Switch',icon:'🔌',ip:'-',mac:'-'},
+  {label:'Router/NAT',icon:'🌐',ip:'203.0.113.10',mac:'GG:HH:II:33'},
+  {label:'ISP Core',icon:'🏗️',ip:'203.0.x.x',mac:'-'},
+  {label:'Internet',icon:'☁️',ip:'various',mac:'-'},
+  {label:'example.com',icon:'🖥️',ip:'93.184.216.34',mac:'-'},
+];
+const e2eSteps=[
+  {title:'Physical & Wi-Fi Connection',detail:'Laptop\'s NIC connects to Wi-Fi AP using 802.11 protocol. Physical layer: radio waves at 2.4GHz or 5GHz. Data Link: Laptop gets AP\'s MAC address. Wi-Fi uses CSMA/CA to avoid collisions (unlike Ethernet\'s CSMA/CD).'},
+  {title:'DHCP — Obtain IP Address',detail:'Laptop broadcasts DHCP Discover (src: 0.0.0.0). Router\'s DHCP server responds. DORA completes. Laptop receives: IP=192.168.1.10, Mask=/24, GW=192.168.1.1, DNS=8.8.8.8.'},
+  {title:'DNS — Resolve example.com',detail:'Laptop asks DNS resolver 8.8.8.8 for example.com. Resolver queries root → .com TLD → authoritative NS → gets A record: 93.184.216.34. Cached for TTL seconds.'},
+  {title:'TCP 3-Way Handshake',detail:'Laptop sends SYN to 93.184.216.34:443. Server replies SYN-ACK. Laptop sends ACK. TCP session established. TLS handshake follows for HTTPS encryption.'},
+  {title:'IP Routing — Find Gateway',detail:'93.184.216.34 is outside 192.168.1.0/24. Laptop sends packet to default gateway 192.168.1.1 (router). Frame destination MAC = router\'s MAC. IP destination = 93.184.216.34.'},
+  {title:'NAT — Translate Address',detail:'Router replaces src IP 192.168.1.10 with public IP 203.0.113.10 and assigns port (e.g., 50000). Entry added to NAT table. Packet now appears to come from 203.0.113.10:50000.'},
+  {title:'Internet Routing',detail:'ISP routers forward packet toward 93.184.216.34 using BGP and OSPF routing tables. Each router performs longest-prefix match. Packet hops through 10–20 routers across the internet.'},
+  {title:'Server Responds + NAT Reversal',detail:'Server sends response to 203.0.113.10:50000. Router receives it, looks up NAT table: 50000 → 192.168.1.10:12345. Translates destination IP back. Forwards to laptop.'},
+  {title:'LAN Delivery via Switch',detail:'Router sends frame to switch. Switch checks MAC table: laptop\'s MAC is on port 3. Frame forwarded ONLY to port 3. Laptop receives TCP segments, reassembles HTTP response, browser renders page.'},
+];
+let e2eStep=0;
+let e2eAuto=false;
+let e2eLogLines=[];
+
+function buildE2ETrack(){
+  const track=document.getElementById('packetTrack');
+  track.innerHTML='';
+  e2eNodes.forEach((n,i)=>{
+    const node=document.createElement('div');
+    node.className='network-node';
+    node.innerHTML=`<div class="node-icon" id="enode${i}">${n.icon}</div><div class="node-label">${n.label}</div><div class="node-ip">${n.ip}</div>`;
+    track.appendChild(node);
+    if(i<e2eNodes.length-1){
+      const line=document.createElement('div');
+      line.className='track-line';
+      line.innerHTML=`<div class="packet-dot" id="pdot${i}"></div>`;
+      track.appendChild(line);
+    }
+  });
+}
+buildE2ETrack();
+
+function addE2ELog(msg,cls=''){
+  e2eLogLines.push(`<div class="log-line ${cls}">${msg}</div>`);
+  document.getElementById('e2eLog').innerHTML=e2eLogLines.join('');
+  document.getElementById('e2eLog').scrollTop=999;
+}
+
+async function runE2E(){
+  resetE2E();
+  e2eAuto=true;
+  document.getElementById('e2eNextBtn').style.display='none';
+  for(let i=0;i<e2eSteps.length;i++){
+    await animateE2EStep(i);
+    await sleep(1000);
+  }
+  e2eAuto=false;
+}
+
+async function animateE2EStep(step){
+  const s=e2eSteps[step];
+  // Highlight relevant nodes
+  const nodeMap=[0,0,1,2,3,4,5,6,6,6,6];
+  const dotIdx=Math.min(step,5);
+  
+  // Clear previous
+  e2eNodes.forEach((_,i)=>document.getElementById(`enode${i}`)?.classList.remove('active'));
+  
+  const ni=Math.min(step,e2eNodes.length-1);
+  document.getElementById(`enode${ni}`)?.classList.add('active');
+  if(ni>0)document.getElementById(`enode${ni-1}`)?.classList.add('active');
+  
+  if(dotIdx<e2eNodes.length-1){
+    const dot=document.getElementById(`pdot${dotIdx}`);
+    if(dot){dot.className='packet-dot show';dot.style.left='0';setTimeout(()=>dot.style.left='calc(100% - 14px)',50);}
+  }
+  
+  addE2ELog(`<span>[Step ${step+1}] ${s.title}</span>`);
+  
+  const info=document.getElementById('e2eStepInfo');
+  info.style.display='block';
+  info.innerHTML=`<strong style="color:var(--accent);">Step ${step+1}: ${s.title}</strong><br><span style="color:var(--text2);">${s.detail}</span>`;
+}
+
+function e2eNext(){
+  if(e2eStep<e2eSteps.length){animateE2EStep(e2eStep);e2eStep++;}
+  if(e2eStep>=e2eSteps.length){document.getElementById('e2eNextBtn').style.display='none';}
+}
+
+function resetE2E(){
+  e2eStep=0;e2eAuto=false;e2eLogLines=[];
+  document.getElementById('e2eLog').innerHTML='';
+  document.getElementById('e2eStepInfo').style.display='none';
+  document.getElementById('e2eNextBtn').style.display='inline-block';
+  buildE2ETrack();
+}
+
+function renderE2EOSIMap(){
+  const steps=[
+    {step:'Wi-Fi/MAC',layers:['Physical (L1)','Data Link (L2)'],protocols:'802.11, Ethernet, MAC addressing',color:'#64748b'},
+    {step:'DHCP',layers:['Application (L7)','Transport UDP (L4)','Network IP (L3)'],protocols:'DHCP protocol, UDP port 67/68',color:'#10b981'},
+    {step:'DNS',layers:['Application (L7)','Transport UDP/TCP (L4)','Network IP (L3)'],protocols:'DNS, UDP port 53',color:'#00d4ff'},
+    {step:'TCP Connect',layers:['Transport (L4)'],protocols:'TCP SYN/SYN-ACK/ACK, port 443',color:'#f59e0b'},
+    {step:'IP Routing',layers:['Network (L3)','Data Link (L2)'],protocols:'IP, ICMP, ARP, routing tables',color:'#ef4444'},
+    {step:'NAT',layers:['Network (L3)'],protocols:'PAT/NAT, IP + port translation',color:'#ec4899'},
+    {step:'HTTP/HTTPS',layers:['Application (L7)','Presentation (L6)','Session (L5)'],protocols:'HTTP, TLS/SSL, compression',color:'#7c3aed'},
+  ];
+  document.getElementById('e2eOSImap').innerHTML=`<div style="overflow-x:auto;"><table class="rtable"><thead><tr><th>Network Event</th><th>OSI Layers Involved</th><th>Protocols</th></tr></thead><tbody>${
+    steps.map(s=>`<tr>
+      <td style="font-weight:700;color:${s.color};">${s.step}</td>
+      <td>${s.layers.map(l=>`<span class="tag tag-cyan" style="margin:2px;">${l}</span>`).join('')}</td>
+      <td style="font-size:0.78rem;color:var(--text2);">${s.protocols}</td>
+    </tr>`).join('')
+  }</tbody></table></div>`;
+}
+renderE2EOSIMap();
+
+// ======= QUIZ =======
+const quizQuestions=[
+  {q:'What does OSI stand for?',opts:['Open Systems Integration','Open Source Interconnection','Open Systems Interconnection','Operational Systems Interface'],ans:2,exp:'OSI = Open Systems Interconnection. It\'s a conceptual model developed by ISO in 1984 that divides network communication into 7 layers, each with specific responsibilities.'},
+  {q:'At which OSI layer do routers primarily operate?',opts:['Layer 1 (Physical)','Layer 2 (Data Link)','Layer 3 (Network)','Layer 4 (Transport)'],ans:2,exp:'Routers operate at Layer 3 (Network). They read IP addresses to make forwarding decisions between different networks. Switches operate at Layer 2 using MAC addresses.'},
+  {q:'What is the PDU (Protocol Data Unit) at the Transport layer?',opts:['Bits','Frames','Packets','Segments'],ans:3,exp:'Transport layer PDU is a Segment (TCP) or Datagram (UDP). Network layer = Packet, Data Link = Frame, Physical = Bits.'},
+  {q:'Which private IP range belongs to Class A?',opts:['192.168.0.0/16','172.16.0.0/12','10.0.0.0/8','169.254.0.0/16'],ans:2,exp:'10.0.0.0/8 is the Class A private range (first octet 1–126, 8 network bits). 172.16/12 is Class B private. 192.168/16 is Class C private. 169.254/16 is APIPA (link-local).'},
+  {q:'How many usable host addresses are in a /26 subnet?',opts:['30','62','126','254'],ans:1,exp:'/26 = 6 host bits → 2^6 = 64 addresses → 64-2 = 62 usable hosts (subtract network address and broadcast address).'},
+  {q:'What protocol does DHCP use at the transport layer?',opts:['TCP port 67','UDP port 67/68','TCP port 53','UDP port 53'],ans:1,exp:'DHCP uses UDP (connectionless) on ports 67 (server) and 68 (client). It uses UDP because at the time of DHCP Discover, the client has no IP yet and can\'t establish a TCP connection.'},
+  {q:'What is the purpose of the DHCP DORA process?',opts:['Domain resolution','IP address auto-configuration','Routing table updates','MAC learning'],ans:1,exp:'DORA (Discover, Offer, Request, Acknowledge) is the 4-step process DHCP uses to automatically assign IP addresses and network configuration to devices joining a network.'},
+  {q:'What does NAT stand for, and what problem does it solve?',opts:['Network Allocation Table — routing','Network Address Translation — IPv4 exhaustion','Node Assignment Tracker — MAC conflicts','None of the above'],ans:1,exp:'NAT = Network Address Translation. It allows many devices with private IP addresses to share a single public IP address, solving the IPv4 address exhaustion problem. Most homes use PAT (a type of NAT).'},
+  {q:'What is a broadcast domain?',opts:['A set of devices that can collide on the wire','A set of devices that receive broadcast frames','The area covered by a Wi-Fi AP','The range of a subnet'],ans:1,exp:'A broadcast domain is the set of all devices that receive a broadcast frame (destination MAC FF:FF:FF:FF:FF:FF). Routers separate broadcast domains. VLANs create separate broadcast domains on a switch.'},
+  {q:'What type of DNS record maps a domain name to an IPv4 address?',opts:['AAAA','MX','A','CNAME'],ans:2,exp:'The A (Address) record maps a domain name to an IPv4 address (e.g., example.com → 93.184.216.34). AAAA maps to IPv6. MX = mail server. CNAME = alias to another domain.'},
+  {q:'Which routing protocol is used between autonomous systems on the internet?',opts:['OSPF','RIP','EIGRP','BGP'],ans:3,exp:'BGP (Border Gateway Protocol) is the exterior gateway protocol that routes traffic between autonomous systems (ASes) on the internet. OSPF, RIP, and EIGRP are interior gateway protocols used within an AS.'},
+  {q:'What does a VLAN do?',opts:['Extends a network over the internet','Creates logical network segments on a switch','Translates MAC to IP addresses','Speeds up internet routing'],ans:1,exp:'A VLAN (Virtual LAN) creates logical network segments on a physical switch. Each VLAN is its own broadcast domain. Devices in different VLANs cannot communicate without inter-VLAN routing (a router or Layer 3 switch).'},
+  {q:'What is the loopback address in IPv4?',opts:['0.0.0.0','255.255.255.255','169.254.0.1','127.0.0.1'],ans:3,exp:'127.0.0.1 is the loopback address (localhost). Packets to 127.0.0.1 never leave your computer — they loop back to your own network stack. Used to test network software locally. The entire 127.0.0.0/8 range is loopback.'},
+  {q:'IPv6 uses how many bits for addressing?',opts:['32 bits','64 bits','96 bits','128 bits'],ans:3,exp:'IPv6 uses 128-bit addresses, written as 8 groups of 4 hexadecimal digits separated by colons. This provides ~3.4×10^38 addresses — enough for every atom on Earth to have trillions of IP addresses.'},
+  {q:'In the TCP 3-way handshake, what is the correct order?',opts:['SYN → ACK → SYN-ACK','SYN-ACK → SYN → ACK','SYN → SYN-ACK → ACK','ACK → SYN → SYN-ACK'],ans:2,exp:'The TCP 3-Way Handshake is: 1) Client sends SYN (I want to connect, my seq=X), 2) Server replies SYN-ACK (OK, my seq=Y, ack=X+1), 3) Client sends ACK (Got it, ack=Y+1). Connection established!'},
+];
+
+let curQ=0,score=0,answered=0;
+function renderQuiz(){
+  const q=quizQuestions[curQ];
+  document.getElementById('quizQ').textContent=q.q;
+  document.getElementById('quizOpts').innerHTML=q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('');
+  document.getElementById('quizFeedback').className='quiz-feedback';
+  document.getElementById('quizFeedback').textContent='';
+  document.getElementById('quizNext').style.display='none';
+  document.getElementById('quizScore').textContent=`Question ${curQ+1} of ${quizQuestions.length} | Score: ${score}/${answered}`;
+  document.getElementById('quizProgress').style.width=`${(curQ/quizQuestions.length)*100}%`;
+}
+renderQuiz();
+
+function answerQuiz(i){
+  const q=quizQuestions[curQ];
+  if(document.getElementById('quizFeedback').classList.contains('show'))return;
+  const opts=document.querySelectorAll('.quiz-opt');
+  opts[q.ans].classList.add('correct');
+  if(i!==q.ans)opts[i].classList.add('wrong');
+  answered++;
+  if(i===q.ans)score++;
+  const fb=document.getElementById('quizFeedback');
+  fb.className=`quiz-feedback show ${i===q.ans?'good':'bad'}`;
+  fb.textContent=(i===q.ans?'✓ Correct! ':'✗ Incorrect. ')+q.exp;
+  document.getElementById('quizNext').style.display='inline-block';
+  document.getElementById('quizScore').textContent=`Question ${curQ+1} of ${quizQuestions.length} | Score: ${score}/${answered}`;
+  document.getElementById('quizProgress').style.width=`${((curQ+1)/quizQuestions.length)*100}%`;
+}
+
+function nextQuestion(){
+  curQ++;
+  if(curQ>=quizQuestions.length){
+    document.getElementById('quizQ').textContent=`🎉 Quiz Complete! Score: ${score}/${quizQuestions.length}`;
+    document.getElementById('quizOpts').innerHTML=`<div style="text-align:center;padding:2rem;font-size:1.2rem;color:${score>=12?'var(--accent3)':score>=8?'var(--accent4)':'var(--accent5)'};">${score>=12?'Outstanding! You\'ve mastered Network Foundations 🏆':score>=8?'Good work! Review the concepts you missed 📚':'Keep studying! Use the interactive modules above 💡'}</div>`;
+    document.getElementById('quizFeedback').className='quiz-feedback';
+    document.getElementById('quizNext').style.display='none';
+    return;
+  }
+  renderQuiz();
+}
+function restartQuiz(){curQ=0;score=0;answered=0;renderQuiz();}
+</script>
+</body>
+</html>

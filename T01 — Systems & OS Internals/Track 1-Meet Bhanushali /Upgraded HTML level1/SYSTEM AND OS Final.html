@@ -1,0 +1,2970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systems & OS Internals | Interactive Learning Dashboard</title>
+    <meta name="description" content="A premium interactive educational dashboard explaining computing systems, CPU architecture, memory layers, storage, kernel internals, and virtualization.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Links to styles -->
+    <style>:root {
+    --bg: #07090e;
+    --bg-card: rgba(16, 20, 30, 0.65);
+    --bg-nav: rgba(11, 14, 22, 0.85);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(91, 143, 255, 0.2);
+    --text: #ecf0f6;
+    --muted: #848a9e;
+    
+    /* Accents */
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #8b5cf6;
+    --accent-pink: #ec4899;
+    
+    /* Background Gradients */
+    --gradient-blue: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    --gradient-green: linear-gradient(135deg, #10b981, #047857);
+    --gradient-orange: linear-gradient(135deg, #f59e0b, #b45309);
+    --gradient-red: linear-gradient(135deg, #ef4444, #b91c1c);
+    --gradient-purple: linear-gradient(135deg, #8b5cf6, #5b21b6);
+    
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Sora', sans-serif;
+    
+    --shadow-glow: 0 0 25px rgba(59, 130, 246, 0.15);
+}
+
+/* Base styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+body {
+    background-color: var(--bg);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Layout structure */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar navigation */
+.sidebar {
+    width: 300px;
+    background: var(--bg-nav);
+    border-right: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    flex-shrink: 0;
+    backdrop-filter: blur(15px);
+}
+
+.logo-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+}
+
+.logo-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(to right, #fff, var(--muted));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo-title span {
+    color: var(--accent-blue);
+    -webkit-text-fill-color: initial;
+}
+
+.logo-subtitle {
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Search input */
+.search-container {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    transition: all 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 0.9rem;
+}
+
+/* Nav links */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex-grow: 1;
+}
+
+.nav-header {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.7rem 0.9rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-link.active {
+    color: #fff;
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.2);
+    font-weight: 600;
+}
+
+.nav-num {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    opacity: 0.5;
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Main Content Panel */
+.main-content {
+    margin-left: 300px;
+    flex-grow: 1;
+    padding: 3rem 4rem;
+    max-width: 1200px;
+}
+
+/* Header hero */
+.hero {
+    margin-bottom: 4rem;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--accent-blue);
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 6px 14px;
+    border-radius: 50px;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.hero h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ffffff 40%, #a2a8b9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 650px;
+    line-height: 1.6;
+}
+
+/* Content section card container */
+.section-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 4rem;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s;
+    scroll-margin-top: 3rem;
+}
+
+.section-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+
+/* Section header badge style */
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+}
+
+.section-badge {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.section-title-wrap h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+}
+
+.section-sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+/* Informative boxes */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.explanation-box {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 4px solid var(--accent-blue);
+    padding: 1.2rem 1.5rem;
+    border-radius: 0 12px 12px 0;
+}
+
+.analogy-box {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 4px solid var(--accent-orange);
+    padding: 1.2rem 1.5rem;
+    border-radius: 0 12px 12px 0;
+}
+
+.box-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.explanation-box .box-title { color: var(--accent-blue); }
+.analogy-box .box-title { color: var(--accent-orange); }
+
+.explanation-box p, .analogy-box p {
+    font-size: 0.9rem;
+    color: #e2e8f0;
+    line-height: 1.55;
+}
+
+/* Dynamic Widget Area */
+.widget-wrapper {
+    background: rgba(8, 10, 15, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2.2rem 0;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 0.8rem;
+}
+
+.widget-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-family: var(--mono);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.widget-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255,255,255,0.2);
+}
+
+.btn-primary {
+    background: var(--accent-blue);
+    border-color: transparent;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-danger {
+    background: var(--accent-red);
+    border-color: transparent;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Styled table details */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 2rem 0;
+    background: rgba(255,255,255,0.01);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.styled-table th {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.styled-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    color: #e2e8f0;
+    vertical-align: middle;
+}
+
+.styled-table tr:last-child td {
+    border-bottom: none;
+}
+
+.styled-table tr:hover td {
+    background: rgba(255,255,255,0.02);
+}
+
+.tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: var(--mono);
+    padding: 3px 8px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+}
+
+.tag-blue { background: rgba(59, 130, 246, 0.1); border-color: rgba(59,130,246,0.2); color: #60a5fa; }
+.tag-green { background: rgba(16, 185, 129, 0.1); border-color: rgba(16,185,129,0.2); color: #34d399; }
+.tag-orange { background: rgba(245, 158, 11, 0.1); border-color: rgba(245,158,11,0.2); color: #fbbf24; }
+.tag-red { background: rgba(239, 68, 68, 0.1); border-color: rgba(239,68,68,0.2); color: #f87171; }
+.tag-purple { background: rgba(139, 92, 246, 0.1); border-color: rgba(139,92,246,0.2); color: #a78bfa; }
+
+/* Highlight box */
+.tip-box {
+    background: rgba(16, 185, 129, 0.04);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.tip-box strong {
+    color: var(--accent-green);
+}
+
+.fun-box {
+    background: rgba(139, 92, 246, 0.04);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.fun-box strong {
+    color: var(--accent-purple);
+}
+
+/* ------------------------------------------------------------------ */
+/* WIDGET SPECIFIC GRAPHICS & LAYOUTS */
+/* ------------------------------------------------------------------ */
+
+/* Sim 01: Computer Architecture Bus Flow */
+.arch-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    gap: 20px;
+    align-items: center;
+    position: relative;
+}
+.arch-center {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+.arch-node {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    cursor: pointer;
+    z-index: 10;
+}
+.arch-node:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+}
+.arch-node.active-node {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.05);
+}
+.arch-node-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+.arch-node-desc {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.arch-screen {
+    background: #000;
+    border: 1px solid #222;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 10px;
+    height: 60px;
+    text-align: left;
+    color: var(--accent-green);
+    overflow-y: hidden;
+    margin-top: 10px;
+}
+.arch-bus-horizontal {
+    position: absolute;
+    top: 50%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    width: 100%;
+    z-index: 1;
+    left: 0;
+    transform: translateY(-50%);
+    border-radius: 3px;
+}
+.arch-bus-active {
+    position: absolute;
+    top: 50%;
+    height: 6px;
+    background: var(--accent-blue);
+    width: 0%;
+    z-index: 2;
+    left: 0;
+    transform: translateY(-50%);
+    border-radius: 3px;
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 10px var(--accent-blue);
+}
+
+/* Sim 02: CPU Fetch-Decode-Execute */
+.cpu-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+}
+.cpu-assembly {
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding-right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.cpu-instruction {
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.cpu-instruction:hover {
+    border-color: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+}
+.cpu-instruction.selected {
+    border-color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.1);
+}
+.cpu-instruction.active-exec {
+    border-color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.1);
+}
+.cpu-hardware {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.cpu-stages-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+.cpu-stage-box {
+    padding: 12px;
+    background: rgba(255,255,255,0.01);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.78rem;
+    transition: all 0.3s;
+}
+.cpu-stage-box.active {
+    border-color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.08);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+}
+.cpu-stage-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+.cpu-stage-name {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.cpu-registers-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+.cpu-reg {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+.cpu-reg-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+.cpu-reg-val {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-top: 2px;
+}
+.cpu-speed-control {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+.cpu-slider {
+    flex-grow: 1;
+    background: rgba(255,255,255,0.1);
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    -webkit-appearance: none;
+}
+.cpu-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    cursor: pointer;
+    box-shadow: 0 0 5px var(--accent-blue);
+}
+
+/* Sim 03: Memory Latency Pyramid Access Time Race */
+.pyramid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    padding: 10px 0;
+}
+.pyramid-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.pyramid-bar {
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+}
+.pyramid-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%);
+}
+.pyramid-bar.racing::before {
+    animation: bar-shine 0.8s infinite;
+}
+@keyframes bar-shine {
+    100% { transform: translateX(100%); }
+}
+.pyramid-bar:hover {
+    filter: brightness(1.15);
+    transform: translateX(4px);
+}
+.pyramid-info {
+    font-size: 0.8rem;
+    color: var(--muted);
+    flex-grow: 1;
+}
+.pyramid-info strong {
+    color: #fff;
+}
+.pyramid-race-lane {
+    flex-grow: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    display: none;
+    max-width: 300px;
+}
+.pyramid-race-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--accent-blue);
+    border-radius: 4px;
+    box-shadow: 0 0 8px var(--accent-blue);
+}
+.pyramid-race-time {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent-orange);
+    width: 90px;
+    text-align: right;
+    display: none;
+}
+
+/* Sim 04: Storage Platter Seek vs Cell Flash */
+.storage-box-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 10px;
+}
+.storage-device-card {
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.01);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.storage-platter-wrapper {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.platter-disk {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid rgba(59, 130, 246, 0.4);
+    background: radial-gradient(circle, #1e293b 20%, #0f172a 70%);
+    position: relative;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+}
+.platter-disk.spinning {
+    animation: rotate-disk 1s linear infinite;
+}
+.platter-spindle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: #94a3b8;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+.platter-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+.platter-ring-1 { width: 50px; height: 50px; }
+.platter-ring-2 { width: 75px; height: 75px; }
+
+.platter-arm {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    width: 60px;
+    height: 4px;
+    background: #cbd5e1;
+    transform-origin: right top;
+    transform: rotate(-10deg);
+    transition: transform 0.2s ease-in-out;
+    z-index: 5;
+}
+.platter-head {
+    position: absolute;
+    left: 0;
+    top: -3px;
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+}
+
+.ssd-cell-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    height: 100px;
+    align-content: center;
+}
+.ssd-cell {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.05);
+    aspect-ratio: 1;
+    border-radius: 3px;
+    transition: background 0.1s ease;
+}
+.ssd-cell.flash-active {
+    background: var(--accent-green) !important;
+    box-shadow: 0 0 5px var(--accent-green);
+}
+
+/* Sim 05: OS Subsystems Interactive Map */
+.os-map-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.os-map-layer {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.os-map-layer:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.15);
+}
+.os-map-layer.active {
+    border-color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.08);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+.os-map-sub-modules {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+.os-sub-mod {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.75rem;
+    text-align: center;
+}
+.os-sub-mod.active {
+    border-color: var(--accent-blue);
+    color: #fff;
+    background: rgba(59, 130, 246, 0.15);
+}
+.os-diagnostics-drawer {
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    display: none;
+    margin-top: 15px;
+    color: #94a3b8;
+}
+
+/* Sim 06: Process & Thread Simulator */
+.proc-panel-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 20px;
+}
+.proc-left-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    padding-right: 15px;
+}
+.proc-queues-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+}
+.proc-queue-col {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.proc-queue-name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 6px;
+    margin-bottom: 5px;
+}
+.proc-block-card {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.proc-block-card:hover {
+    border-color: rgba(255,255,255,0.25);
+}
+.proc-block-title {
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.proc-block-pid {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+}
+.proc-threads-list {
+    margin-top: 6px;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+    padding-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.proc-thread-dot {
+    font-size: 0.65rem;
+    color: var(--accent-green);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Sim 07: File System Explorer */
+.fs-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+    height: 250px;
+}
+.fs-tree-panel {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 15px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+}
+.fs-tree-item {
+    padding: 4px 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    transition: background 0.15s;
+}
+.fs-tree-item:hover {
+    background: rgba(255,255,255,0.03);
+    color: #fff;
+}
+.fs-tree-item.selected-item {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #fff;
+}
+.fs-tree-indent {
+    display: inline-block;
+    width: 15px;
+}
+.fs-details-panel {
+    background: rgba(255,255,255,0.01);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.fs-detail-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    font-size: 0.8rem;
+}
+.fs-detail-label {
+    color: var(--muted);
+}
+.fs-detail-val {
+    font-family: var(--mono);
+    color: #e2e8f0;
+}
+
+/* Sim 08: Boot sequence dashboard */
+.boot-sim-container {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    height: 300px;
+}
+.boot-hardware-states {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    padding-right: 15px;
+}
+.boot-hw-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.78rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.boot-hw-item.checking {
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+}
+.boot-hw-item.success {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+}
+.boot-terminal-log {
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    padding: 15px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent-green);
+    overflow-y: auto;
+    height: 100%;
+}
+
+/* Sim 09: App vs Service Switchboard */
+.switchboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+.switchboard-col {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.switch-row {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+}
+.switch-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.switch-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.switch-desc {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.toggle-container {
+    position: relative;
+    width: 44px;
+    height: 22px;
+}
+.toggle-checkbox {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255,255,255,0.15);
+    border-radius: 22px;
+    transition: .3s;
+}
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .3s;
+}
+.toggle-checkbox:checked + .toggle-slider {
+    background-color: var(--accent-blue);
+}
+.toggle-checkbox:checked + .toggle-slider:before {
+    transform: translateX(22px);
+}
+.app-status-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.app-status-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.app-status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-green);
+}
+.app-status-indicator.offline {
+    background: var(--accent-red);
+    box-shadow: 0 0 8px var(--accent-red);
+}
+
+/* Sim 10: Virtual Machine vs Container Lab */
+.vm-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+}
+.vm-allocator-panel {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.vm-visual-pool {
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.resource-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.resource-bar-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+}
+.resource-bar-outer {
+    height: 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.03);
+    position: relative;
+}
+.resource-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-blue);
+    transition: width 0.3s ease;
+}
+.vm-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+.vm-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 0.75rem;
+    position: relative;
+}
+.vm-card-title {
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.vm-card-specs {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: var(--mono);
+}
+.vm-delete-btn {
+    position: absolute;
+    top: 2px; right: 4px;
+    cursor: pointer;
+    color: var(--accent-red);
+    font-weight: 700;
+    font-size: 0.7rem;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 250px;
+    }
+    .main-content {
+        margin-left: 250px;
+        padding: 2rem 2.5rem;
+    }
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+    .main-content {
+        margin-left: 0;
+        padding: 2rem 1.5rem;
+    }
+    .cpu-grid, .proc-panel-grid, .fs-grid, .boot-sim-container, .vm-grid, .switchboard-grid, .storage-box-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo-title">Systems & <span>OS</span></div>
+                <div class="logo-subtitle">Core Internals</div>
+            </div>
+
+            <!-- Real-time search -->
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="search-box" placeholder="Search topics & terms...">
+            </div>
+
+            <nav class="nav-links">
+                <div class="nav-header">TOPICS</div>
+                <a href="#s1" class="nav-link active" id="nav-s1"><span class="nav-num">01</span> Computer Architecture</a>
+                <a href="#s2" class="nav-link" id="nav-s2"><span class="nav-num">02</span> CPU Fundamentals</a>
+                <a href="#s3" class="nav-link" id="nav-s3"><span class="nav-num">03</span> Memory System</a>
+                <a href="#s4" class="nav-link" id="nav-s4"><span class="nav-num">04</span> Storage Systems</a>
+                <a href="#s5" class="nav-link" id="nav-s5"><span class="nav-num">05</span> Operating Systems</a>
+                <a href="#s6" class="nav-link" id="nav-s6"><span class="nav-num">06</span> Processes & Threads</a>
+                <a href="#s7" class="nav-link" id="nav-s7"><span class="nav-num">07</span> File Systems</a>
+                <a href="#s8" class="nav-link" id="nav-s8"><span class="nav-num">08</span> System Boot Process</a>
+                <a href="#s9" class="nav-link" id="nav-s9"><span class="nav-num">09</span> Applications & Services</a>
+                <a href="#s10" class="nav-link" id="nav-s10"><span class="nav-num">10</span> Virtualization Basics</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div>Document: T01 Notes</div>
+                <div>Level: Systems Engineering</div>
+                <div>Interactive Version 2.0</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Panel -->
+        <main class="main-content">
+            <header class="hero">
+                <div class="hero-badge">Computing Foundations · Level 1</div>
+                <h1>Systems & OS Internals</h1>
+                <p>10 core infrastructure layers explained dynamically. Toggle parameters, trigger animations, and explore how computers actually operate beneath the hardware abstraction layer.</p>
+            </header>
+
+            <!-- SECTION 1: Computer Architecture -->
+            <section class="section-card" id="s1">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-blue)">01</span>
+                    <div class="section-title-wrap">
+                        <h2>Computer Architecture</h2>
+                        <div class="section-sub">The blueprint — how physical devices coordinate together</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">⚙️ What is it?</div>
+                        <p>Computer Architecture describes the structure and organization of data paths. It defines the hardware blocks (CPU, RAM, Storage, Motherboard, I/O) and coordinates their communication using channels called Buses. Virtually all modern computers rely on the <strong>Von Neumann Architecture</strong>, which stores instructions and data in the same physical memory space.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">🍕 Real-Life Analogy</div>
+                        <p>Think of a Pizza Restaurant: The CPU is the Chef (executes the recipe). RAM is the Kitchen Counter (temporarily holds raw ingredients). Storage is the Pantry (keeps food long-term). The Inputs are menus, and Outputs are boxed pizzas ready to eat.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 01 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">💻 Von Neumann Architecture & Bus Data Flow</div>
+                        <div class="widget-controls">
+                            <button class="btn btn-primary" id="btn-run-bus">Simulate Data Flow</button>
+                        </div>
+                    </div>
+                    <div class="arch-grid">
+                        <div class="arch-node" id="arch-input">
+                            <div class="arch-node-title">INPUT</div>
+                            <div class="arch-node-desc">Keyboard / Mouse</div>
+                        </div>
+                        <div class="arch-center">
+                            <div class="arch-node" id="arch-cpu">
+                                <div class="arch-node-title">CPU (Brain)</div>
+                                <div class="arch-node-desc">Fetches, decodes, calculates</div>
+                            </div>
+                            <div class="arch-node" id="arch-ram">
+                                <div class="arch-node-title">RAM (Memory)</div>
+                                <div class="arch-node-desc">Holds active instructions</div>
+                            </div>
+                        </div>
+                        <div class="arch-node" id="arch-output">
+                            <div class="arch-node-title">OUTPUT</div>
+                            <div class="arch-node-desc">Monitor / Screen</div>
+                            <div class="arch-screen" id="sim-monitor">System Idle...</div>
+                        </div>
+                        <!-- Bus Line overlay -->
+                        <div class="arch-bus-horizontal"></div>
+                        <div class="arch-bus-active" id="arch-bus"></div>
+                    </div>
+                </div>
+
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Subsystem Duty</th>
+                            <th>Real Hardware</th>
+                            <th>Key Parameter</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="tag tag-blue">CPU</span></td>
+                            <td>Executes instructions and orchestrates logical flows</td>
+                            <td>Intel Core Ultra 9, AMD Ryzen 9</td>
+                            <td>Clock Speed (GHz) & IPC</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-green">RAM</span></td>
+                            <td>Temporary volatile buffer for run-time processes</td>
+                            <td>DDR5 32GB Dual Channel</td>
+                            <td>Bandwidth & Latency</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-purple">Storage</span></td>
+                            <td>Non-volatile permanent data storage</td>
+                            <td>PCIe Gen4 M.2 NVMe SSD</td>
+                            <td>Read/Write IOPS</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-orange">GPU</span></td>
+                            <td>Highly parallel core architecture for graphics & ML</td>
+                            <td>NVIDIA RTX 5090, AMD Radeon</td>
+                            <td>CUDA Cores / VRAM</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="fun-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>Von Neumann Bottleneck:</strong> Because the CPU fetches instruction AND data along the same shared bus, the processor must constantly wait for RAM access. This bandwidth limit is the primary design bottleneck in computing.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: CPU Fundamentals -->
+            <section class="section-card" id="s2">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-green)">02</span>
+                    <div class="section-title-wrap">
+                        <h2>CPU Fundamentals</h2>
+                        <div class="section-sub">The processing engine — doing calculations billions of times per second</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">🧠 What is it?</div>
+                        <p>The CPU executes machine code instructions. Inside the chip, three core circuits execute code: the <strong>ALU</strong> (Arithmetic Logic Unit) doing basic mathematics, the <strong>CU</strong> (Control Unit) acting as a dispatcher, and <strong>Registers</strong> (the fastest memory blocks in the system) storing local arguments.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">📚 Real-Life Analogy</div>
+                        <p>Imagine your brain solving math: You read the equation (Fetch), understand it's subtraction (Decode), execute the calculation (Execute), and write down the result on scratch paper (Write-Back). The CPU loops these 4 steps endlessly.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 02 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ CPU Fetch-Decode-Execute Simulator</div>
+                        <div class="widget-controls">
+                            <button class="btn btn-primary" id="btn-step-cpu">Step CPU Cycle</button>
+                            <button class="btn" id="btn-auto-cpu">Auto run</button>
+                        </div>
+                    </div>
+                    <div class="cpu-grid">
+                        <div class="cpu-assembly">
+                            <div class="cpu-instruction selected" id="inst-0" data-op="LOAD" data-val="10">LOAD R0, 10</div>
+                            <div class="cpu-instruction" id="inst-1" data-op="ADD" data-val="5">ADD R0, 5</div>
+                            <div class="cpu-instruction" id="inst-2" data-op="STORE" data-val="15">STORE R0, RAM[15]</div>
+                        </div>
+                        <div class="cpu-hardware">
+                            <div class="cpu-stages-row">
+                                <div class="cpu-stage-box" id="stage-fetch">
+                                    <div class="cpu-stage-num">STAGE 1</div>
+                                    <div class="cpu-stage-name">FETCH</div>
+                                    <div style="font-size: 0.65rem; color: var(--muted)">Read RAM</div>
+                                </div>
+                                <div class="cpu-stage-box" id="stage-decode">
+                                    <div class="cpu-stage-num">STAGE 2</div>
+                                    <div class="cpu-stage-name">DECODE</div>
+                                    <div style="font-size: 0.65rem; color: var(--muted)">Parse Opcode</div>
+                                </div>
+                                <div class="cpu-stage-box" id="stage-execute">
+                                    <div class="cpu-stage-num">STAGE 3</div>
+                                    <div class="cpu-stage-name">EXECUTE</div>
+                                    <div style="font-size: 0.65rem; color: var(--muted)">ALU Arithmetic</div>
+                                </div>
+                                <div class="cpu-stage-box" id="stage-writeback">
+                                    <div class="cpu-stage-num">STAGE 4</div>
+                                    <div class="cpu-stage-name">WRITEBACK</div>
+                                    <div style="font-size: 0.65rem; color: var(--muted)">Save Register</div>
+                                </div>
+                            </div>
+                            <div class="cpu-registers-row">
+                                <div class="cpu-reg">
+                                    <div class="cpu-reg-label">R0 (Accumulator)</div>
+                                    <div class="cpu-reg-val" id="reg-r0">0</div>
+                                </div>
+                                <div class="cpu-reg">
+                                    <div class="cpu-reg-label">PC (Program Counter)</div>
+                                    <div class="cpu-reg-val" id="reg-pc">00</div>
+                                </div>
+                                <div class="cpu-reg">
+                                    <div class="cpu-reg-label">IR (Inst Register)</div>
+                                    <div class="cpu-reg-val" id="reg-ir">NULL</div>
+                                </div>
+                                <div class="cpu-reg">
+                                    <div class="cpu-reg-label">ALU Status</div>
+                                    <div class="cpu-reg-val" id="reg-alu" style="color: var(--accent-orange)">IDLE</div>
+                                </div>
+                            </div>
+                            <div class="cpu-speed-control">
+                                <span>Clock Speed Control</span>
+                                <input type="range" class="cpu-slider" id="cpu-speed" min="1" max="5" value="2">
+                                <span id="cpu-speed-label">2 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>Instruction Pipelining:</strong> Modern CPUs don't execute one cycle at a time. Through pipelining, the CPU starts Fetching instruction N+1 while instruction N is still being Decoded, enabling extreme performance acceleration.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: Memory Fundamentals -->
+            <section class="section-card" id="s3">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-orange)">03</span>
+                    <div class="section-title-wrap">
+                        <h2>Memory Fundamentals</h2>
+                        <div class="section-sub">Volatile hierarchy — balancing speed, capacity, and costs</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">⚡ What is it?</div>
+                        <p>Memory must keep pace with the high-speed CPU. To resolve this, computers use a hierarchical pyramid: registers at the top (extremely fast, small capacity), cash layers in the middle, and main memory (RAM) at the bottom. The operating system handles caching automatically using the principle of <strong>temporal and spatial locality</strong>.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">🗂️ Real-Life Analogy</div>
+                        <p>Think of your workspace layout: L1 cache is what's in your hand. L2/L3 caches are items on top of your desk. RAM is your filing cabinet (holds folders you're using). Hard Storage is the warehouse located down the street.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 03 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">🏃‍♂️ Memory Hierarchy Access Time Race Simulator</div>
+                        <div class="widget-controls">
+                            <button class="btn btn-primary" id="btn-run-race">Start Access Race</button>
+                        </div>
+                    </div>
+                    <div class="pyramid-container">
+                        <!-- Registers -->
+                        <div class="pyramid-row">
+                            <div class="pyramid-bar" style="width: 120px; background: rgba(239, 68, 68, 0.75)" id="race-reg" data-delay="50">
+                                Registers
+                            </div>
+                            <div class="pyramid-race-lane"><div class="pyramid-race-progress" id="progress-reg"></div></div>
+                            <div class="pyramid-info"><strong>~0.5 ns</strong> · 64 Bytes · CPU Core</div>
+                            <div class="pyramid-race-time" id="time-reg">--</div>
+                        </div>
+                        <!-- L1/L2 Cache -->
+                        <div class="pyramid-row">
+                            <div class="pyramid-bar" style="width: 180px; background: rgba(245, 158, 11, 0.75)" id="race-cache" data-delay="200">
+                                L1/L2 Cache
+                            </div>
+                            <div class="pyramid-race-lane"><div class="pyramid-race-progress" id="progress-cache"></div></div>
+                            <div class="pyramid-info"><strong>~1.5 ns</strong> · 2-32 MB · CPU Chip</div>
+                            <div class="pyramid-race-time" id="time-cache">--</div>
+                        </div>
+                        <!-- RAM -->
+                        <div class="pyramid-row">
+                            <div class="pyramid-bar" style="width: 260px; background: rgba(16, 185, 129, 0.75)" id="race-ram" data-delay="1000">
+                                RAM
+                            </div>
+                            <div class="pyramid-race-lane"><div class="pyramid-race-progress" id="progress-ram"></div></div>
+                            <div class="pyramid-info"><strong>~60 ns</strong> · 16-64 GB · System Board</div>
+                            <div class="pyramid-race-time" id="time-ram">--</div>
+                        </div>
+                        <!-- NVMe SSD -->
+                        <div class="pyramid-row">
+                            <div class="pyramid-bar" style="width: 380px; background: rgba(59, 130, 246, 0.75)" id="race-ssd" data-delay="4000">
+                                NVMe SSD
+                            </div>
+                            <div class="pyramid-race-lane"><div class="pyramid-race-progress" id="progress-ssd"></div></div>
+                            <div class="pyramid-info"><strong>~50,000 ns</strong> · 1-4 TB · PCIe Interface</div>
+                            <div class="pyramid-race-time" id="time-ssd">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fun-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>Virtual Memory:</strong> When RAM is fully exhausted, the OS kernel maps out a space on the physical drive as fake RAM called virtual memory. If active blocks are swapped out to disk, access delays skyrocket, leading to a bottleneck known as page thrashing.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: Storage Systems -->
+            <section class="section-card" id="s4">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-red)">04</span>
+                    <div class="section-title-wrap">
+                        <h2>Storage Systems</h2>
+                        <div class="section-sub">Non-volatile media — maintaining state across shutdowns</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">💾 What is it?</div>
+                        <p>Storage systems retain states without power. Legacy **HDDs** (Hard Disk Drives) store data magnetically on spinning magnetic platters, requiring physical arm movements (seek times). Modern **SSDs** (Solid State Drives) utilize non-volatile NAND Flash memory chips, which have zero moving parts and access cells directly in parallel.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">📚 Real-Life Analogy</div>
+                        <p>Using a mechanical HDD is like finding a CD track by physically sliding the laser lens over the disk. Using an SSD is like accessing files instantly from a USB key or flash storage device.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 04 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ HDD (Mechanical Platter) vs SSD (Flash Matrix) Read Simulator</div>
+                        <div class="widget-controls">
+                            <button class="btn btn-primary" id="btn-read-storage">Trigger "Read File" Command</button>
+                        </div>
+                    </div>
+                    <div class="storage-box-grid">
+                        <div class="storage-device-card">
+                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--accent-blue)">Mechanical HDD</div>
+                            <div class="storage-platter-wrapper">
+                                <div class="platter-disk" id="platter-disk">
+                                    <div class="platter-spindle"></div>
+                                    <div class="platter-ring platter-ring-1"></div>
+                                    <div class="platter-ring platter-ring-2"></div>
+                                </div>
+                                <div class="platter-arm" id="platter-arm">
+                                    <div class="platter-head"></div>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--muted); text-align: center;" id="hdd-status">Status: Idle</div>
+                        </div>
+                        <div class="storage-device-card">
+                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--accent-green)">Solid State SSD</div>
+                            <div class="ssd-cell-grid" id="ssd-cell-grid">
+                                <!-- JS Spawns 32 cells -->
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--muted); text-align: center;" id="ssd-status">Status: Idle</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>SSD Wear Leveling:</strong> SSD memory cells degrade over write-erase cycles. The SSD controller utilizes an internal microcontroller running wear-leveling algorithms to spread program instructions evenly across all blocks.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: Operating Systems -->
+            <section class="section-card" id="s5">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-purple)">05</span>
+                    <div class="section-title-wrap">
+                        <h2>Operating Systems</h2>
+                        <div class="section-sub">The software manager — orchestrating security, execution, and hardware</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">🏢 What is it?</div>
+                        <p>The **Operating System** is system software that manages resources. It abstracts hardware interfaces so applications don't need low-level drivers. Program binaries run in user space and query kernel actions via a safe gate known as **System Calls**.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">🏫 Real-Life Analogy</div>
+                        <p>The OS acts like a hotel receptionist: guests (apps) need rooms (RAM) and keys. Instead of guests walking into rooms, they request access from the front desk (OS Kernel), which checks permissions and hands over keys.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 05 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ Kernel Layer Stack (Click layer to inspect module)</div>
+                    </div>
+                    <div class="os-map-wrapper">
+                        <div class="os-map-layer" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239,68,68,0.25)" data-layer="user">
+                            User Space Applications (Chrome, VS Code, Spotify)
+                        </div>
+                        <div class="os-map-layer" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245,158,11,0.25)" data-layer="sys">
+                            System Calls Interface (sys_read, sys_write, sys_fork)
+                        </div>
+                        <div class="os-map-layer" id="os-kernel-layer" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16,185,129,0.25)" data-layer="kernel">
+                            Operating System Kernel
+                            <div class="os-map-sub-modules">
+                                <div class="os-sub-mod" id="mod-proc">Process Mgr</div>
+                                <div class="os-sub-mod" id="mod-mem">Memory Mgr</div>
+                                <div class="os-sub-mod" id="mod-fs">File System</div>
+                                <div class="os-sub-mod" id="mod-dev">Drivers I/O</div>
+                            </div>
+                        </div>
+                        <div class="os-map-layer" style="background: rgba(59, 130, 246, 0.08); border-color: rgba(59,130,246,0.25)" data-layer="hardware">
+                            Physical Hardware (CPU, RAM, Storage, Devices)
+                        </div>
+                        <div class="os-diagnostics-drawer" id="os-diagnostics">
+                            Select a stack layer to inspect details.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fun-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>Monolithic vs Microkernel:</strong> Monolithic kernels (Linux, Windows) house all service subsystems inside the root kernel memory. Microkernels (macOS Darwin, QNX) run only the bare minimum inside kernel space, placing filesystem and drivers into isolated user space partitions for stability.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: Processes & Threads -->
+            <section class="section-card" id="s6">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-blue)">06</span>
+                    <div class="section-title-wrap">
+                        <h2>Processes & Threads</h2>
+                        <div class="section-sub">Concurrent execution — isolated runspaces vs shared threads</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">⚡ What is it?</div>
+                        <p>A **Process** is an active instance of a running application. The OS keeps them completely isolated in memory to ensure security. Inside a process, there are one or more **Threads**—lightweight workers that share the same memory space, enabling fast communication but risking data corruption if they write to the same space simultaneously.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">🍔 Real-Life Analogy</div>
+                        <p>A Process is like a cooking order. If you have two separate orders (Processes), the kitchens are separate. Threads are cooks in the same kitchen sharing the same ingredients; they communicate instantly but must coordinate so they don't burn the food.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 06 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ Live Task Scheduler & Thread Inspector</div>
+                        <div class="widget-controls">
+                            <button class="btn btn-primary" id="btn-spawn-proc">Spawn Process</button>
+                            <button class="btn btn-danger" id="btn-kill-proc">Kill Running</button>
+                        </div>
+                    </div>
+                    <div class="proc-panel-grid">
+                        <div class="proc-left-controls">
+                            <div style="font-size: 0.78rem;">CPU Core Utilization:</div>
+                            <div class="resource-bar-outer" style="height: 12px; margin-top: 5px;">
+                                <div class="resource-bar-fill" id="proc-cpu-bar" style="width: 0%; background: var(--accent-green)"></div>
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--muted);" id="proc-cpu-text">Cores active: 0/4</div>
+                            <div style="font-size: 0.78rem; margin-top: 10px;">PID Table Inspector:</div>
+                            <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--muted); background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px;" id="proc-pid-list">
+                                No active processes
+                            </div>
+                        </div>
+                        <div class="proc-queues-grid">
+                            <div class="proc-queue-col" id="queue-ready">
+                                <div class="proc-queue-name">READY QUEUE</div>
+                                <!-- Process blocks populate here -->
+                            </div>
+                            <div class="proc-queue-col" id="queue-running" style="border-color: rgba(16, 185, 129, 0.2)">
+                                <div class="proc-queue-name" style="color: var(--accent-green)">RUNNING</div>
+                                <!-- Current running process -->
+                            </div>
+                            <div class="proc-queue-col" id="queue-waiting">
+                                <div class="proc-queue-name">WAITING (I/O)</div>
+                                <!-- Blocked processes -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>Context Switching:</strong> When the CPU swaps execution from process A to process B, it must save all current CPU register values for process A to its PCB (Process Control Block) and load process B's values. This context switch takes overhead and is kept to a minimum by scheduling algorithms.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: File Systems -->
+            <section class="section-card" id="s7">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-green)">07</span>
+                    <div class="section-title-wrap">
+                        <h2>File Systems</h2>
+                        <div class="section-sub">Data persistence — mapping abstract files to raw physical blocks</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">📁 What is it?</div>
+                        <p>A **File System** organizes storage bytes into directories and files. Files are split into physical disk blocks. The index mapping the folder hierarchy to disk addresses is stored in **Metadata** structures (like Inodes in Linux/ext4). Common formats include NTFS (Windows), APFS (macOS), and ext4 (Linux).</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">📖 Real-Life Analogy</div>
+                        <p>A file system is like a library index: Files are books, and directories are shelves. Without the index database, you would have to read every shelf in the building to locate a single page of text.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 07 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ Interactive File System Directory & Inode Metadata Inspector</div>
+                        <div class="widget-controls">
+                            <button class="btn" id="btn-fs-create">Create File</button>
+                            <button class="btn btn-danger" id="btn-fs-delete">Unlink File</button>
+                        </div>
+                    </div>
+                    <div class="fs-grid">
+                        <div class="fs-tree-panel" id="fs-tree">
+                            <!-- JS Spawns files/directories -->
+                        </div>
+                        <div class="fs-details-panel">
+                            <div style="font-weight: 700; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;" id="fs-name-header">Select an item</div>
+                            <div class="fs-detail-row">
+                                <div class="fs-detail-label">Item Type:</div>
+                                <div class="fs-detail-val" id="fs-detail-type">-</div>
+                            </div>
+                            <div class="fs-detail-row">
+                                <div class="fs-detail-label">File Size:</div>
+                                <div class="fs-detail-val" id="fs-detail-size">-</div>
+                            </div>
+                            <div class="fs-detail-row">
+                                <div class="fs-detail-label">Permissions:</div>
+                                <div class="fs-detail-val" id="fs-detail-perms">-</div>
+                            </div>
+                            <div class="fs-detail-row">
+                                <div class="fs-detail-label">Inode ID:</div>
+                                <div class="fs-detail-val" id="fs-detail-inode">-</div>
+                            </div>
+                            <div class="fs-detail-row">
+                                <div class="fs-detail-label">Disk Blocks:</div>
+                                <div class="fs-detail-val" id="fs-detail-blocks" style="color: var(--accent-orange)">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fun-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>What happens during deletion?</strong> When you delete a file, the OS does not erase its data blocks on the disk immediately. It simply deletes the entry pointing to it in the directory list. The data remains recoverable until a new file overwrites those disk block addresses.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 8: System Boot Process -->
+            <section class="section-card" id="s8">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-orange)">08</span>
+                    <div class="section-title-wrap">
+                        <h2>System Boot Process</h2>
+                        <div class="section-sub">From power switch to user desktop environment</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">⚡ What is it?</div>
+                        <p>The boot sequence takes the hardware from an uninitialized state to a running OS. When powered on, the CPU queries motherboard **UEFI/BIOS** ROM instructions. This triggers a hardware audit called **POST** (Power-On Self Test). Next, the bootloader (GRUB / Windows Boot Manager) copies the OS kernel into memory, which then launches background services and the user GUI.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">☕ Real-Life Analogy</div>
+                        <p>It's like opening a retail store: 1. Turn on the lights (Power On). 2. Inspect cash registers and alarms (POST). 3. Read manager instructions (BIOS/UEFI). 4. Bring in workers (Kernel). 5. Open registers (Services). 6. Unlock doors for clients (Login Screen).</p>
+                    </div>
+                </div>
+
+                <!-- Sim 08 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ Interactive Hardware Boot Sequence & Kernel Log Console</div>
+                        <div class="widget-controls">
+                            <button class="btn btn-primary" id="btn-boot-start">🔋 Trigger Power Switch</button>
+                        </div>
+                    </div>
+                    <div class="boot-sim-container">
+                        <div class="boot-hardware-states" id="boot-hw-list">
+                            <div class="boot-hw-item" id="boot-hw-power">Power Flow<span>OFF</span></div>
+                            <div class="boot-hw-item" id="boot-hw-post">POST Checks<span>WAIT</span></div>
+                            <div class="boot-hw-item" id="boot-hw-uefi">UEFI Firm<span>WAIT</span></div>
+                            <div class="boot-hw-item" id="boot-hw-kernel">OS Kernel<span>WAIT</span></div>
+                        </div>
+                        <div class="boot-terminal-log" id="boot-log">
+                            SYSTEM IN DEAD STATE. PRESS POWER SWITCH TO START BOOTSTRAPPING FLOW...
+                        </div>
+                    </div>
+                </div>
+
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Firmware Standard</th>
+                            <th>Disk Format Support</th>
+                            <th>Max Partition Size</th>
+                            <th>Safety Protection</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="tag tag-red">Legacy BIOS</span></td>
+                            <td>MBR (Master Boot Record)</td>
+                            <td>2.2 Terabytes (Limit)</td>
+                            <td>None (Vulnerable)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-green">Modern UEFI</span></td>
+                            <td>GPT (GUID Partition Table)</td>
+                            <td>9.4 Zettabytes (No limit)</td>
+                            <td>Secure Boot (Prevents rootkits)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- SECTION 9: Applications & Services -->
+            <section class="section-card" id="s9">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-red)">09</span>
+                    <div class="section-title-wrap">
+                        <h2>Applications & Services</h2>
+                        <div class="section-sub">User-facing interfaces vs background processes</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">⚙️ What is it?</div>
+                        <p>Computers run programs in two user scopes. **Applications** are foreground, interactive programs users deal with directly (Chrome, Spotify). **Services** (or *daemons* in Linux) are headless programs running in the background to handle system infrastructure like printing, Wi-Fi networking, and security.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">🏨 Real-Life Analogy</div>
+                        <p>Applications are like hotel guests in the lobby. Services are background staff working behind closed doors: cooks, cleaners, and security. Guests don't see them, but the hotel falls apart if they stop working.</p>
+                    </div>
+                </div>
+
+                <!-- Sim 09 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ Background Services & Foreground Application Dependency panel</div>
+                    </div>
+                    <div class="switchboard-grid">
+                        <div class="switchboard-col">
+                            <div style="font-size: 0.78rem; font-weight: 700; margin-bottom: 5px; color: var(--accent-blue)">BACKGROUND SERVICES</div>
+                            <div class="switch-row">
+                                <div class="switch-info">
+                                    <div class="switch-title">networkd.service</div>
+                                    <div class="switch-desc">Manages Wi-Fi & ethernet sockets</div>
+                                </div>
+                                <div class="toggle-container">
+                                    <input type="checkbox" class="toggle-checkbox" id="svc-wifi" checked>
+                                    <label class="toggle-slider" for="svc-wifi"></label>
+                                </div>
+                            </div>
+                            <div class="switch-row">
+                                <div class="switch-info">
+                                    <div class="switch-title">cupsd.service</div>
+                                    <div class="switch-desc">Handles spooler printing queues</div>
+                                </div>
+                                <div class="toggle-container">
+                                    <input type="checkbox" class="toggle-checkbox" id="svc-print" checked>
+                                    <label class="toggle-slider" for="svc-print"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="switchboard-col">
+                            <div style="font-size: 0.78rem; font-weight: 700; margin-bottom: 5px; color: var(--accent-green)">DEPENDENT FOREGROUND APPS</div>
+                            <div class="app-status-card">
+                                <div class="app-status-info">
+                                    <div class="app-status-indicator" id="app-chrome-ind"></div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.85rem;">Google Chrome</div>
+                                        <div style="font-size: 0.72rem; color: var(--muted);" id="app-chrome-txt">Status: Web Connection Active</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="app-status-card">
+                                <div class="app-status-info">
+                                    <div class="app-status-indicator" id="app-writer-ind"></div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.85rem;">Document Editor</div>
+                                        <div style="font-size: 0.72rem; color: var(--muted);" id="app-writer-txt">Status: Connected to Printer</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fun-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>Antivirus Daemon:</strong> An antivirus scanner runs as a background service with high privileges. It intercept file events, vetting executable memory buffers before allowing the CPU to start running instructions.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 10: Virtualization Basics -->
+            <section class="section-card" id="s10">
+                <div class="section-header">
+                    <span class="section-badge" style="background: var(--accent-purple)">10</span>
+                    <div class="section-title-wrap">
+                        <h2>Virtualization Basics</h2>
+                        <div class="section-sub">Hardware abstraction — Hypervisors vs OS Container virtualization</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="explanation-box">
+                        <div class="box-title">🏢 What is it?</div>
+                        <p>**Virtualization** splits one physical server into multiple virtual machines. The management code handling this allocation is the **Hypervisor** (Type 1 on bare metal, Type 2 hosted). Alternatively, **Containers** (Docker) bypass full OS overhead by sharing the host kernel directly, providing lightweight process isolation.</p>
+                    </div>
+                    <div class="analogy-box">
+                        <div class="box-title">🏢 Real-Life Analogy</div>
+                        <p>Virtualization is like building separate apartments inside a warehouse: each has its own front door, pipes, and walls (full OS). Containerization is like reserving desks in a co-working office space: everyone shares the same rooms, desks, and kitchens (shared OS kernel).</p>
+                    </div>
+                </div>
+
+                <!-- Sim 10 Widget -->
+                <div class="widget-wrapper">
+                    <div class="widget-header">
+                        <div class="widget-title">⚙️ Physical Hardware Hypervisor Resources Lab</div>
+                        <div class="widget-controls">
+                            <button class="btn btn-primary" id="btn-add-vm">Spin Up VM (Heavy)</button>
+                            <button class="btn btn-primary" id="btn-add-cont" style="background: var(--accent-purple)">Run Container (Light)</button>
+                            <button class="btn btn-danger" id="btn-clear-lab">Reset Pool</button>
+                        </div>
+                    </div>
+                    <div class="vm-grid">
+                        <div class="vm-allocator-panel">
+                            <div class="resource-bar-wrapper">
+                                <div class="resource-bar-label">
+                                    <span>Host CPU Core Pool (8 Cores Max)</span>
+                                    <span id="label-cpu-pool">0% Used</span>
+                                </div>
+                                <div class="resource-bar-outer">
+                                    <div class="resource-bar-fill" id="fill-cpu-pool" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="resource-bar-wrapper">
+                                <div class="resource-bar-label">
+                                    <span>Host Memory Pool (16 GB Max)</span>
+                                    <span id="label-ram-pool">0% Used</span>
+                                </div>
+                                <div class="resource-bar-outer">
+                                    <div class="resource-bar-fill" id="fill-ram-pool" style="width: 0%; background: var(--accent-purple)"></div>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--muted);" id="lab-warning-msg"></div>
+                        </div>
+                        <div class="vm-visual-pool">
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase;">Allocated Virtual Instances</div>
+                            <div class="vm-list" id="vm-cards-list">
+                                <!-- JS appends VM cards -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <span>💡</span>
+                    <div>
+                        <strong>Docker Container Engine:</strong> Unlike VMs, containers do not package a guest operating system kernel. They use Linux namespaces and cgroups to isolate processes. This lets containers spin up in milliseconds and consume megabytes rather than gigabytes of memory.
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Links to logic script -->
+    <script>document.addEventListener('DOMContentLoaded', () => {
+    
+    // -------------------------------------------------------------
+    // SEARCH FILTER LOGIC
+    // -------------------------------------------------------------
+    const searchBox = document.getElementById('search-box');
+    const sections = document.querySelectorAll('.section-card');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    searchBox.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        
+        sections.forEach(sec => {
+            const title = sec.querySelector('h2').textContent.toLowerCase();
+            const sub = sec.querySelector('.section-sub').textContent.toLowerCase();
+            const content = sec.textContent.toLowerCase();
+            
+            if (title.includes(query) || sub.includes(query) || content.includes(query)) {
+                sec.style.display = 'block';
+            } else {
+                sec.style.display = 'none';
+            }
+        });
+
+        let firstVisible = true;
+        sections.forEach(sec => {
+            const id = sec.id;
+            const correspondingLink = document.getElementById(`nav-${id}`);
+            if (correspondingLink) {
+                if (sec.style.display !== 'none') {
+                    if (firstVisible && query !== '') {
+                        correspondingLink.classList.add('active');
+                        firstVisible = false;
+                    } else if (query !== '') {
+                        correspondingLink.classList.remove('active');
+                    }
+                } else {
+                    correspondingLink.classList.remove('active');
+                }
+            }
+        });
+    });
+
+    // -------------------------------------------------------------
+    // SCROLLSPY PROGRESS HIGHLIGHTING
+    // -------------------------------------------------------------
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(sec => {
+            const sectionTop = sec.offsetTop;
+            if (pageYOffset >= (sectionTop - 150)) {
+                current = sec.getAttribute('id');
+            }
+        });
+
+        if (current && searchBox.value === '') {
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+    });
+
+    // -------------------------------------------------------------
+    // SIM 01: COMPUTER ARCHITECTURE BUS SIMULATOR
+    // -------------------------------------------------------------
+    const btnRunBus = document.getElementById('btn-run-bus');
+    const busLine = document.getElementById('arch-bus');
+    const monitor = document.getElementById('sim-monitor');
+    const nodes = {
+        input: document.getElementById('arch-input'),
+        cpu: document.getElementById('arch-cpu'),
+        ram: document.getElementById('arch-ram'),
+        output: document.getElementById('arch-output')
+    };
+
+    let isRunningBus = false;
+
+    btnRunBus.addEventListener('click', () => {
+        if (isRunningBus) return;
+        isRunningBus = true;
+        btnRunBus.disabled = true;
+        
+        monitor.textContent = "> Initializing bus cycle...\n";
+        
+        nodes.input.classList.add('active-node');
+        busLine.style.left = "0%";
+        busLine.style.width = "40%";
+        
+        setTimeout(() => {
+            nodes.input.classList.remove('active-node');
+            nodes.ram.classList.add('active-node');
+            monitor.textContent += "> RAM buffered key buffer: 0x41 [A]\n";
+            busLine.style.left = "40%";
+            busLine.style.width = "20%";
+        }, 800);
+
+        setTimeout(() => {
+            nodes.ram.classList.remove('active-node');
+            nodes.cpu.classList.add('active-node');
+            monitor.textContent += "> CPU registers instruction FETCH\n";
+            busLine.style.left = "45%";
+            busLine.style.width = "10%";
+        }, 1600);
+
+        setTimeout(() => {
+            nodes.cpu.classList.remove('active-node');
+            nodes.output.classList.add('active-node');
+            monitor.textContent += "> Executed print handler\n> ASCII output: 'A'\n";
+            busLine.style.left = "50%";
+            busLine.style.width = "50%";
+        }, 2400);
+
+        setTimeout(() => {
+            nodes.output.classList.remove('active-node');
+            busLine.style.width = "0%";
+            btnRunBus.disabled = false;
+            isRunningBus = false;
+        }, 3200);
+    });
+
+    // -------------------------------------------------------------
+    // SIM 02: CPU FETCH-DECODE-EXECUTE SIMULATOR
+    // -------------------------------------------------------------
+    const btnStepCpu = document.getElementById('btn-step-cpu');
+    const btnAutoCpu = document.getElementById('btn-auto-cpu');
+    
+    const cpuStages = {
+        fetch: document.getElementById('stage-fetch'),
+        decode: document.getElementById('stage-decode'),
+        execute: document.getElementById('stage-execute'),
+        writeback: document.getElementById('stage-writeback')
+    };
+
+    const cpuRegs = {
+        r0: document.getElementById('reg-r0'),
+        pc: document.getElementById('reg-pc'),
+        ir: document.getElementById('reg-ir'),
+        alu: document.getElementById('reg-alu')
+    };
+
+    let currentInstructionIndex = 0;
+    let currentCycleStage = 0; 
+    let autoCpuTimer = null;
+    let cpuRegisterValue = 0;
+
+    function highlightInstruction(index) {
+        document.querySelectorAll('.cpu-instruction').forEach((el, idx) => {
+            el.classList.remove('selected', 'active-exec');
+            if (idx === index) {
+                el.classList.add('selected');
+            }
+        });
+    }
+
+    function clearCpuStages() {
+        Object.values(cpuStages).forEach(box => box.classList.remove('active'));
+    }
+
+    function stepCpuCycle() {
+        const instructions = document.querySelectorAll('.cpu-instruction');
+        const activeInst = instructions[currentInstructionIndex];
+        const op = activeInst.getAttribute('data-op');
+        const val = parseInt(activeInst.getAttribute('data-val'));
+
+        clearCpuStages();
+
+        if (currentCycleStage === 0) {
+            cpuStages.fetch.classList.add('active');
+            cpuRegs.ir.textContent = op + " R0";
+            cpuRegs.alu.textContent = "WAIT";
+            cpuRegs.alu.style.color = "var(--accent-orange)";
+            currentCycleStage = 1;
+        } 
+        else if (currentCycleStage === 1) {
+            cpuStages.decode.classList.add('active');
+            cpuRegs.alu.textContent = "PARSED";
+            cpuRegs.alu.style.color = "var(--accent-blue)";
+            currentCycleStage = 2;
+        } 
+        else if (currentCycleStage === 2) {
+            cpuStages.execute.classList.add('active');
+            if (op === "LOAD") {
+                cpuRegs.alu.textContent = `SET R0 = ${val}`;
+            } else if (op === "ADD") {
+                cpuRegs.alu.textContent = `${cpuRegisterValue} + ${val}`;
+            } else if (op === "STORE") {
+                cpuRegs.alu.textContent = `WRITE RAM`;
+            }
+            cpuRegs.alu.style.color = "var(--accent-green)";
+            currentCycleStage = 3;
+        } 
+        else if (currentCycleStage === 3) {
+            cpuStages.writeback.classList.add('active');
+            if (op === "LOAD") {
+                cpuRegisterValue = val;
+            } else if (op === "ADD") {
+                cpuRegisterValue += val;
+            }
+            cpuRegs.r0.textContent = cpuRegisterValue;
+            
+            currentInstructionIndex = (currentInstructionIndex + 1) % instructions.length;
+            cpuRegs.pc.textContent = "0" + currentInstructionIndex;
+            highlightInstruction(currentInstructionIndex);
+            
+            currentCycleStage = 0;
+        }
+    }
+
+    btnStepCpu.addEventListener('click', () => {
+        if (autoCpuTimer) clearInterval(autoCpuTimer);
+        stepCpuCycle();
+    });
+
+    btnAutoCpu.addEventListener('click', () => {
+        if (autoCpuTimer) {
+            clearInterval(autoCpuTimer);
+            autoCpuTimer = null;
+            btnAutoCpu.textContent = "Auto run";
+            btnAutoCpu.classList.remove('btn-danger');
+        } else {
+            const speed = parseInt(document.getElementById('cpu-speed').value);
+            const intervalMs = 2000 / speed;
+            autoCpuTimer = setInterval(stepCpuCycle, intervalMs);
+            btnAutoCpu.textContent = "Pause CPU";
+            btnAutoCpu.classList.add('btn-danger');
+        }
+    });
+
+    document.getElementById('cpu-speed').addEventListener('input', (e) => {
+        const speed = e.target.value;
+        document.getElementById('cpu-speed-label').textContent = `${speed} Hz`;
+        if (autoCpuTimer) {
+            clearInterval(autoCpuTimer);
+            const intervalMs = 2000 / speed;
+            autoCpuTimer = setInterval(stepCpuCycle, intervalMs);
+        }
+    });
+
+    // -------------------------------------------------------------
+    // SIM 03: MEMORY ACCESS RACE
+    // -------------------------------------------------------------
+    const btnRunRace = document.getElementById('btn-run-race');
+    
+    btnRunRace.addEventListener('click', () => {
+        btnRunRace.disabled = true;
+        
+        const classes = ['reg', 'cache', 'ram', 'ssd'];
+        
+        classes.forEach(cls => {
+            document.getElementById(`progress-${cls}`).style.width = '0%';
+            document.getElementById(`progress-${cls}`).parentElement.style.display = 'block';
+            document.getElementById(`time-${cls}`).style.display = 'none';
+            document.getElementById(`race-${cls}`).classList.add('racing');
+        });
+
+        classes.forEach(cls => {
+            const bar = document.getElementById(`race-${cls}`);
+            const progress = document.getElementById(`progress-${cls}`);
+            const delay = parseInt(bar.getAttribute('data-delay'));
+            const timeLabel = document.getElementById(`time-${cls}`);
+            
+            progress.style.transition = `width ${delay}ms linear`;
+            
+            setTimeout(() => {
+                progress.style.width = '100%';
+            }, 50);
+
+            setTimeout(() => {
+                bar.classList.remove('racing');
+                timeLabel.style.display = 'inline-block';
+                
+                if (cls === 'reg') timeLabel.textContent = "0.5 ns (Winner)";
+                if (cls === 'cache') timeLabel.textContent = "1.5 ns";
+                if (cls === 'ram') timeLabel.textContent = "60 ns";
+                if (cls === 'ssd') {
+                    timeLabel.textContent = "50,000 ns";
+                    btnRunRace.disabled = false;
+                }
+            }, delay + 100);
+        });
+    });
+
+    // -------------------------------------------------------------
+    // SIM 04: STORAGE SYSTEM SIMULATOR (HDD vs SSD)
+    // -------------------------------------------------------------
+    const btnReadStorage = document.getElementById('btn-read-storage');
+    const hddPlatter = document.getElementById('platter-disk');
+    const hddArm = document.getElementById('platter-arm');
+    const ssdGrid = document.getElementById('ssd-cell-grid');
+    
+    for(let i=0; i<32; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'ssd-cell';
+        ssdGrid.appendChild(cell);
+    }
+
+    let isReadingStorage = false;
+
+    btnReadStorage.addEventListener('click', () => {
+        if (isReadingStorage) return;
+        isReadingStorage = true;
+        btnReadStorage.disabled = true;
+
+        document.getElementById('hdd-status').textContent = "Status: Seeking Track (+10ms delay)";
+        hddPlatter.classList.add('spinning');
+        
+        hddArm.style.transform = "rotate(20deg)";
+        
+        setTimeout(() => {
+            hddArm.style.transform = "rotate(5deg)";
+        }, 500);
+
+        setTimeout(() => {
+            hddArm.style.transform = "rotate(15deg)";
+        }, 1000);
+
+        setTimeout(() => {
+            hddArm.style.transform = "rotate(0deg)";
+            hddPlatter.classList.remove('spinning');
+            document.getElementById('hdd-status').textContent = "Status: Read Complete (~150MB/s)";
+        }, 2000);
+
+        document.getElementById('ssd-status').textContent = "Status: Flash Cell Read Active";
+        const cells = document.querySelectorAll('.ssd-cell');
+        
+        let interval = setInterval(() => {
+            cells.forEach(cell => {
+                if (Math.random() > 0.6) {
+                    cell.classList.add('flash-active');
+                } else {
+                    cell.classList.remove('flash-active');
+                }
+            });
+        }, 100);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            cells.forEach(cell => cell.classList.remove('flash-active'));
+            document.getElementById('ssd-status').textContent = "Status: Read Complete (~7000MB/s)";
+            btnReadStorage.disabled = false;
+            isReadingStorage = false;
+        }, 2000);
+    });
+
+    // -------------------------------------------------------------
+    // SIM 05: OS KERNEL DIAGNOSTIC DRAWER
+    // -------------------------------------------------------------
+    const osLayers = document.querySelectorAll('.os-map-layer');
+    const osDiagnostics = document.getElementById('os-diagnostics');
+    const subMods = document.querySelectorAll('.os-sub-mod');
+
+    const osDiagnosticData = {
+        user: "<strong>User Space Layer:</strong> Restricted execution boundary. Apps run with lowest permissions. System stability is guaranteed because applications cannot access hardware registers directly. System memory access queries must execute via <code>sys_calls</code>.",
+        sys: "<strong>System Calls Gateway (API):</strong> The secure API dividing user space from ring 0 kernel space. Key entry commands: <code>read()</code>, <code>write()</code>, <code>fork()</code>, and <code>socket()</code>. Triggering a syscall throws a hardware trap interrupt that transfers CPU execution control directly to the kernel.",
+        kernel: "<strong>Operating System Kernel:</strong> Core Ring 0 software containing device drivers, memory allocations, and scheduling queues. Click modular items inside the kernel box to inspect subsystem modules.",
+        hardware: "<strong>Physical Hardware Layer:</strong> Real silicon boards, transistors, logic gates, disk platters, and interface buses that execute the final signals output by the OS driver layers."
+    };
+
+    const subModData = {
+        proc: "<strong>Process Manager Module:</strong> Controls execution states, schedules threads, processes task priorities, manages context switches, and executes CPU loading.",
+        mem: "<strong>Memory Manager Module:</strong> Orchestrates physical RAM offsets, maps Virtual Memory spaces, processes Page Fault tables, and handles physical block security.",
+        fs: "<strong>File System Module:</strong> Maps abstract catalog trees (directories, files) to raw hardware sector blocks, reads inode details, and handles read/write buffering.",
+        dev: "<strong>Device Drivers Module:</strong> Translates abstract kernel requests into electrical registers matching targeted physical network sockets, graphics chips, and controller ports."
+    };
+
+    osLayers.forEach(layer => {
+        layer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('os-sub-mod')) return;
+
+            osLayers.forEach(l => l.classList.remove('active'));
+            subMods.forEach(m => m.classList.remove('active'));
+            
+            layer.classList.add('active');
+            const selectedLayer = layer.getAttribute('data-layer');
+            osDiagnostics.style.display = 'block';
+            osDiagnostics.innerHTML = osDiagnosticData[selectedLayer];
+        });
+    });
+
+    subMods.forEach(mod => {
+        mod.addEventListener('click', (e) => {
+            osLayers.forEach(l => l.classList.remove('active'));
+            document.getElementById('os-kernel-layer').classList.add('active');
+            subMods.forEach(m => m.classList.remove('active'));
+            
+            mod.classList.add('active');
+            const selectedMod = mod.id.replace('mod-', '');
+            osDiagnostics.style.display = 'block';
+            osDiagnostics.innerHTML = subModData[selectedMod];
+        });
+    });
+
+    // -------------------------------------------------------------
+    // SIM 06: PROCESS & THREAD SCHEDULER WIDGET
+    // -------------------------------------------------------------
+    const btnSpawn = document.getElementById('btn-spawn-proc');
+    const btnKill = document.getElementById('btn-kill-proc');
+    const cpuBar = document.getElementById('proc-cpu-bar');
+    const cpuText = document.getElementById('proc-cpu-text');
+    const pidList = document.getElementById('proc-pid-list');
+    const readyQ = document.getElementById('queue-ready');
+    const runningQ = document.getElementById('queue-running');
+    const waitingQ = document.getElementById('queue-waiting');
+
+    let processes = [];
+    let nextPid = 1000;
+    let schedulerInterval = null;
+
+    function updatePidTable() {
+        if (processes.length === 0) {
+            pidList.textContent = "No active processes";
+            cpuBar.style.width = "0%";
+            cpuText.textContent = "Cores active: 0/4";
+            return;
+        }
+        let tableHtml = "PID | Name | State<br>";
+        processes.forEach(p => {
+            tableHtml += `${p.pid} | ${p.name} | ${p.state}<br>`;
+        });
+        pidList.innerHTML = tableHtml;
+
+        const activeCount = processes.filter(p => p.state === 'RUNNING').length;
+        cpuBar.style.width = `${(activeCount / 4) * 100}%`;
+        cpuText.textContent = `Cores active: ${activeCount}/4`;
+    }
+
+    function renderQueues() {
+        document.querySelectorAll('.proc-block-card').forEach(card => card.remove());
+
+        processes.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'proc-block-card';
+            card.id = `proc-${p.pid}`;
+            
+            let threadsHtml = '';
+            for (let i = 0; i < p.threads; i++) {
+                threadsHtml += `<span class="proc-thread-dot">🟢 Thread ${i+1}</span>`;
+            }
+
+            card.innerHTML = `
+                <div class="proc-block-title">
+                    <span>${p.name}</span>
+                    <span class="proc-block-pid">PID:${p.pid}</span>
+                </div>
+                <div class="proc-threads-list">${threadsHtml}</div>
+            `;
+
+            if (p.state === 'READY') readyQ.appendChild(card);
+            if (p.state === 'RUNNING') runningQ.appendChild(card);
+            if (p.state === 'WAITING') waitingQ.appendChild(card);
+        });
+        updatePidTable();
+    }
+
+    btnSpawn.addEventListener('click', () => {
+        if (processes.length >= 6) return;
+        
+        const names = ['ChromeTab', 'Spotify', 'VSCodeTerminal', 'SystemdLog', 'DiscordVoice'];
+        const threads = [1, 3, 2, 1, 4];
+        const randomIndex = Math.floor(Math.random() * names.length);
+        
+        const newProcess = {
+            pid: nextPid++,
+            name: names[randomIndex],
+            threads: threads[randomIndex],
+            state: 'READY'
+        };
+
+        processes.push(newProcess);
+        renderQueues();
+
+        if (!schedulerInterval) {
+            schedulerInterval = setInterval(scheduleCycle, 1500);
+        }
+    });
+
+    btnKill.addEventListener('click', () => {
+        const runningIdx = processes.findIndex(p => p.state === 'RUNNING');
+        if (runningIdx !== -1) {
+            processes.splice(runningIdx, 1);
+            renderQueues();
+        }
+    });
+
+    function scheduleCycle() {
+        if (processes.length === 0) {
+            clearInterval(schedulerInterval);
+            schedulerInterval = null;
+            return;
+        }
+
+        const runningProc = processes.find(p => p.state === 'RUNNING');
+        if (runningProc) {
+            if (Math.random() > 0.7) {
+                runningProc.state = 'WAITING';
+            } else {
+                runningProc.state = 'READY';
+            }
+        }
+
+        processes.forEach(p => {
+            if (p.state === 'WAITING' && Math.random() > 0.6) {
+                p.state = 'READY';
+            }
+        });
+
+        const nextReady = processes.find(p => p.state === 'READY');
+        if (nextReady) {
+            nextReady.state = 'RUNNING';
+        }
+
+        renderQueues();
+    }
+
+    // -------------------------------------------------------------
+    // SIM 07: FILE SYSTEM INTERACTIVE EXPLORER
+    // -------------------------------------------------------------
+    const fsTree = document.getElementById('fs-tree');
+    
+    const fsMockData = {
+        root: { name: "/", type: "Directory", size: "4.0 KB", perms: "drwxr-xr-x", inode: "2", blocks: "N/A" },
+        etc: { name: "/etc", type: "Directory", size: "4.0 KB", perms: "drwxr-xr-x", inode: "4081", blocks: "N/A" },
+        hosts: { name: "/etc/hosts", type: "Config File", size: "1.2 KB", perms: "-rw-r--r--", inode: "12891", blocks: "#40891, #40892" },
+        home: { name: "/home", type: "Directory", size: "4.0 KB", perms: "drwxr-xr-x", inode: "5000", blocks: "N/A" },
+        alice: { name: "/home/alice", type: "Directory", size: "4.0 KB", perms: "drwxr-x---", inode: "5001", blocks: "N/A" },
+        essay: { name: "/home/alice/essay.docx", type: "Document", size: "45.0 KB", perms: "-rw-r--r--", inode: "89201", blocks: "#90812, #90813, #90814" },
+        bob: { name: "/home/bob", type: "Directory", size: "4.0 KB", perms: "drwxr-x---", inode: "5002", blocks: "N/A" }
+    };
+
+    function renderFsTree() {
+        fsTree.innerHTML = '';
+        
+        const treeLayout = [
+            { key: 'root', label: '📁 / (root)', indent: 0 },
+            { key: 'etc', label: '📁 etc/', indent: 1 },
+            { key: 'hosts', label: '📄 hosts', indent: 2 },
+            { key: 'home', label: '📁 home/', indent: 1 },
+            { key: 'alice', label: '📁 alice/', indent: 2 },
+            { key: 'essay', label: '📄 essay.docx', indent: 3 },
+            { key: 'bob', label: '📁 bob/', indent: 2 }
+        ];
+
+        treeLayout.forEach(item => {
+            const node = document.createElement('div');
+            node.className = 'fs-tree-item';
+            node.setAttribute('data-key', item.key);
+            
+            let indents = '';
+            for (let i = 0; i < item.indent; i++) {
+                indents += '<span class="fs-tree-indent"></span>';
+            }
+
+            node.innerHTML = `${indents} ${item.label}`;
+            fsTree.appendChild(node);
+
+            node.addEventListener('click', () => {
+                document.querySelectorAll('.fs-tree-item').forEach(el => el.classList.remove('selected-item'));
+                node.classList.add('selected-item');
+                inspectFile(item.key);
+            });
+        });
+    }
+
+    function inspectFile(key) {
+        const metadata = fsMockData[key];
+        document.getElementById('fs-name-header').textContent = metadata.name;
+        document.getElementById('fs-detail-type').textContent = metadata.type;
+        document.getElementById('fs-detail-size').textContent = metadata.size;
+        document.getElementById('fs-detail-perms').textContent = metadata.perms;
+        document.getElementById('fs-detail-inode').textContent = metadata.inode;
+        document.getElementById('fs-detail-blocks').textContent = metadata.blocks;
+    }
+
+    renderFsTree();
+
+    document.getElementById('btn-fs-create').addEventListener('click', () => {
+        alert("Simulated creation: Added file '/home/alice/notes.txt' with Inode #89202 pointed to physical blocks #12091.");
+        fsMockData['notes'] = { name: "/home/alice/notes.txt", type: "Text File", size: "2.5 KB", perms: "-rw-r--r--", inode: "89202", blocks: "#12091" };
+        
+        const node = document.createElement('div');
+        node.className = 'fs-tree-item';
+        node.setAttribute('data-key', 'notes');
+        node.innerHTML = '<span class="fs-tree-indent"></span><span class="fs-tree-indent"></span><span class="fs-tree-indent"></span> 📄 notes.txt';
+        fsTree.appendChild(node);
+        node.addEventListener('click', () => {
+            document.querySelectorAll('.fs-tree-item').forEach(el => el.classList.remove('selected-item'));
+            node.classList.add('selected-item');
+            inspectFile('notes');
+        });
+    });
+
+    document.getElementById('btn-fs-delete').addEventListener('click', () => {
+        alert("Unlink command triggered: Deleting directory node index only. Block structures #90812-#90814 remain intact until overwritten by future write calls.");
+        const essayNode = document.querySelector('[data-key="essay"]');
+        if (essayNode) essayNode.remove();
+    });
+
+    // -------------------------------------------------------------
+    // SIM 08: BOOT SEQUENCE CONSOLE
+    // -------------------------------------------------------------
+    const btnBoot = document.getElementById('btn-boot-start');
+    const bootLog = document.getElementById('boot-log');
+    const bootItems = {
+        power: document.getElementById('boot-hw-power'),
+        post: document.getElementById('boot-hw-post'),
+        uefi: document.getElementById('boot-hw-uefi'),
+        kernel: document.getElementById('boot-hw-kernel')
+    };
+
+    let isBooting = false;
+
+    btnBoot.addEventListener('click', () => {
+        if (isBooting) return;
+        isBooting = true;
+        btnBoot.disabled = true;
+
+        Object.values(bootItems).forEach(item => {
+            item.className = 'boot-hw-item';
+            item.querySelector('span').textContent = 'WAIT';
+        });
+        bootLog.innerHTML = '';
+
+        setTimeout(() => {
+            bootItems.power.classList.add('success');
+            bootItems.power.querySelector('span').textContent = 'ON';
+            bootLog.innerHTML += "[  +0.00s] Power Flowing to CPU registers... OK\n";
+            bootLog.innerHTML += "[  +0.12s] DRAM Voltage levels normalized\n";
+        }, 500);
+
+        setTimeout(() => {
+            bootItems.post.classList.add('checking');
+            bootItems.post.querySelector('span').textContent = 'RUN';
+            bootLog.innerHTML += "[  +0.45s] POST checks initiating...\n";
+        }, 1000);
+
+        setTimeout(() => {
+            bootItems.post.className = 'boot-hw-item success';
+            bootItems.post.querySelector('span').textContent = 'PASS';
+            bootLog.innerHTML += "[  +0.98s] POST: CPU Core 1-4 detected successfully\n";
+            bootLog.innerHTML += "[  +1.12s] POST: Memory Test Passed (32768 MB verified)\n";
+            bootLog.innerHTML += "[  +1.34s] POST: GPU board initialized (PCIE 4.0)\n";
+        }, 2000);
+
+        setTimeout(() => {
+            bootItems.uefi.classList.add('checking');
+            bootItems.uefi.querySelector('span').textContent = 'RUN';
+            bootLog.innerHTML += "[  +1.50s] UEFI Bios reading motherboard ROM... OK\n";
+            bootLog.innerHTML += "[  +1.80s] UEFI: Scanning secure boot signatures...\n";
+        }, 3000);
+
+        setTimeout(() => {
+            bootItems.uefi.className = 'boot-hw-item success';
+            bootItems.uefi.querySelector('span').textContent = 'LOAD';
+            bootLog.innerHTML += "[  +2.20s] UEFI: Found EFI system partition (M.2 NVMe Slot 0)\n";
+            bootLog.innerHTML += "[  +2.45s] UEFI: Launching bootloader GRUB v2.06...\n";
+        }, 4000);
+
+        setTimeout(() => {
+            bootItems.kernel.classList.add('checking');
+            bootItems.kernel.querySelector('span').textContent = 'BOOT';
+            bootLog.innerHTML += "[  +2.80s] GRUB: Loading Linux kernel image v6.5.0-generic...\n";
+            bootLog.innerHTML += "[  +3.10s] Kernel: Decompressing core runtime... OK\n";
+        }, 5000);
+
+        setTimeout(() => {
+            bootItems.kernel.className = 'boot-hw-item success';
+            bootItems.kernel.querySelector('span').textContent = 'OK';
+            bootLog.innerHTML += "[  +3.50s] Kernel: mounting root partition ext4 (UUID=38a9e...)\n";
+            bootLog.innerHTML += "[  +3.90s] Kernel: Starting System Initialization Daemon (systemd)... \n";
+            bootLog.innerHTML += "[  +4.20s] systemd: Starting Network Manager... OK\n";
+            bootLog.innerHTML += "[  +4.50s] systemd: Starting Login Display Manager (GDM3)... OK\n";
+            bootLog.innerHTML += "\n============================================\n";
+            bootLog.innerHTML += "           WELCOME TO THE LOGIN SHELL        \n";
+            bootLog.innerHTML += "============================================\n";
+            bootLog.scrollTop = bootLog.scrollHeight;
+            
+            btnBoot.disabled = false;
+            isBooting = false;
+        }, 7000);
+    });
+
+    // -------------------------------------------------------------
+    // SIM 09: SERVICE SWITCHBOARD & APP STATUS
+    // -------------------------------------------------------------
+    const wifiToggle = document.getElementById('svc-wifi');
+    const printToggle = document.getElementById('svc-print');
+    
+    const chromeInd = document.getElementById('app-chrome-ind');
+    const chromeTxt = document.getElementById('app-chrome-txt');
+    
+    const writerInd = document.getElementById('app-writer-ind');
+    const writerTxt = document.getElementById('app-writer-txt');
+
+    wifiToggle.addEventListener('change', () => {
+        if (wifiToggle.checked) {
+            chromeInd.className = 'app-status-indicator';
+            chromeTxt.textContent = "Status: Web Connection Active";
+        } else {
+            chromeInd.className = 'app-status-indicator offline';
+            chromeTxt.textContent = "Status: Network Offline (networkd daemon disabled)";
+        }
+    });
+
+    printToggle.addEventListener('change', () => {
+        if (printToggle.checked) {
+            writerInd.className = 'app-status-indicator';
+            writerTxt.textContent = "Status: Connected to Printer";
+        } else {
+            writerInd.className = 'app-status-indicator offline';
+            writerTxt.textContent = "Status: Spooler Offline (cupsd daemon disabled)";
+        }
+    });
+
+    // -------------------------------------------------------------
+    // SIM 10: VIRTUALIZATION AND RESOURCES LAB
+    // -------------------------------------------------------------
+    const btnAddVm = document.getElementById('btn-add-vm');
+    const btnAddCont = document.getElementById('btn-add-cont');
+    const btnClearLab = document.getElementById('btn-clear-lab');
+    
+    const fillCpu = document.getElementById('fill-cpu-pool');
+    const labelCpu = document.getElementById('label-cpu-pool');
+    
+    const fillRam = document.getElementById('fill-ram-pool');
+    const labelRam = document.getElementById('label-ram-pool');
+    
+    const vmList = document.getElementById('vm-cards-list');
+    const labWarning = document.getElementById('lab-warning-msg');
+
+    let hostCoresMax = 8;
+    let hostRamMax = 16;
+    
+    let hostCoresUsed = 0;
+    let hostRamUsed = 0;
+
+    function updateLabBars() {
+        const cpuPercent = (hostCoresUsed / hostCoresMax) * 100;
+        const ramPercent = (hostRamUsed / hostRamMax) * 100;
+
+        fillCpu.style.width = `${cpuPercent}%`;
+        labelCpu.textContent = `${cpuPercent.toFixed(0)}% (${hostCoresUsed}/${hostCoresMax} Cores)`;
+
+        fillRam.style.width = `${ramPercent}%`;
+        labelRam.textContent = `${ramPercent.toFixed(0)}% (${hostRamUsed}/${hostRamMax} GB)`;
+
+        if (cpuPercent > 80 || ramPercent > 80) {
+            fillCpu.style.background = 'var(--accent-red)';
+            labWarning.textContent = "🚨 CRITICAL: Host physical hardware resources exhausted!";
+        } else {
+            fillCpu.style.background = 'var(--accent-blue)';
+            labWarning.textContent = "";
+        }
+    }
+
+    function addInstance(type) {
+        let coresCost = (type === 'vm') ? 3 : 0.5;
+        let ramCost = (type === 'vm') ? 4 : 0.25;
+
+        if ((hostCoresUsed + coresCost) > hostCoresMax || (hostRamUsed + ramCost) > hostRamMax) {
+            alert("Hypervisor Denied: Insufficient physical host CPU or RAM to spin up virtual device.");
+            return;
+        }
+
+        hostCoresUsed += coresCost;
+        hostRamUsed += ramCost;
+
+        const card = document.createElement('div');
+        card.className = 'vm-card';
+        card.style.borderColor = (type === 'vm') ? 'var(--accent-blue)' : 'var(--accent-purple)';
+
+        card.innerHTML = `
+            <div class="vm-delete-btn">×</div>
+            <div class="vm-card-title">${type === 'vm' ? '💻 Virtual VM' : '📦 Container'}</div>
+            <div class="vm-card-specs">${coresCost} Core | ${ramCost} GB</div>
+        `;
+
+        vmList.appendChild(card);
+        updateLabBars();
+
+        card.querySelector('.vm-delete-btn').addEventListener('click', () => {
+            hostCoresUsed -= coresCost;
+            hostRamUsed -= ramCost;
+            card.remove();
+            updateLabBars();
+        });
+    }
+
+    btnAddVm.addEventListener('click', () => addInstance('vm'));
+    btnAddCont.addEventListener('click', () => addInstance('cont'));
+
+    btnClearLab.addEventListener('click', () => {
+        hostCoresUsed = 0;
+        hostRamUsed = 0;
+        vmList.innerHTML = '';
+        updateLabBars();
+    });
+
+});</script>
+</body>
+</html>

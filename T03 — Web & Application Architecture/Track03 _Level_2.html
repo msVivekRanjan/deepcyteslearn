@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Modern App Security — Track 03 Level 02</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080c18;
+    --surface: #0f1526;
+    --card: #131929;
+    --border: #1e2d4a;
+    --cyan: #00d4ff;
+    --green: #00ff88;
+    --purple: #9b5de5;
+    --orange: #ff6b35;
+    --yellow: #ffd166;
+    --text: #cdd6f4;
+    --muted: #6c7a99;
+    --danger: #ff4d6d;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, #0a1f3a 0%, var(--bg) 70%);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M 60 0 L 0 0 0 60' fill='none' stroke='%231e2d4a' stroke-width='0.5'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+  .hero-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.1em;
+    position: relative;
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 5rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    max-width: 800px;
+    position: relative;
+  }
+  .hero h1 span { color: var(--cyan); }
+  .hero p {
+    color: var(--muted);
+    max-width: 560px;
+    margin: 1.5rem auto 2.5rem;
+    font-size: 1.05rem;
+    position: relative;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+  .stat-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    background: rgba(8, 12, 24, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    padding: 0 1.5rem;
+  }
+  .nav-inner {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .nav-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: var(--cyan);
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+  .nav-links { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .nav-links a:hover { color: var(--cyan); background: rgba(0,212,255,0.08); }
+
+  /* MAIN */
+  main { max-width: 1200px; margin: auto; padding: 4rem 1.5rem; }
+
+  /* SECTION */
+  .section { margin-bottom: 6rem; }
+  .section-header { margin-bottom: 2.5rem; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .section-title .accent { color: var(--cyan); }
+  .section-desc { color: var(--muted); max-width: 600px; margin-top: 0.75rem; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { border-color: rgba(0,212,255,0.35); box-shadow: 0 0 24px rgba(0,212,255,0.06); }
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+  }
+  .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .tag-cyan { color: var(--cyan); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.07); }
+  .tag-green { color: var(--green); border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.07); }
+  .tag-orange { color: var(--orange); border-color: rgba(255,107,53,0.3); background: rgba(255,107,53,0.07); }
+  .tag-purple { color: var(--purple); border-color: rgba(155,93,229,0.3); background: rgba(155,93,229,0.07); }
+  .tag-yellow { color: var(--yellow); border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.07); }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; }
+
+  /* DEMO PANELS */
+  .demo-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .demo-topbar {
+    background: #0a1020;
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .demo-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-left: 0.5rem;
+  }
+  .demo-body { padding: 1.5rem; }
+  .demo-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 640px) { .demo-two-col { grid-template-columns: 1fr; } }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: #070b15;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .c-k { color: #c678dd; }
+  .c-s { color: #98c379; }
+  .c-n { color: #61afef; }
+  .c-v { color: var(--orange); }
+  .c-c { color: #5c6370; font-style: italic; }
+  .c-g { color: var(--green); }
+  .c-cy { color: var(--cyan); }
+
+  /* INTERACTIVE DEMOS */
+  .input-group { margin-bottom: 1rem; }
+  .input-group label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .demo-input {
+    width: 100%;
+    background: #070b15;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .demo-input:focus { border-color: var(--cyan); }
+  .demo-btn {
+    background: linear-gradient(135deg, var(--cyan), #0099bb);
+    color: #000;
+    border: none;
+    border-radius: 7px;
+    padding: 0.5rem 1.2rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 0.25rem;
+  }
+  .demo-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .demo-btn:active { transform: translateY(0); }
+  .demo-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+  }
+  .output-box {
+    background: #070b15;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    min-height: 80px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.6;
+    color: var(--green);
+  }
+
+  /* FLOW DIAGRAMS */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+  .flow-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .flow-arrow { color: var(--cyan); font-size: 1.2rem; }
+  .flow-step.highlight { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.07); }
+  .flow-step.secure { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.07); }
+  .flow-step.danger { border-color: var(--danger); color: var(--danger); background: rgba(255,77,109,0.07); }
+
+  /* JWT VISUAL */
+  .jwt-part {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    word-break: break-all;
+  }
+  .jwt-header { background: rgba(255,107,53,0.15); color: var(--orange); }
+  .jwt-payload { background: rgba(155,93,229,0.15); color: var(--purple); }
+  .jwt-sig { background: rgba(0,255,136,0.15); color: var(--green); }
+  .jwt-dot { color: var(--muted); font-weight: bold; }
+
+  /* METHOD BADGE */
+  .method {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+  }
+  .GET { background: rgba(0,255,136,0.15); color: var(--green); }
+  .POST { background: rgba(0,212,255,0.15); color: var(--cyan); }
+  .PUT { background: rgba(255,209,102,0.15); color: var(--yellow); }
+  .DELETE { background: rgba(255,77,109,0.15); color: var(--danger); }
+
+  /* STATUS BADGE */
+  .status-200 { color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+  .status-401 { color: var(--danger); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+  .status-403 { color: var(--orange); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+
+  /* PROGRESS / ANIMATION */
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+  .blink { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* SECURITY RISK TABLE */
+  .risk-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .risk-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .risk-table td { padding: 0.7rem 1rem; border-bottom: 1px solid #1a2238; }
+  .risk-table tr:last-child td { border-bottom: none; }
+  .risk-high { color: var(--danger); }
+  .risk-med { color: var(--yellow); }
+  .risk-low { color: var(--green); }
+
+  /* ACCORDION */
+  details { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; }
+  summary {
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    transition: background 0.2s;
+  }
+  summary:hover { background: #1a2235; }
+  summary::after { content: '+'; color: var(--cyan); font-size: 1.2rem; }
+  details[open] summary::after { content: '−'; }
+  .details-body { padding: 1.25rem; background: var(--surface); border-top: 1px solid var(--border); }
+
+  /* SPLIT LAYOUT */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+  @media (max-width: 768px) { .split { grid-template-columns: 1fr; } .demo-two-col { grid-template-columns: 1fr; } }
+
+  /* COMPARISON */
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1px;
+  }
+  .compare-cell {
+    background: var(--card);
+    padding: 1rem 1.25rem;
+    font-size: 0.88rem;
+  }
+  .compare-cell.header {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .compare-cell.header.rest { color: var(--cyan); }
+  .compare-cell.header.graphql { color: var(--purple); }
+
+  /* WEBSOCKET DEMO */
+  .ws-messages {
+    background: #070b15;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    height: 180px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+  }
+  .ws-msg-server { color: var(--cyan); }
+  .ws-msg-client { color: var(--green); }
+  .ws-msg-system { color: var(--muted); font-style: italic; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    background: var(--border);
+    border-radius: 99px;
+    height: 6px;
+    overflow: hidden;
+    margin-top: 0.4rem;
+  }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  footer span { color: var(--cyan); }
+
+  /* SCROLL INDICATOR */
+  .scroll-down {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--muted);
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    animation: bounce 2s infinite;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
+
+  /* SECURITY TIP BOX */
+  .tip-box {
+    border-left: 3px solid var(--yellow);
+    background: rgba(255,209,102,0.06);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+  }
+  .tip-box strong { color: var(--yellow); }
+
+  /* WARNING BOX */
+  .warn-box {
+    border-left: 3px solid var(--danger);
+    background: rgba(255,77,109,0.06);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+  }
+  .warn-box strong { color: var(--danger); }
+
+  /* GOOD BOX */
+  .good-box {
+    border-left: 3px solid var(--green);
+    background: rgba(0,255,136,0.06);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+  }
+  .good-box strong { color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🔐 Track 03 · Level 02 · Modern Applications</div>
+  <h1>How Modern Apps Stay <span>Secure</span></h1>
+  <p>Explore the protocols, patterns, and architecture behind every modern web application — with interactive demos to make it click.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">12</div><div class="stat-label">Core Topics</div></div>
+    <div class="stat"><div class="stat-num">8</div><div class="stat-label">Live Demos</div></div>
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Security Focus</div></div>
+  </div>
+  <div class="scroll-down">▼ scroll to explore</div>
+</section>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">ModernApp.sec</div>
+    <div class="nav-links">
+      <a href="#apis">APIs</a>
+      <a href="#auth">Auth</a>
+      <a href="#sso">SSO</a>
+      <a href="#infra">Infra</a>
+      <a href="#arch">Architecture</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ===== SECTION 1: APIs ===== -->
+  <section class="section" id="apis">
+    <div class="section-header">
+      <div class="eyebrow">// section 01</div>
+      <h2 class="section-title">APIs — How Apps <span class="accent">Talk</span></h2>
+      <p class="section-desc">APIs are the doors of your application. Securing them is your first line of defense.</p>
+    </div>
+
+    <!-- REST API -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(0,255,136,0.1)">🌐</div>
+        <div>
+          <h3>REST API</h3>
+          <p style="font-size:0.8rem;color:var(--muted);margin:0">Representational State Transfer — the backbone of web communication</p>
+        </div>
+      </div>
+      <p>A REST API uses standard HTTP verbs to perform actions on <strong style="color:#fff">resources</strong>. Think of it like a menu at a restaurant — you send a request, the kitchen (server) sends back what you ordered (data).</p>
+
+      <!-- Live REST Demo -->
+      <div class="demo-panel" style="margin-top:1.25rem">
+        <div class="demo-topbar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <div class="demo-title">REST API Simulator — Try it live</div>
+        </div>
+        <div class="demo-body">
+          <div class="demo-two-col">
+            <div>
+              <div class="input-group">
+                <label>HTTP Method</label>
+                <select class="demo-input" id="rest-method">
+                  <option value="GET">GET — Fetch a user</option>
+                  <option value="POST">POST — Create user</option>
+                  <option value="PUT">PUT — Update user</option>
+                  <option value="DELETE">DELETE — Remove user</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label>Endpoint URL</label>
+                <input class="demo-input" id="rest-url" value="/api/users/101" />
+              </div>
+              <div class="input-group">
+                <label>Auth Token (leave blank = no auth)</label>
+                <input class="demo-input" id="rest-token" placeholder="Bearer eyJ..." />
+              </div>
+              <button class="demo-btn" onclick="runRestDemo()">▶ Send Request</button>
+            </div>
+            <div>
+              <label class="input-group" style="display:block;font-size:0.78rem;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem">Response</label>
+              <div class="output-box" id="rest-output">// Click "Send Request" to see the response</div>
+              <div id="rest-status" style="margin-top:0.5rem;font-size:0.8rem"></div>
+            </div>
+          </div>
+          <div class="tip-box" style="margin-top:1rem">
+            <strong>⚠️ Security Tip:</strong> Always validate the <code>Authorization</code> header on the server. An API that returns data without checking a token is a wide-open door for attackers.
+          </div>
+        </div>
+      </div>
+
+      <div class="tag-row">
+        <span class="tag tag-green">GET · POST · PUT · DELETE</span>
+        <span class="tag tag-cyan">JSON responses</span>
+        <span class="tag tag-orange">Stateless</span>
+      </div>
+    </div>
+
+    <!-- REST vs GraphQL -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(155,93,229,0.12)">⚡</div>
+        <div>
+          <h3>GraphQL — Precision Data Fetching</h3>
+          <p style="font-size:0.8rem;color:var(--muted);margin:0">Ask for exactly what you need — nothing more, nothing less</p>
+        </div>
+      </div>
+      <p>GraphQL gives clients <strong style="color:#fff">total control</strong> over the response. Instead of a fixed response, you write a query like a shopping list and get exactly those fields back.</p>
+
+      <div class="demo-panel" style="margin-top:1.25rem">
+        <div class="demo-topbar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <div class="demo-title">GraphQL Query Builder</div>
+        </div>
+        <div class="demo-body">
+          <div class="demo-two-col">
+            <div>
+              <div class="input-group">
+                <label>Select Fields to Query</label>
+                <label style="display:flex;align-items:center;gap:0.5rem;color:var(--text);margin:0.4rem 0;font-size:0.88rem;font-family:inherit">
+                  <input type="checkbox" id="gql-name" checked> name</label>
+                <label style="display:flex;align-items:center;gap:0.5rem;color:var(--text);margin:0.4rem 0;font-size:0.88rem;font-family:inherit">
+                  <input type="checkbox" id="gql-email" checked> email</label>
+                <label style="display:flex;align-items:center;gap:0.5rem;color:var(--text);margin:0.4rem 0;font-size:0.88rem;font-family:inherit">
+                  <input type="checkbox" id="gql-phone"> phone</label>
+                <label style="display:flex;align-items:center;gap:0.5rem;color:var(--text);margin:0.4rem 0;font-size:0.88rem;font-family:inherit">
+                  <input type="checkbox" id="gql-address"> address</label>
+                <label style="display:flex;align-items:center;gap:0.5rem;color:var(--text);margin:0.4rem 0;font-size:0.88rem;font-family:inherit">
+                  <input type="checkbox" id="gql-password"> <span style="color:var(--danger)">password_hash ⚠️</span></label>
+              </div>
+              <button class="demo-btn" onclick="runGraphQL()">▶ Build Query</button>
+            </div>
+            <div>
+              <div class="input-group">
+                <label>Generated Query</label>
+                <div class="code-block" id="gql-query" style="min-height:80px">// Select fields →</div>
+              </div>
+              <div class="input-group">
+                <label>Response</label>
+                <div class="output-box" id="gql-output" style="min-height:60px">// Response appears here</div>
+              </div>
+            </div>
+          </div>
+          <div class="warn-box">
+            <strong>🔴 Security Risk:</strong> GraphQL introspection should be <strong>disabled in production</strong>. Without it, attackers can map your entire data schema. Always implement field-level authorization.
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem">
+        <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1rem">REST vs GraphQL at a glance:</p>
+        <div class="compare-row"><div class="compare-cell header rest">REST API</div><div class="compare-cell header graphql">GraphQL</div></div>
+        <div class="compare-row"><div class="compare-cell">Multiple endpoints (/users, /posts…)</div><div class="compare-cell">Single endpoint (/graphql)</div></div>
+        <div class="compare-row"><div class="compare-cell">Fixed response structure</div><div class="compare-cell">Client decides response shape</div></div>
+        <div class="compare-row"><div class="compare-cell">Can over-fetch or under-fetch</div><div class="compare-cell">Fetch exactly what you need</div></div>
+        <div class="compare-row"><div class="compare-cell">Simpler to secure per-route</div><div class="compare-cell">Needs field-level authorization</div></div>
+      </div>
+    </div>
+
+    <!-- WebSockets -->
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(255,209,102,0.1)">🔁</div>
+        <div>
+          <h3>WebSockets — Real-Time Two-Way Communication</h3>
+          <p style="font-size:0.8rem;color:var(--muted);margin:0">One persistent connection, messages flying both ways</p>
+        </div>
+      </div>
+      <p>HTTP is like sending a letter — one request, one reply. WebSockets are like a <strong style="color:#fff">phone call</strong> — both sides can speak at any moment without hanging up and calling back.</p>
+      <div class="flow" style="margin-top:1rem">
+        <div class="flow-step">Client</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">Upgrade: websocket</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">Server</div>
+        <div class="flow-arrow">↔</div>
+        <div class="flow-step secure">Persistent Connection</div>
+      </div>
+
+      <div class="demo-panel" style="margin-top:1.25rem">
+        <div class="demo-topbar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <div class="demo-title">WebSocket Chat Simulator</div>
+        </div>
+        <div class="demo-body">
+          <div class="ws-messages" id="ws-messages">
+            <div class="ws-msg-system">// Simulated WebSocket connection</div>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:0.75rem">
+            <input class="demo-input" id="ws-input" placeholder="Type a message..." style="flex:1" onkeydown="if(event.key==='Enter')sendWS()"/>
+            <button class="demo-btn" onclick="sendWS()">Send</button>
+            <button class="demo-btn secondary" onclick="connectWS()">Connect</button>
+          </div>
+          <div class="tip-box" style="margin-top:0.75rem">
+            <strong>⚠️ Security Tip:</strong> Always use <code>wss://</code> (WebSocket Secure) in production — it's the WebSocket equivalent of HTTPS and encrypts all messages in transit.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 2: AUTHENTICATION ===== -->
+  <section class="section" id="auth">
+    <div class="section-header">
+      <div class="eyebrow">// section 02</div>
+      <h2 class="section-title">Authentication &amp; <span class="accent">Authorization</span></h2>
+      <p class="section-desc">Proving who you are (authn) and what you're allowed to do (authz) — the two pillars of security.</p>
+    </div>
+
+    <!-- JWT -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(255,107,53,0.1)">🪙</div>
+        <div>
+          <h3>JWT — JSON Web Token</h3>
+          <p style="font-size:0.8rem;color:var(--muted);margin:0">A tamper-proof digital passport for your users</p>
+        </div>
+      </div>
+      <p>A JWT is a <strong style="color:#fff">signed, compact token</strong> that proves identity without the server needing to store session data. It has 3 parts separated by dots.</p>
+      
+      <div style="background:#070b15;border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:2">
+        <span class="jwt-part jwt-header">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="jwt-dot">.</span><span class="jwt-part jwt-payload">eyJzdWIiOiIxMDEiLCJuYW1lIjoiUmFodWwiLCJpYXQiOjE2MDAwMDAwMDB9</span><span class="jwt-dot">.</span><span class="jwt-part jwt-sig">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</span>
+        <div style="margin-top:0.75rem;display:flex;gap:1.5rem;flex-wrap:wrap">
+          <span style="color:var(--orange)">■ Header</span>
+          <span style="color:var(--purple)">■ Payload (claims)</span>
+          <span style="color:var(--green)">■ Signature (tamper check)</span>
+        </div>
+      </div>
+
+      <div class="demo-panel" style="margin-top:1.25rem">
+        <div class="demo-topbar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <div class="demo-title">JWT Decoder — Paste any token to inspect it</div>
+        </div>
+        <div class="demo-body">
+          <div class="input-group">
+            <label>Paste JWT Token</label>
+            <input class="demo-input" id="jwt-input" placeholder="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMDEifQ.xxx" style="font-size:0.75rem"/>
+          </div>
+          <button class="demo-btn" onclick="decodeJWT()">🔍 Decode Token</button>
+          <button class="demo-btn secondary" onclick="generateJWT()" style="margin-left:0.5rem">✨ Generate Sample</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+            <div>
+              <div style="font-size:0.72rem;color:var(--orange);font-family:'JetBrains Mono',monospace;margin-bottom:0.4rem">HEADER</div>
+              <div class="output-box" id="jwt-header-out" style="color:var(--orange)">// awaiting input</div>
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--purple);font-family:'JetBrains Mono',monospace;margin-bottom:0.4rem">PAYLOAD (claims)</div>
+              <div class="output-box" id="jwt-payload-out" style="color:var(--purple)">// awaiting input</div>
+            </div>
+          </div>
+          <div id="jwt-sig-status" style="margin-top:0.75rem"></div>
+          <div class="warn-box" style="margin-top:0.75rem">
+            <strong>🔴 Critical:</strong> The payload is only Base64-encoded, NOT encrypted. <strong>Never store passwords or sensitive data in JWT payload!</strong> Anyone can decode it — only the signature prevents tampering.
+          </div>
+        </div>
+      </div>
+
+      <!-- Auth Flow -->
+      <div style="margin-top:1.25rem">
+        <p style="font-size:0.88rem;color:var(--muted);margin-bottom:0.75rem">JWT Authentication Flow:</p>
+        <div class="flow">
+          <div class="flow-step">1. Login</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Verify Credentials</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step highlight">Sign JWT</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Return Token</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step secure">Store in Client</div>
+        </div>
+        <div class="flow" style="margin-top:0.5rem">
+          <div class="flow-step">2. Next Request</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step highlight">Send: Authorization: Bearer &lt;token&gt;</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Server Verifies</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step secure">Access Granted ✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OAuth -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(0,212,255,0.1)">🔑</div>
+        <div>
+          <h3>OAuth 2.0 — Delegated Authorization</h3>
+          <p style="font-size:0.8rem;color:var(--muted);margin:0">"Login with Google" explained — no password sharing ever</p>
+        </div>
+      </div>
+      <p>OAuth lets users <strong style="color:#fff">grant limited access</strong> to their data without sharing passwords. Think of it like a hotel key card — it opens specific doors, not the master key.</p>
+
+      <div class="demo-panel" style="margin-top:1.25rem">
+        <div class="demo-topbar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <div class="demo-title">OAuth Flow Simulator</div>
+        </div>
+        <div class="demo-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.75rem;margin-bottom:1rem">
+            <div id="oauth-box-user" style="text-align:center;padding:1rem 0.5rem;background:var(--card);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:1.5rem">👤</div>
+              <div style="font-size:0.8rem;margin-top:0.25rem;font-family:'Space Grotesk',sans-serif;font-weight:600">User</div>
+            </div>
+            <div id="oauth-box-app" style="text-align:center;padding:1rem 0.5rem;background:var(--card);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:1.5rem">📱</div>
+              <div style="font-size:0.8rem;margin-top:0.25rem;font-family:'Space Grotesk',sans-serif;font-weight:600">Your App</div>
+            </div>
+            <div id="oauth-box-google" style="text-align:center;padding:1rem 0.5rem;background:var(--card);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:1.5rem">🔒</div>
+              <div style="font-size:0.8rem;margin-top:0.25rem;font-family:'Space Grotesk',sans-serif;font-weight:600">Google</div>
+            </div>
+            <div id="oauth-box-resource" style="text-align:center;padding:1rem 0.5rem;background:var(--card);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:1.5rem">🗄️</div>
+              <div style="font-size:0.8rem;margin-top:0.25rem;font-family:'Space Grotesk',sans-serif;font-weight:600">Resource</div>
+            </div>
+          </div>
+          <div class="output-box" id="oauth-log" style="height:100px;color:var(--cyan)">// Click to start the OAuth flow simulation</div>
+          <div style="display:flex;gap:0.75rem;margin-top:0.75rem">
+            <button class="demo-btn" onclick="runOAuth()">▶ Simulate "Login with Google"</button>
+            <button class="demo-btn secondary" onclick="resetOAuth()">↺ Reset</button>
+          </div>
+          <div class="good-box" style="margin-top:0.75rem">
+            <strong>✅ Why OAuth is Secure:</strong> Your app <strong>never sees the user's Google password</strong>. Google gives a scoped access token — it can only do what the user approved.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OpenID Connect -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(0,255,136,0.1)">🪪</div>
+        <div>
+          <h3>OpenID Connect (OIDC) — Who Are You?</h3>
+          <p style="font-size:0.8rem;color:var(--muted);margin:0">OAuth answers "What can you do?" — OIDC answers "Who are you?"</p>
+        </div>
+      </div>
+      <p>OIDC sits on top of OAuth 2.0 and adds an <strong style="color:#fff">ID Token</strong> — a signed JWT that contains the user's verified identity (name, email, profile picture).</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+        <div class="card" style="border-color:rgba(0,212,255,0.2)">
+          <div style="font-size:0.8rem;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-bottom:0.5rem">OAuth 2.0</div>
+          <p style="font-size:0.88rem">Issues an <strong style="color:#fff">Access Token</strong> — grants permission to access resources. Doesn't tell you <em>who</em> the user is.</p>
+        </div>
+        <div class="card" style="border-color:rgba(0,255,136,0.2)">
+          <div style="font-size:0.8rem;color:var(--green);font-family:'JetBrains Mono',monospace;margin-bottom:0.5rem">OIDC + OAuth 2.0</div>
+          <p style="font-size:0.88rem">Issues an <strong style="color:#fff">ID Token</strong> — verifies user identity. Now you know <em>who</em> they are AND what they can do.</p>
+        </div>
+      </div>
+      <div class="tip-box">
+        <strong>💡 Real World:</strong> Google Sign-In uses OIDC. When you "Sign in with Google", it provides your Google account identity (name, email) via an ID Token, so the app knows who you are without ever handling your password.
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 3: SSO ===== -->
+  <section class="section" id="sso">
+    <div class="section-header">
+      <div class="eyebrow">// section 03</div>
+      <h2 class="section-title">Single Sign-On — <span class="accent">One Key, Many Doors</span></h2>
+      <p class="section-desc">Log in once, access everything. SSO reduces attack surface by centralizing authentication.</p>
+    </div>
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon" style="background:rgba(155,93,229,0.1)">🗝️</div>
+            <h3>How SSO Works</h3>
+          </div>
+          <div class="flow" style="flex-direction:column;align-items:flex-start;gap:0.5rem">
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div class="flow-step highlight" style="width:2rem;text-align:center">1</div>
+              <div class="flow-step" style="flex:1">User visits Gmail</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div class="flow-step highlight" style="width:2rem;text-align:center">2</div>
+              <div class="flow-step" style="flex:1">Redirected to Identity Provider (Google)</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div class="flow-step highlight" style="width:2rem;text-align:center">3</div>
+              <div class="flow-step secure" style="flex:1">Login once — session created</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div class="flow-step highlight" style="width:2rem;text-align:center">4</div>
+              <div class="flow-step" style="flex:1">Visit Google Drive</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div class="flow-step highlight" style="width:2rem;text-align:center">5</div>
+              <div class="flow-step secure" style="flex:1">Already logged in ✓ No re-enter</div>
+            </div>
+          </div>
+          <div class="good-box">
+            <strong>✅ Security Benefit:</strong> Fewer passwords = fewer phishing targets. Centralizing auth means you can enforce MFA in one place and protect all apps at once.
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:1rem">
+          <h3 style="margin-bottom:1rem">Without SSO vs With SSO</h3>
+          <table class="risk-table">
+            <tr><th>Factor</th><th>No SSO</th><th>With SSO</th></tr>
+            <tr><td>Password count</td><td class="risk-high">1 per app</td><td class="risk-low">Just 1</td></tr>
+            <tr><td>Password reuse risk</td><td class="risk-high">High</td><td class="risk-low">Eliminated</td></tr>
+            <tr><td>MFA enforcement</td><td class="risk-med">Per-app</td><td class="risk-low">Central</td></tr>
+            <tr><td>Breach impact</td><td class="risk-high">All apps exposed</td><td class="risk-low">Only IdP</td></tr>
+            <tr><td>User experience</td><td class="risk-med">Many logins</td><td class="risk-low">Seamless</td></tr>
+          </table>
+        </div>
+        <div class="tip-box">
+          <strong>💡 Used by:</strong> Every enterprise. When you log into Slack at work and it says "Continue with Google Workspace" — that's SSO + OIDC in action.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 4: INFRASTRUCTURE ===== -->
+  <section class="section" id="infra">
+    <div class="section-header">
+      <div class="eyebrow">// section 04</div>
+      <h2 class="section-title">Infrastructure — <span class="accent">Speed, Security &amp; Scale</span></h2>
+      <p class="section-desc">Reverse Proxies, Caching, and CDNs are the invisible guardians of every fast, secure website.</p>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:1.5rem">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(0,212,255,0.1)">🛡️</div>
+          <h3>Reverse Proxy</h3>
+        </div>
+        <p>Sits between users and your servers. Users never know your real server exists — the proxy handles everything.</p>
+        <div style="margin-top:1rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem">
+          <div style="color:var(--muted)">User → <span style="color:var(--cyan)">Nginx (Proxy)</span> → Server A</div>
+          <div style="color:var(--muted);margin-top:0.3rem">User → <span style="color:var(--cyan)">Nginx (Proxy)</span> → Server B</div>
+        </div>
+        <div class="tag-row">
+          <span class="tag tag-green">DDoS Shield</span>
+          <span class="tag tag-cyan">Load Balance</span>
+          <span class="tag tag-orange">SSL/TLS</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(255,209,102,0.1)">⚡</div>
+          <h3>Caching</h3>
+        </div>
+        <p>Store frequently-requested data closer to the user. Instead of hitting the database every time, return a saved copy.</p>
+        <div style="margin-top:1rem">
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.4rem">Cache Hit Rate</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:85%;background:var(--green)"></div></div>
+          <div style="font-size:0.78rem;color:var(--green);margin-top:0.3rem">85% served from cache — 85% less DB load</div>
+        </div>
+        <div class="tag-row">
+          <span class="tag tag-yellow">Browser</span>
+          <span class="tag tag-cyan">Redis</span>
+          <span class="tag tag-green">CDN Cache</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(0,255,136,0.1)">🌍</div>
+          <h3>CDN</h3>
+        </div>
+        <p>A global network of servers that deliver content from the nearest location to the user — reducing latency dramatically.</p>
+        <div style="margin-top:1rem;font-size:0.82rem">
+          <div style="color:var(--muted)">Mumbai user → <span style="color:var(--cyan)">Mumbai CDN node</span> ⚡ 5ms</div>
+          <div style="color:var(--muted);margin-top:0.3rem">Mumbai user → <span style="color:var(--danger)">Origin (US)</span> 🐌 250ms</div>
+        </div>
+        <div class="tag-row">
+          <span class="tag tag-green">Low Latency</span>
+          <span class="tag tag-cyan">DDoS Absorb</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Infrastructure Security Demo -->
+    <div class="demo-panel">
+      <div class="demo-topbar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <div class="demo-title">Infrastructure Attack Simulation — See how layers protect you</div>
+      </div>
+      <div class="demo-body">
+        <div class="demo-two-col">
+          <div>
+            <div class="input-group">
+              <label>Simulate Attack Type</label>
+              <select class="demo-input" id="attack-type">
+                <option value="ddos">DDoS Attack (10,000 requests/sec)</option>
+                <option value="sql">SQL Injection Attempt</option>
+                <option value="xss">XSS Script Injection</option>
+                <option value="normal">Normal User Request</option>
+              </select>
+            </div>
+            <button class="demo-btn" onclick="simulateAttack()">🚨 Launch Simulation</button>
+          </div>
+          <div>
+            <label style="font-size:0.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:0.4rem">Defense Log</label>
+            <div class="output-box" id="attack-log" style="height:100px">// Select attack type and launch simulation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 5: ARCHITECTURE ===== -->
+  <section class="section" id="arch">
+    <div class="section-header">
+      <div class="eyebrow">// section 05</div>
+      <h2 class="section-title">Microservices &amp; <span class="accent">Service Mesh</span></h2>
+      <p class="section-desc">Modern apps are built from small, independent pieces — and securing the communication between them is critical.</p>
+    </div>
+
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon" style="background:rgba(0,255,136,0.1)">🧩</div>
+            <h3>Microservices Architecture</h3>
+          </div>
+          <p>Break a big app into small, independent services. Each does one thing well and can be deployed, scaled, and secured independently.</p>
+          
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-top:1.25rem">
+            <div style="text-align:center;padding:0.75rem 0.5rem;background:#070b15;border:1px solid var(--border);border-radius:8px;font-size:0.78rem">
+              <div style="font-size:1.1rem">👤</div>
+              <div style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:0.2rem">Users</div>
+            </div>
+            <div style="text-align:center;padding:0.75rem 0.5rem;background:#070b15;border:1px solid var(--border);border-radius:8px;font-size:0.78rem">
+              <div style="font-size:1.1rem">💳</div>
+              <div style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:0.2rem">Payments</div>
+            </div>
+            <div style="text-align:center;padding:0.75rem 0.5rem;background:#070b15;border:1px solid var(--border);border-radius:8px;font-size:0.78rem">
+              <div style="font-size:1.1rem">📦</div>
+              <div style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:0.2rem">Orders</div>
+            </div>
+            <div style="text-align:center;padding:0.75rem 0.5rem;background:#070b15;border:1px solid var(--border);border-radius:8px;font-size:0.78rem">
+              <div style="font-size:1.1rem">🏪</div>
+              <div style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:0.2rem">Inventory</div>
+            </div>
+            <div style="text-align:center;padding:0.75rem 0.5rem;background:#070b15;border:1px solid var(--border);border-radius:8px;font-size:0.78rem">
+              <div style="font-size:1.1rem">🔔</div>
+              <div style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:0.2rem">Notify</div>
+            </div>
+            <div style="text-align:center;padding:0.75rem 0.5rem;background:#070b15;border:1px solid var(--border);border-radius:8px;font-size:0.78rem">
+              <div style="font-size:1.1rem">🔍</div>
+              <div style="color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:0.7rem;margin-top:0.2rem">Search</div>
+            </div>
+          </div>
+          <div class="good-box" style="margin-top:1rem">
+            <strong>✅ Security Win:</strong> If the Notifications service is hacked, the Payment service is <strong>still safe</strong>. Fault isolation means a breach in one service doesn't automatically compromise everything.
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-icon" style="background:rgba(155,93,229,0.1)">🕸️</div>
+            <h3>Service Mesh — Securing Service-to-Service</h3>
+          </div>
+          <p>A service mesh handles all communication between microservices — adding encryption, auth, and observability automatically.</p>
+          
+          <div style="margin-top:1rem">
+            <details>
+              <summary>🔐 Mutual TLS (mTLS) — Both sides prove identity</summary>
+              <div class="details-body">
+                <p style="font-size:0.88rem;color:var(--muted)">In regular TLS, only the server has a certificate. With mTLS, <strong style="color:#fff">both the client and server</strong> present certificates. This means Service A can be certain it's talking to Service B — not a rogue service injected by an attacker.</p>
+              </div>
+            </details>
+            <details>
+              <summary>📊 Observability — See everything</summary>
+              <div class="details-body">
+                <p style="font-size:0.88rem;color:var(--muted)">Automatically collects <strong style="color:#fff">metrics, logs, and traces</strong> from every service. If something goes wrong (or gets hacked), you can trace exactly which service was affected and when.</p>
+              </div>
+            </details>
+            <details>
+              <summary>🚦 Traffic Control — Fine-grained rules</summary>
+              <div class="details-body">
+                <p style="font-size:0.88rem;color:var(--muted)">Define rules like "Service A can only call Service B, not Service C". This principle of <strong style="color:#fff">least privilege</strong> limits blast radius if a service is compromised.</p>
+              </div>
+            </details>
+          </div>
+          <div class="tag-row">
+            <span class="tag tag-purple">Istio</span>
+            <span class="tag tag-cyan">Linkerd</span>
+            <span class="tag tag-green">Consul</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Quick Reference -->
+    <div style="margin-top:3rem">
+      <div class="section-header">
+        <div class="eyebrow">// quick reference</div>
+        <h2 class="section-title">Security <span class="accent">Cheat Sheet</span></h2>
+      </div>
+      <table class="risk-table" style="background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+        <thead><tr><th>Technology</th><th>What it Does</th><th>Key Security Rule</th><th>Risk Level</th></tr></thead>
+        <tbody>
+          <tr><td><strong style="color:#fff">REST API</strong></td><td>HTTP communication</td><td>Always validate auth tokens server-side</td><td class="risk-high">High if exposed</td></tr>
+          <tr><td><strong style="color:#fff">GraphQL</strong></td><td>Flexible data queries</td><td>Disable introspection in prod; add field auth</td><td class="risk-high">High</td></tr>
+          <tr><td><strong style="color:#fff">WebSocket</strong></td><td>Real-time messaging</td><td>Use wss://, validate origin header</td><td class="risk-med">Medium</td></tr>
+          <tr><td><strong style="color:#fff">JWT</strong></td><td>Stateless authentication</td><td>Never store secrets in payload; use short expiry</td><td class="risk-high">High</td></tr>
+          <tr><td><strong style="color:#fff">OAuth 2.0</strong></td><td>Delegated authorization</td><td>Validate redirect_uri; use PKCE for SPAs</td><td class="risk-med">Medium</td></tr>
+          <tr><td><strong style="color:#fff">OIDC</strong></td><td>Identity verification</td><td>Verify ID Token signature and audience claim</td><td class="risk-med">Medium</td></tr>
+          <tr><td><strong style="color:#fff">SSO</strong></td><td>Single authentication</td><td>Enforce MFA on the Identity Provider</td><td class="risk-low">Low with MFA</td></tr>
+          <tr><td><strong style="color:#fff">Reverse Proxy</strong></td><td>Traffic routing & protection</td><td>Hide backend IPs; terminate SSL at proxy</td><td class="risk-low">Low</td></tr>
+          <tr><td><strong style="color:#fff">CDN</strong></td><td>Content delivery</td><td>Enable DDoS protection; use signed URLs for private content</td><td class="risk-low">Low</td></tr>
+          <tr><td><strong style="color:#fff">Microservices</strong></td><td>App architecture</td><td>Principle of least privilege per service</td><td class="risk-med">Medium</td></tr>
+          <tr><td><strong style="color:#fff">Service Mesh</strong></td><td>Service communication</td><td>Enable mTLS between all services</td><td class="risk-low">Low with mTLS</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div>Track 03 · Level 02 · <span>Modern Applications & Cybersecurity</span></div>
+  <div style="margin-top:0.5rem;color:#3a4560">Built for learners who want to understand the web deeply</div>
+</footer>
+
+<script>
+// ===== REST DEMO =====
+function runRestDemo() {
+  const method = document.getElementById('rest-method').value;
+  const url = document.getElementById('rest-url').value;
+  const token = document.getElementById('rest-token').value.trim();
+  const out = document.getElementById('rest-output');
+  const statusEl = document.getElementById('rest-status');
+
+  if (!token && method !== 'GET') {
+    out.style.color = 'var(--danger)';
+    out.textContent = '// ❌ 401 Unauthorized\n// No token provided — access denied!\n// Attacker cannot create/modify data without a valid token.';
+    statusEl.innerHTML = '<span class="status-401">● 401 Unauthorized</span>';
+    return;
+  }
+  if (!token && method === 'GET') {
+    out.style.color = 'var(--yellow)';
+    out.textContent = '// ⚠️  200 OK (but public endpoint risk)\n// GET without auth returned data.\n// Consider: should this endpoint require auth?';
+    statusEl.innerHTML = '<span style="color:var(--yellow);font-family:\'JetBrains Mono\',monospace;font-size:0.8rem">● 200 OK (public)</span>';
+    return;
+  }
+
+  const responses = {
+    GET: { status: '200 OK', data: { id: 101, name: "Rahul", email: "rahul@example.com", role: "user" } },
+    POST: { status: '201 Created', data: { id: 102, name: "New User", created: true } },
+    PUT: { status: '200 OK', data: { id: 101, name: "Rahul (updated)", modified: true } },
+    DELETE: { status: '204 No Content', data: null }
+  };
+
+  const r = responses[method];
+  out.style.color = 'var(--green)';
+  out.textContent = `// ✅ ${r.status}\n// Method: ${method} ${url}\n// Auth: Token verified ✓\n\n${r.data ? JSON.stringify(r.data, null, 2) : '// Resource deleted'}`;
+  statusEl.innerHTML = `<span class="status-200">● ${r.status}</span>`;
+}
+
+// ===== GRAPHQL DEMO =====
+function runGraphQL() {
+  const fields = [];
+  if (document.getElementById('gql-name').checked) fields.push('name');
+  if (document.getElementById('gql-email').checked) fields.push('email');
+  if (document.getElementById('gql-phone').checked) fields.push('phone');
+  if (document.getElementById('gql-address').checked) fields.push('address');
+  const hasPwd = document.getElementById('gql-password').checked;
+  if (hasPwd) fields.push('password_hash');
+
+  const query = fields.length === 0 ? '{ }' :
+    `{\n  user(id: 101) {\n${fields.map(f => `    ${f}`).join('\n')}\n  }\n}`;
+
+  document.getElementById('gql-query').innerHTML = 
+    `<span style="color:var(--muted)">{</span>\n  <span style="color:var(--purple)">user</span>(<span style="color:var(--cyan)">id: 101</span>) {\n${fields.map(f => `    <span style="color:${f==='password_hash'?'var(--danger)':'var(--green)'}">${f}${f==='password_hash' ? ' ⚠️' : ''}</span>`).join('\n')}\n  <span style="color:var(--muted)">}</span>\n<span style="color:var(--muted)">}</span>`;
+
+  const data = { name:"Rahul", email:"rahul@example.com", phone:"+91-9876543210", address:"Mumbai, India", password_hash: hasPwd ? "⚠️ EXPOSED! $2b$12$abc...def" : undefined };
+  const result = {};
+  fields.forEach(f => { if(data[f]) result[f] = data[f]; });
+
+  const out = document.getElementById('gql-output');
+  if (hasPwd) {
+    out.style.color = 'var(--danger)';
+    out.textContent = '// 🔴 SECURITY BREACH!\n' + JSON.stringify({ data: { user: result } }, null, 2);
+  } else {
+    out.style.color = 'var(--green)';
+    out.textContent = JSON.stringify({ data: { user: result } }, null, 2);
+  }
+}
+
+// ===== WEBSOCKET DEMO =====
+let wsConnected = false;
+let wsInterval;
+const wsResponses = [
+  "📨 New message from Priya: 'Hey!'",
+  "📊 Stock RELIANCE updated: ₹2,847 (+1.2%)",
+  "🎮 Player joined your game lobby",
+  "🔔 Order #1042 shipped",
+  "💬 Admin broadcast: 'System maintenance at 2AM'"
+];
+let wsIdx = 0;
+
+function connectWS() {
+  const box = document.getElementById('ws-messages');
+  if (wsConnected) return;
+  wsConnected = true;
+  appendWS('system', '🔗 Connecting to wss://app.example.com/ws...');
+  setTimeout(() => {
+    appendWS('system', '✅ Connection established (TLS encrypted)');
+    appendWS('server', '← Server: {"type":"welcome","sessionId":"abc123"}');
+  }, 600);
+}
+
+function sendWS() {
+  if (!wsConnected) { connectWS(); setTimeout(sendWS, 1000); return; }
+  const input = document.getElementById('ws-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  appendWS('client', `→ You: ${msg}`);
+  input.value = '';
+  setTimeout(() => {
+    appendWS('server', `← Server: ${wsResponses[wsIdx % wsResponses.length]}`);
+    wsIdx++;
+  }, 400);
+}
+
+function appendWS(type, text) {
+  const box = document.getElementById('ws-messages');
+  const div = document.createElement('div');
+  div.className = `ws-msg-${type}`;
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ===== JWT DEMO =====
+function generateJWT() {
+  const header = btoa(JSON.stringify({alg:"HS256",typ:"JWT"})).replace(/=/g,'');
+  const payload = btoa(JSON.stringify({sub:"101",name:"Rahul",role:"admin",iat:1700000000,exp:1700003600})).replace(/=/g,'');
+  const sig = btoa("simulated-signature-not-real").replace(/=/g,'').slice(0,43);
+  document.getElementById('jwt-input').value = `${header}.${payload}.${sig}`;
+  decodeJWT();
+}
+
+function decodeJWT() {
+  const token = document.getElementById('jwt-input').value.trim();
+  const parts = token.split('.');
+  const headerOut = document.getElementById('jwt-header-out');
+  const payloadOut = document.getElementById('jwt-payload-out');
+  const sigStatus = document.getElementById('jwt-sig-status');
+
+  if (parts.length !== 3) {
+    headerOut.textContent = '// Invalid token format';
+    payloadOut.textContent = '// Must be: header.payload.signature';
+    return;
+  }
+  try {
+    const h = JSON.parse(atob(parts[0].replace(/-/g,'+').replace(/_/g,'/')));
+    headerOut.textContent = JSON.stringify(h, null, 2);
+  } catch(e) {
+    try { headerOut.textContent = atob(parts[0]); } catch { headerOut.textContent = '// Could not decode header'; }
+  }
+  try {
+    const p = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+    payloadOut.textContent = JSON.stringify(p, null, 2);
+    const exp = p.exp;
+    if (exp) {
+      const expDate = new Date(exp * 1000);
+      const isExpired = expDate < new Date();
+      sigStatus.innerHTML = `<div class="${isExpired ? 'warn-box' : 'good-box'}" style="margin-top:0">
+        <strong>${isExpired ? '⚠️ Token EXPIRED' : '✅ Token valid'}</strong> — Expires: ${expDate.toLocaleString()}
+      </div>`;
+    } else {
+      sigStatus.innerHTML = `<div class="warn-box" style="margin-top:0"><strong>⚠️ No expiry (exp)!</strong> Tokens without expiry are a major security risk.</div>`;
+    }
+  } catch(e) {
+    try { payloadOut.textContent = atob(parts[1]); } catch { payloadOut.textContent = '// Could not decode payload'; }
+  }
+}
+
+// ===== OAUTH DEMO =====
+let oauthStep = 0;
+const oauthSteps = [
+  { box: 'user', color: 'var(--cyan)', msg: '👤 User clicks "Login with Google" on your app...' },
+  { box: 'app', color: 'var(--cyan)', msg: '📱 App redirects user to Google authorization server...\n   → https://accounts.google.com/o/oauth2/auth?client_id=...&scope=email+profile' },
+  { box: 'google', color: 'var(--green)', msg: '🔒 Google shows permission screen:\n   "This app wants to access your: name, email"\n   User clicks "Allow"' },
+  { box: 'google', color: 'var(--green)', msg: '✅ Google generates an Access Token:\n   eyJhbGciOiJSUzI1NiJ9... (scoped, expires in 1hr)' },
+  { box: 'app', color: 'var(--cyan)', msg: '📱 App receives token. Calls:\n   GET https://www.googleapis.com/oauth2/v1/userinfo\n   Authorization: Bearer <token>' },
+  { box: 'resource', color: 'var(--green)', msg: '🗄️ Resource server returns user data:\n   { name: "Rahul", email: "rahul@gmail.com" }\n\n✅ Login complete! App NEVER saw your password.' }
+];
+
+function runOAuth() {
+  if (oauthStep >= oauthSteps.length) { resetOAuth(); return; }
+  const step = oauthSteps[oauthStep];
+  const log = document.getElementById('oauth-log');
+  log.style.color = step.color;
+  log.textContent = `Step ${oauthStep + 1}/${oauthSteps.length}:\n${step.msg}`;
+  // highlight active box
+  ['user','app','google','resource'].forEach(b => {
+    const el = document.getElementById(`oauth-box-${b}`);
+    el.style.border = b === step.box ? `2px solid ${step.color}` : '1px solid var(--border)';
+  });
+  oauthStep++;
+}
+
+function resetOAuth() {
+  oauthStep = 0;
+  document.getElementById('oauth-log').textContent = '// Click to start the OAuth flow simulation';
+  document.getElementById('oauth-log').style.color = 'var(--cyan)';
+  ['user','app','google','resource'].forEach(b => {
+    document.getElementById(`oauth-box-${b}`).style.border = '1px solid var(--border)';
+  });
+}
+
+// ===== ATTACK SIMULATION =====
+function simulateAttack() {
+  const type = document.getElementById('attack-type').value;
+  const log = document.getElementById('attack-log');
+  const scenarios = {
+    ddos: {
+      color: 'var(--danger)',
+      text: `🚨 ATTACK: 10,000 requests/sec incoming!\n\n[CDN] Detected abnormal traffic spike → Rate limiting applied\n[Reverse Proxy] DDoS rules triggered → IP blocks issued\n[Load Balancer] Traffic distributed across 5 nodes\n\n✅ RESULT: 99.7% of attack traffic absorbed by CDN\n   Real users unaffected. Backend never saw the flood.`
+    },
+    sql: {
+      color: 'var(--danger)',
+      text: `🔴 ATTACK: SQL Injection\n   Input: user=admin'--; DROP TABLE users;--\n\n[WAF] Web Application Firewall: SQL pattern detected!\n[Reverse Proxy] Request blocked at perimeter\n[App Layer] Input sanitization: special chars escaped\n\n✅ RESULT: Attack blocked at multiple layers.\n   Database never received the malicious query.`
+    },
+    xss: {
+      color: 'var(--orange)',
+      text: `⚠️  ATTACK: XSS Injection\n   Input: <script>document.cookie='stolen'\n\n[CDN] Content-Security-Policy header injected\n[App] Output encoding: < → &lt; > → &gt;\n[Browser] CSP blocks inline script execution\n\n✅ RESULT: Script never executed in victim's browser.\n   CSP header stopped the cookie theft.`
+    },
+    normal: {
+      color: 'var(--green)',
+      text: `✅ NORMAL REQUEST\n   GET /api/products HTTP/1.1\n\n[CDN] Cache HIT → Content served from Mumbai edge\n[Reverse Proxy] SSL terminated, request forwarded\n[JWT Middleware] Token validated ✓\n[API Server] Query executed, response: 200 OK\n\nTotal time: 12ms (vs 280ms without CDN + cache)`
+    }
+  };
+  const s = scenarios[type];
+  log.style.color = s.color;
+  log.textContent = s.text;
+}
+</script>
+</body>
+</html>

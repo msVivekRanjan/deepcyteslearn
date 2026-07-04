@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T03 — Web & Application Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1a2236;
+  --card: #141c2e;
+  --border: rgba(99,130,255,0.15);
+  --border2: rgba(99,130,255,0.3);
+  --text: #e8edf8;
+  --muted: #7a8aaa;
+  --accent: #6382ff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --orange: #fb923c;
+  --red: #f87171;
+  --cyan: #22d3ee;
+  --yellow: #fbbf24;
+  --pink: #f472b6;
+  --font: 'Space Grotesk', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; overflow-x:hidden; }
+
+/* NAV */
+nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(10,14,26,0.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:0 24px; height:56px; display:flex; align-items:center; gap:0; }
+.nav-logo { font-weight:700; font-size:14px; color:var(--accent); letter-spacing:1px; margin-right:24px; white-space:nowrap; }
+.nav-topics { display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; flex:1; }
+.nav-topics::-webkit-scrollbar { display:none; }
+.nav-btn { background:none; border:none; color:var(--muted); font-family:var(--font); font-size:12px; font-weight:500; padding:6px 10px; border-radius:6px; cursor:pointer; white-space:nowrap; transition:all .2s; }
+.nav-btn:hover, .nav-btn.active { background:rgba(99,130,255,0.12); color:var(--accent); }
+
+/* HERO */
+.hero { padding:140px 40px 80px; text-align:center; position:relative; overflow:hidden; }
+.hero-badge { display:inline-block; background:rgba(99,130,255,0.1); border:1px solid var(--border2); color:var(--accent); font-size:12px; font-weight:600; letter-spacing:2px; padding:6px 16px; border-radius:20px; margin-bottom:24px; }
+.hero h1 { font-size:clamp(36px,6vw,72px); font-weight:700; line-height:1.1; background:linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.hero p { color:var(--muted); font-size:18px; margin-top:16px; max-width:560px; margin-left:auto; margin-right:auto; line-height:1.6; }
+.hero-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; max-width:800px; margin:40px auto 0; }
+.hero-chip { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 8px; font-size:12px; font-weight:500; color:var(--muted); cursor:pointer; transition:all .2s; text-align:center; }
+.hero-chip:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-2px); }
+.hero::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle, rgba(99,130,255,0.08) 1px, transparent 1px); background-size:32px 32px; pointer-events:none; }
+
+/* SECTIONS */
+main { max-width:1100px; margin:0 auto; padding:40px 24px 100px; }
+.section { margin-bottom:80px; scroll-margin-top:80px; }
+.section-header { display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+.section-num { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; }
+.section-title { font-size:28px; font-weight:700; }
+.section-sub { color:var(--muted); font-size:15px; margin-top:4px; }
+
+/* THEORY BLOCK */
+.theory-block { background:linear-gradient(135deg, rgba(99,130,255,0.04) 0%, rgba(167,139,250,0.04) 100%); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:12px; padding:20px 24px; margin-bottom:28px; }
+.theory-block.green { border-left-color:var(--green); background:linear-gradient(135deg,rgba(52,211,153,0.04),rgba(34,211,238,0.04)); }
+.theory-block.yellow { border-left-color:var(--yellow); background:linear-gradient(135deg,rgba(251,191,36,0.04),rgba(251,146,60,0.04)); }
+.theory-block.pink { border-left-color:var(--pink); background:linear-gradient(135deg,rgba(244,114,182,0.04),rgba(248,113,113,0.04)); }
+.theory-block.cyan { border-left-color:var(--cyan); background:linear-gradient(135deg,rgba(34,211,238,0.04),rgba(99,130,255,0.04)); }
+.theory-block.purple { border-left-color:var(--accent2); background:linear-gradient(135deg,rgba(167,139,250,0.04),rgba(244,114,182,0.04)); }
+.theory-label { font-size:10px; font-weight:700; letter-spacing:2px; color:var(--accent); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.theory-label.green { color:var(--green); }
+.theory-label.yellow { color:var(--yellow); }
+.theory-label.pink { color:var(--pink); }
+.theory-label.cyan { color:var(--cyan); }
+.theory-label.purple { color:var(--accent2); }
+.theory-text { font-size:14px; color:var(--text); line-height:1.75; }
+.theory-text strong { color:#fff; font-weight:600; }
+.theory-text em { color:var(--muted); font-style:normal; }
+.theory-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; }
+.theory-fact { background:rgba(0,0,0,.2); border-radius:8px; padding:12px 14px; }
+.theory-fact .fact-title { font-size:12px; font-weight:700; margin-bottom:4px; }
+.theory-fact .fact-body { font-size:12px; color:var(--muted); line-height:1.6; }
+.theory-analogy { background:rgba(0,0,0,.2); border-radius:8px; padding:12px 14px; margin-top:12px; display:flex; gap:10px; align-items:flex-start; }
+.theory-analogy .emoji { font-size:22px; flex-shrink:0; margin-top:2px; }
+.theory-analogy .text { font-size:13px; color:var(--muted); line-height:1.6; }
+.theory-analogy .text strong { color:var(--text); }
+.theory-keyterm { display:inline-block; background:rgba(99,130,255,.12); border:1px solid rgba(99,130,255,.2); color:var(--accent); border-radius:6px; padding:1px 8px; font-size:12px; font-weight:600; font-family:var(--mono); margin:1px; }
+
+/* CARDS */
+.card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; }
+.card-sm { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:16px; }
+
+/* BROWSER DEMO */
+.browser-demo { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+.browser-window { background:#1e2840; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.browser-bar { background:#141c2e; padding:10px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+.browser-dot { width:10px; height:10px; border-radius:50%; }
+.url-bar { flex:1; background:var(--bg3); border-radius:6px; padding:5px 12px; font-family:var(--mono); font-size:11px; color:var(--muted); }
+.browser-body { padding:20px; min-height:180px; }
+.browser-content { display:none; }
+.browser-content.active { display:block; animation:fadeIn .4s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.page-sim h3 { font-size:16px; color:var(--text); margin-bottom:8px; }
+.page-sim p { color:var(--muted); font-size:13px; line-height:1.6; }
+.btn-primary { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:8px 18px; font-family:var(--font); font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary:hover { opacity:.9; transform:translateY(-1px); }
+.btn-ghost { background:none; border:1px solid var(--border2); color:var(--accent); border-radius:8px; padding:7px 16px; font-family:var(--font); font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; }
+.btn-ghost:hover { background:rgba(99,130,255,0.08); }
+
+/* HTTP DEMO */
+.http-flow { display:flex; flex-direction:column; gap:12px; }
+.http-step { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:14px 18px; display:flex; align-items:center; gap:12px; opacity:0; transform:translateX(-20px); transition:all .4s; }
+.http-step.visible { opacity:1; transform:translateX(0); }
+.http-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:6px; letter-spacing:.5px; white-space:nowrap; }
+.badge-req { background:rgba(99,130,255,0.15); color:var(--accent); }
+.badge-res { background:rgba(52,211,153,0.15); color:var(--green); }
+.http-text { font-size:13px; color:var(--text); }
+.http-code { font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:auto; }
+
+/* URL anatomy */
+.url-anatomy { display:flex; flex-direction:column; gap:16px; }
+.url-bar-big { font-family:var(--mono); font-size:14px; background:var(--bg3); border-radius:10px; padding:14px 18px; letter-spacing:.5px; line-height:1.8; border:1px solid var(--border); }
+.url-part { cursor:pointer; border-radius:4px; padding:2px 4px; transition:all .2s; }
+.url-part:hover { opacity:.8; }
+.url-scheme { background:rgba(99,130,255,.2); color:var(--accent); }
+.url-host { background:rgba(52,211,153,.2); color:var(--green); }
+.url-path { background:rgba(251,191,36,.2); color:var(--yellow); }
+.url-query { background:rgba(244,114,182,.2); color:var(--pink); }
+.url-fragment { background:rgba(34,211,238,.2); color:var(--cyan); }
+.url-legend { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
+.url-leg-item { display:flex; align-items:center; gap:8px; font-size:13px; }
+.url-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+.url-tooltip { background:var(--bg3); border:1px solid var(--border2); border-radius:10px; padding:12px 16px; font-size:13px; color:var(--text); min-height:44px; transition:all .3s; }
+
+/* Cookies */
+.cookie-jar { background:var(--bg3); border-radius:12px; padding:20px; border:1px solid var(--border); }
+.cookie-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--card); border-radius:8px; margin-bottom:8px; border:1px solid var(--border); font-family:var(--mono); font-size:12px; }
+.cookie-key { color:var(--accent); }
+.cookie-eq { color:var(--muted); }
+.cookie-val { color:var(--green); }
+.cookie-meta { color:var(--muted); margin-left:auto; font-size:11px; }
+.cookie-add-btn { width:100%; background:rgba(99,130,255,.08); border:1px dashed var(--border2); color:var(--accent); border-radius:8px; padding:10px; font-family:var(--font); font-size:13px; cursor:pointer; transition:all .2s; }
+.cookie-add-btn:hover { background:rgba(99,130,255,.15); }
+.cookie-eaten { animation:cookieEat .4s ease forwards; }
+@keyframes cookieEat { to{opacity:0;transform:scale(.7)} }
+
+/* Session */
+.session-flow { display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:start; }
+.session-side { display:flex; flex-direction:column; gap:10px; }
+.session-server-store { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:14px; }
+.session-entry { display:flex; gap:8px; padding:8px; background:var(--card); border-radius:6px; margin-top:8px; font-family:var(--mono); font-size:11px; }
+.session-id { color:var(--yellow); }
+.session-data { color:var(--muted); }
+.session-arrow-col { display:flex; flex-direction:column; align-items:center; gap:24px; padding-top:20px; }
+.arrow-label { font-size:11px; color:var(--muted); text-align:center; max-width:80px; }
+
+/* API */
+.api-demo { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.api-endpoint { background:var(--bg3); border-radius:10px; padding:14px; border:1px solid var(--border); cursor:pointer; transition:all .2s; }
+.api-endpoint:hover { border-color:var(--accent); }
+.api-endpoint.selected { border-color:var(--accent); background:rgba(99,130,255,.05); }
+.method-badge { display:inline-block; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; font-family:var(--mono); margin-right:8px; }
+.method-get { background:rgba(52,211,153,.15); color:var(--green); }
+.method-post { background:rgba(99,130,255,.15); color:var(--accent); }
+.method-put { background:rgba(251,191,36,.15); color:var(--yellow); }
+.method-delete { background:rgba(248,113,113,.15); color:var(--red); }
+.api-path { font-family:var(--mono); font-size:13px; color:var(--text); }
+.api-response { background:#0d1320; border-radius:10px; padding:16px; border:1px solid var(--border); font-family:var(--mono); font-size:12px; min-height:160px; overflow:auto; }
+.json-key { color:var(--accent2); }
+.json-str { color:var(--green); }
+.json-num { color:var(--yellow); }
+.json-bool { color:var(--orange); }
+
+/* DB */
+.db-tables { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+.db-table { background:var(--bg3); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.db-table-header { background:rgba(99,130,255,.1); padding:10px 14px; font-size:13px; font-weight:600; color:var(--accent); display:flex; align-items:center; gap:8px; }
+.db-row { padding:8px 14px; font-family:var(--mono); font-size:12px; display:grid; border-top:1px solid var(--border); }
+.db-row-header { background:rgba(255,255,255,.03); color:var(--muted); font-size:11px; }
+.db-pk { color:var(--yellow); }
+.db-fk { color:var(--pink); }
+.db-str { color:var(--green); }
+.sql-box { background:#0d1320; border:1px solid var(--border); border-radius:10px; padding:16px; font-family:var(--mono); font-size:13px; margin-top:16px; }
+.sql-kw { color:var(--accent); font-weight:600; }
+.sql-tb { color:var(--yellow); }
+.sql-str { color:var(--green); }
+.sql-op { color:var(--pink); }
+.run-btn { background:var(--green); color:#0a0e1a; border:none; border-radius:6px; padding:4px 14px; font-family:var(--mono); font-size:12px; font-weight:700; cursor:pointer; float:right; transition:all .2s; }
+.run-btn:hover { opacity:.85; }
+
+/* Frontend vs Backend */
+.fb-split { display:grid; grid-template-columns:1fr 1fr; gap:0; border-radius:16px; overflow:hidden; border:1px solid var(--border); }
+.fb-side { padding:24px; }
+.fb-front { background:linear-gradient(135deg, #1a2040 0%, #1e2850 100%); }
+.fb-back { background:linear-gradient(135deg, #1a2a1a 0%, #1e3020 100%); }
+.fb-title { font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.fb-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(0,0,0,.2); border-radius:8px; margin-bottom:8px; font-size:13px; }
+.fb-icon { width:22px; height:22px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+.req-flow-container { background:rgba(0,0,0,0.3); border-radius:12px; padding:16px; margin-top:16px; position:relative; }
+.req-line { height:4px; background:var(--border2); border-radius:2px; margin:20px 0; position:relative; }
+.req-dot { width:12px; height:12px; border-radius:50%; background:var(--accent); position:absolute; top:-4px; left:0; animation:reqMove 3s ease-in-out infinite; }
+@keyframes reqMove { 0%{left:0;background:var(--accent)} 50%{left:calc(100% - 12px);background:var(--green)} 100%{left:0;background:var(--accent)} }
+
+/* PILLS */
+.pill { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+.pill-blue { background:rgba(99,130,255,.12); color:var(--accent); border:1px solid rgba(99,130,255,.2); }
+.pill-green { background:rgba(52,211,153,.12); color:var(--green); border:1px solid rgba(52,211,153,.2); }
+.pill-orange { background:rgba(251,191,36,.12); color:var(--yellow); border:1px solid rgba(251,191,36,.2); }
+.pill-red { background:rgba(248,113,113,.12); color:var(--red); border:1px solid rgba(248,113,113,.2); }
+.pill-purple { background:rgba(167,139,250,.12); color:var(--accent2); border:1px solid rgba(167,139,250,.2); }
+
+/* MISC */
+.topic-divider { height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); margin:60px 0; }
+.progress-bar { position:fixed; top:0; left:0; height:2px; background:linear-gradient(90deg, var(--accent), var(--accent2)); z-index:200; transition:width .1s; }
+.tabs { display:flex; gap:4px; background:var(--bg3); padding:4px; border-radius:10px; margin-bottom:16px; border:1px solid var(--border); }
+.tab { flex:1; background:none; border:none; color:var(--muted); padding:8px; border-radius:7px; cursor:pointer; font-family:var(--font); font-size:13px; font-weight:500; transition:all .2s; }
+.tab.active { background:var(--card); color:var(--text); }
+
+/* ANIMATIONS */
+@keyframes pulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+.pulse { animation:pulse 2s ease-in-out infinite; }
+.float { animation:float 3s ease-in-out infinite; }
+
+/* QUIZ */
+.quiz-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; margin-top:24px; }
+.quiz-q { font-size:16px; font-weight:600; margin-bottom:16px; }
+.quiz-opts { display:grid; gap:10px; }
+.quiz-opt { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px 18px; cursor:pointer; font-size:14px; transition:all .2s; text-align:left; font-family:var(--font); color:var(--text); width:100%; }
+.quiz-opt:hover { border-color:var(--accent); background:rgba(99,130,255,.05); }
+.quiz-opt.correct { border-color:var(--green); background:rgba(52,211,153,.08); color:var(--green); }
+.quiz-opt.wrong { border-color:var(--red); background:rgba(248,113,113,.08); color:var(--red); }
+.quiz-feedback { margin-top:16px; padding:12px 16px; border-radius:10px; font-size:13px; display:none; }
+.quiz-feedback.show { display:block; animation:fadeIn .3s ease; }
+
+/* INTERACTIVE LABEL */
+.interact-label { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--muted); margin-bottom:12px; }
+.interact-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 1.5s ease-in-out infinite; }
+
+@media (max-width:700px) {
+  .browser-demo,.api-demo,.fb-split,.session-flow,.theory-grid,.db-tables { grid-template-columns:1fr; }
+  .hero-grid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav>
+  <div class="nav-logo">T03 · L1</div>
+  <div class="nav-topics">
+    <button class="nav-btn" onclick="goto('browsers')">🌐 Browsers</button>
+    <button class="nav-btn" onclick="goto('servers')">🖥 Servers</button>
+    <button class="nav-btn" onclick="goto('urls')">🔗 URLs</button>
+    <button class="nav-btn" onclick="goto('http')">📡 HTTP</button>
+    <button class="nav-btn" onclick="goto('https')">🔒 HTTPS</button>
+    <button class="nav-btn" onclick="goto('cookies')">🍪 Cookies</button>
+    <button class="nav-btn" onclick="goto('sessions')">🗝 Sessions</button>
+    <button class="nav-btn" onclick="goto('apis')">⚡ APIs</button>
+    <button class="nav-btn" onclick="goto('databases')">🗄 Databases</button>
+    <button class="nav-btn" onclick="goto('frontend')">🎨 Frontend/Backend</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">T03 — WEB FOUNDATIONS · LEVEL 1</div>
+  <h1>How the Web Works</h1>
+  <p>An interactive journey through the building blocks of every website and app you've ever used.</p>
+  <div class="hero-grid">
+    <div class="hero-chip" onclick="goto('browsers')">🌐 Browsers</div>
+    <div class="hero-chip" onclick="goto('servers')">🖥 Servers</div>
+    <div class="hero-chip" onclick="goto('urls')">🔗 URLs</div>
+    <div class="hero-chip" onclick="goto('http')">📡 HTTP</div>
+    <div class="hero-chip" onclick="goto('https')">🔒 HTTPS</div>
+    <div class="hero-chip" onclick="goto('cookies')">🍪 Cookies</div>
+    <div class="hero-chip" onclick="goto('sessions')">🗝 Sessions</div>
+    <div class="hero-chip" onclick="goto('apis')">⚡ APIs</div>
+    <div class="hero-chip" onclick="goto('databases')">🗄 Databases</div>
+    <div class="hero-chip" onclick="goto('frontend')">🎨 Frontend/Backend</div>
+  </div>
+</div>
+
+<main>
+
+<section class="section" id="browsers">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(99,130,255,.15);color:var(--accent)">01</div>
+    <div>
+      <div class="section-title">Browsers</div>
+      <div class="section-sub">The software that fetches and displays web pages for you</div>
+    </div>
+  </div>
+
+  <div class="theory-block">
+    <div class="theory-label">📖 THEORY</div>
+    <p class="theory-text">
+      A <strong>web browser</strong> is an application that retrieves, processes, and renders content from the internet. When you type a URL and press Enter, the browser performs a sequence of steps: it looks up the server's IP address via <strong>DNS</strong> (Domain Name System), opens a <strong>TCP connection</strong>, sends an <strong>HTTP request</strong>, receives the server's response, and finally <strong>renders</strong> the page on your screen.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent)">🔧 Rendering Engine</div>
+        <div class="fact-body">The browser's core component that parses HTML &amp; CSS and paints pixels. Chrome/Edge use <strong style="color:var(--text)">Blink</strong>, Firefox uses <strong style="color:var(--text)">Gecko</strong>, Safari uses <strong style="color:var(--text)">WebKit</strong>.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent)">⚡ JavaScript Engine</div>
+        <div class="fact-body">Executes JS code. Chrome uses <strong style="color:var(--text)">V8</strong> which compiles JS to machine code (JIT), making it extremely fast. Firefox uses <strong style="color:var(--text)">SpiderMonkey</strong>.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent)">🌳 The DOM</div>
+        <div class="fact-body">After parsing HTML, the browser creates the <strong style="color:var(--text)">Document Object Model</strong> — a tree structure of all elements. JavaScript reads and modifies this tree to make pages interactive.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent)">🗄 Browser Storage</div>
+        <div class="fact-body">Browsers store data locally using <strong style="color:var(--text)">Cookies</strong>, <strong style="color:var(--text)">localStorage</strong>, <strong style="color:var(--text)">sessionStorage</strong>, and <strong style="color:var(--text)">IndexedDB</strong> for offline capability and performance.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🏢</div>
+      <div class="text"><strong>Analogy:</strong> Think of a browser as a <strong>post office + translator</strong>. It knows the address (URL), retrieves your mail (HTML), and then translates the coded instructions into a beautiful, readable letter (the webpage you see).</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> INTERACTIVE DEMO</div>
+  <div class="browser-demo">
+    <div>
+      <div class="browser-window">
+        <div class="browser-bar">
+          <div class="browser-dot" style="background:#f87171"></div>
+          <div class="browser-dot" style="background:#fbbf24"></div>
+          <div class="browser-dot" style="background:#34d399"></div>
+          <div class="url-bar" id="url-display">https://example.com</div>
+        </div>
+        <div class="browser-body" id="browser-body">
+          <div class="browser-content active" id="page-loading">
+            <div style="text-align:center;padding:30px 20px">
+              <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;margin:0 auto 12px;animation:spin .8s linear infinite"></div>
+              <div style="font-size:13px;color:var(--muted)">Resolving DNS...</div>
+            </div>
+          </div>
+          <div class="browser-content" id="page-loaded">
+            <div style="background:var(--bg);border-radius:8px;padding:16px">
+              <h3 style="margin-bottom:8px">Welcome to Example.com</h3>
+              <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:12px">This page was fetched from the server. HTML was parsed, CSS was applied, and JavaScript was run.</p>
+              <span class="pill pill-green">200 OK</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn-primary" onclick="simulateBrowse()">▶ Simulate Page Load</button>
+        <button class="btn-ghost" onclick="goto('http')">See HTTP →</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card-sm">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent)">What a browser does</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--accent)">①</span> Sends HTTP request for the URL</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--accent)">②</span> Receives HTML from the server</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--accent)">③</span> Parses HTML → builds DOM tree</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--accent)">④</span> Downloads CSS, JS, images</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--accent)">⑤</span> Renders pixels on screen</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="color:var(--accent)">⑥</span> Runs JavaScript</div>
+        </div>
+      </div>
+      <div class="card-sm">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent)">Popular browsers</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <span class="pill pill-blue">Chrome</span>
+          <span class="pill pill-orange">Firefox</span>
+          <span class="pill pill-purple">Safari</span>
+          <span class="pill pill-green">Edge</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="servers">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(52,211,153,.15);color:var(--green)">02</div>
+    <div>
+      <div class="section-title">Web Servers</div>
+      <div class="section-sub">Computers that listen for requests and send back responses</div>
+    </div>
+  </div>
+
+  <div class="theory-block green">
+    <div class="theory-label green">📖 THEORY</div>
+    <p class="theory-text">
+      A <strong>web server</strong> is software (running on a physical or virtual computer) that listens for incoming <strong>HTTP requests</strong> on a specific port — usually <strong>port 80</strong> for HTTP and <strong>port 443</strong> for HTTPS — and sends back a response. The response could be a static file (HTML, image, CSS) or dynamically generated content from a database.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">📂 Static vs Dynamic</div>
+        <div class="fact-body">A <strong style="color:var(--text)">static server</strong> serves files directly from disk (like a CDN serving images). A <strong style="color:var(--text)">dynamic server</strong> runs code, queries databases, and builds the response on the fly.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">🔌 Ports</div>
+        <div class="fact-body">Ports are like doors on a computer. Port <strong style="color:var(--text)">80 = HTTP</strong>, Port <strong style="color:var(--text)">443 = HTTPS</strong>, Port <strong style="color:var(--text)">3000/8080</strong> = common dev servers. A computer can have many servers running on different ports simultaneously.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">⚖️ Load Balancing</div>
+        <div class="fact-body">High-traffic sites run <strong style="color:var(--text)">multiple server instances</strong>. A load balancer distributes incoming requests across them so no single server gets overwhelmed.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">🔁 Reverse Proxy</div>
+        <div class="fact-body">Nginx is often used as a <strong style="color:var(--text)">reverse proxy</strong> — it sits in front of your app server, handles SSL termination, caches responses, and forwards requests to the right backend service.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🏨</div>
+      <div class="text"><strong>Analogy:</strong> A web server is like a <strong>hotel front desk</strong>. Guests (browsers) arrive and make requests ("I want room 404"). The receptionist (server) finds and delivers what was asked, or politely says "sorry, that room doesn't exist."</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> INTERACTIVE DEMO</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div class="card">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:48px;margin-bottom:8px" class="float">🖥️</div>
+        <div style="font-size:14px;font-weight:600">Server Computer</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Running 24/7, waiting for requests</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="card-sm" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px">Status</span>
+          <span class="pill pill-green">● Running</span>
+        </div>
+        <div class="card-sm" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px">Listening on</span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--accent)">Port 80 / 443</span>
+        </div>
+        <div class="card-sm" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px">Requests served</span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--green)" id="req-counter">0</span>
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="simulateRequest()">Send Request to Server</button>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--green)">Server Log</div>
+      <div id="server-log" style="display:flex;flex-direction:column;gap:6px;font-family:var(--mono);font-size:12px;min-height:180px">
+        <div style="color:var(--muted)">Waiting for requests...</div>
+      </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Popular web server software:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="pill pill-green">Nginx</span>
+          <span class="pill pill-orange">Apache</span>
+          <span class="pill pill-blue">Node.js</span>
+          <span class="pill pill-purple">Caddy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="urls">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(251,191,36,.15);color:var(--yellow)">03</div>
+    <div>
+      <div class="section-title">URLs</div>
+      <div class="section-sub">Uniform Resource Locators — the address of every web resource</div>
+    </div>
+  </div>
+
+  <div class="theory-block yellow">
+    <div class="theory-label yellow">📖 THEORY</div>
+    <p class="theory-text">
+      A <strong>URL (Uniform Resource Locator)</strong> is a standardized address that uniquely identifies a resource on the internet. Every image, webpage, video, and API endpoint has its own URL. A URL is made up of several distinct parts, each serving a specific purpose in locating the exact resource you want.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">🔍 DNS Resolution</div>
+        <div class="fact-body">The <strong style="color:var(--text)">hostname</strong> in a URL (e.g. google.com) gets converted to an IP address (e.g. 142.250.80.46) by DNS servers — the internet's phone book. Without DNS, you'd need to memorize IP addresses.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">📦 URL Encoding</div>
+        <div class="fact-body">Special characters in URLs must be <strong style="color:var(--text)">percent-encoded</strong>. A space becomes <code style="color:var(--accent)">%20</code>, &amp; becomes <code style="color:var(--accent)">%26</code>. This ensures URLs can only contain safe ASCII characters.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">🌐 Absolute vs Relative</div>
+        <div class="fact-body"><strong style="color:var(--text)">Absolute URLs</strong> contain the full address (https://site.com/page). <strong style="color:var(--text)">Relative URLs</strong> are shortcuts like /about or ../images/logo.png, interpreted relative to the current page.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">🔑 Query vs Path Params</div>
+        <div class="fact-body"><code style="color:var(--pink)">/users/42</code> — path parameter (part of the resource identity). <code style="color:var(--pink)">?sort=asc</code> — query parameter (filters/options). APIs use both: path for "what", query for "how".</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> CLICK EACH PART TO EXPLORE</div>
+  <div class="url-anatomy">
+    <div class="url-bar-big">
+      <span class="url-part url-scheme" onclick="showUrlPart('scheme')">https</span><span style="color:var(--muted)">://</span><span class="url-part url-host" onclick="showUrlPart('host')">www.shop.com</span><span class="url-part url-path" onclick="showUrlPart('path')">/products/shoes</span><span class="url-part url-query" onclick="showUrlPart('query')">?color=red&amp;size=10</span><span class="url-part url-fragment" onclick="showUrlPart('fragment')">#reviews</span>
+    </div>
+    <div class="url-legend">
+      <div class="url-leg-item"><div class="url-dot" style="background:var(--accent)"></div><span style="color:var(--muted)">Scheme (protocol)</span></div>
+      <div class="url-leg-item"><div class="url-dot" style="background:var(--green)"></div><span style="color:var(--muted)">Host (domain)</span></div>
+      <div class="url-leg-item"><div class="url-dot" style="background:var(--yellow)"></div><span style="color:var(--muted)">Path (resource)</span></div>
+      <div class="url-leg-item"><div class="url-dot" style="background:var(--pink)"></div><span style="color:var(--muted)">Query string</span></div>
+      <div class="url-leg-item"><div class="url-dot" style="background:var(--cyan)"></div><span style="color:var(--muted)">Fragment (anchor)</span></div>
+    </div>
+    <div class="url-tooltip" id="url-tooltip">
+      <span style="color:var(--muted)">👆 Click any coloured part above to learn what it does</span>
+    </div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="http">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(244,114,182,.15);color:var(--pink)">04</div>
+    <div>
+      <div class="section-title">HTTP</div>
+      <div class="section-sub">HyperText Transfer Protocol — the language of the web</div>
+    </div>
+  </div>
+
+  <div class="theory-block pink">
+    <div class="theory-label pink">📖 THEORY</div>
+    <p class="theory-text">
+      <strong>HTTP (HyperText Transfer Protocol)</strong> is the foundation of data communication on the web. It's a <strong>request-response protocol</strong> — a client (browser) sends a request, and a server sends back a response. HTTP is <strong>stateless</strong>, meaning each request is completely independent; the server has no memory of previous requests from the same client.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--pink)">📨 HTTP Request Structure</div>
+        <div class="fact-body">Every request has: a <strong style="color:var(--text)">Method</strong> (GET/POST…), a <strong style="color:var(--text)">URL</strong> (target resource), <strong style="color:var(--text)">Headers</strong> (metadata like Accept, Authorization), and optionally a <strong style="color:var(--text)">Body</strong> (data for POST/PUT).</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--pink)">📬 HTTP Response Structure</div>
+        <div class="fact-body">Every response has: a <strong style="color:var(--text)">Status Code</strong> (200, 404…), <strong style="color:var(--text)">Headers</strong> (Content-Type, Set-Cookie…), and a <strong style="color:var(--text)">Body</strong> (the HTML, JSON, or file content).</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--pink)">🚀 HTTP/1.1 vs HTTP/2 vs HTTP/3</div>
+        <div class="fact-body"><strong style="color:var(--text)">HTTP/1.1</strong> — one request at a time per connection. <strong style="color:var(--text)">HTTP/2</strong> — multiplexing (many requests at once). <strong style="color:var(--text)">HTTP/3</strong> — uses QUIC protocol over UDP for even faster connections.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--pink)">📋 Key Headers</div>
+        <div class="fact-body"><code style="color:var(--accent)">Content-Type</code> tells what format the body is in. <code style="color:var(--accent)">Authorization</code> carries auth tokens. <code style="color:var(--accent)">Cache-Control</code> tells browsers how long to cache the response.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">📮</div>
+      <div class="text"><strong>Analogy:</strong> HTTP is like <strong>sending a letter</strong>. You write what you want (request), put it in an envelope with an address (URL), and the post office (internet) delivers it. The recipient reads it and sends a reply (response). Each letter is independent — they don't remember past letters.</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> INTERACTIVE DEMO</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--pink)">HTTP Methods</div>
+      <div style="display:grid;gap:8px">
+        <div class="card-sm" style="cursor:pointer;border-color:var(--accent)"><span class="method-badge method-get">GET</span><span style="font-size:13px">Retrieve data — "give me this page"</span></div>
+        <div class="card-sm" style="cursor:pointer"><span class="method-badge method-post">POST</span><span style="font-size:13px">Send data — "submit this form"</span></div>
+        <div class="card-sm" style="cursor:pointer"><span class="method-badge method-put">PUT</span><span style="font-size:13px">Update data — "change my profile"</span></div>
+        <div class="card-sm" style="cursor:pointer"><span class="method-badge method-delete">DELETE</span><span style="font-size:13px">Remove data — "delete this post"</span></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--pink)">Status Codes</div>
+      <div style="display:grid;gap:8px">
+        <div class="card-sm" style="display:flex;align-items:center;gap:12px"><span class="pill pill-green" style="font-family:var(--mono);min-width:52px;justify-content:center">200</span><span style="font-size:13px">OK — everything worked! ✅</span></div>
+        <div class="card-sm" style="display:flex;align-items:center;gap:12px"><span class="pill pill-blue" style="font-family:var(--mono);min-width:52px;justify-content:center">301</span><span style="font-size:13px">Moved Permanently — new URL</span></div>
+        <div class="card-sm" style="display:flex;align-items:center;gap:12px"><span class="pill pill-orange" style="font-family:var(--mono);min-width:52px;justify-content:center">404</span><span style="font-size:13px">Not Found — page doesn't exist</span></div>
+        <div class="card-sm" style="display:flex;align-items:center;gap:12px"><span class="pill pill-red" style="font-family:var(--mono);min-width:52px;justify-content:center">500</span><span style="font-size:13px">Server Error — something broke 🔥</span></div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:20px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--pink)">Live Request Simulation</div>
+    <div class="http-flow" id="http-flow">
+      <div class="http-step" id="step1"><span class="http-badge badge-req">REQUEST</span><span class="http-text">Browser sends GET /index.html HTTP/1.1</span><span class="http-code">→ server</span></div>
+      <div class="http-step" id="step2"><span class="http-badge badge-req">HEADERS</span><span class="http-text">Host: example.com, Accept: text/html</span><span class="http-code">headers</span></div>
+      <div class="http-step" id="step3"><span class="http-badge badge-res">RESPONSE</span><span class="http-text">Server replies: HTTP/1.1 200 OK</span><span class="http-code">← browser</span></div>
+      <div class="http-step" id="step4"><span class="http-badge badge-res">BODY</span><span class="http-text">&lt;!DOCTYPE html&gt;&lt;html&gt;...&lt;/html&gt;</span><span class="http-code">content</span></div>
+    </div>
+    <button class="btn-primary" style="margin-top:12px" onclick="playHttpFlow()">▶ Play HTTP Flow</button>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="https">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(34,211,238,.15);color:var(--cyan)">05</div>
+    <div>
+      <div class="section-title">HTTPS</div>
+      <div class="section-sub">HTTP + TLS/SSL encryption — making it safe</div>
+    </div>
+  </div>
+
+  <div class="theory-block cyan">
+    <div class="theory-label cyan">📖 THEORY</div>
+    <p class="theory-text">
+      <strong>HTTPS (HTTP Secure)</strong> is HTTP with an added layer of encryption provided by <strong>TLS (Transport Layer Security)</strong> — formerly known as SSL. Before any HTTP data is sent, TLS performs a <strong>handshake</strong> that authenticates the server using a <strong>digital certificate</strong> and establishes a shared encryption key. All data is then encrypted in both directions.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">🔐 What TLS Provides</div>
+        <div class="fact-body"><strong style="color:var(--text)">Confidentiality</strong> — data is encrypted, can't be read by eavesdroppers. <strong style="color:var(--text)">Integrity</strong> — data can't be tampered with. <strong style="color:var(--text)">Authentication</strong> — proves you're talking to the real server, not an imposter.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">📜 SSL Certificates</div>
+        <div class="fact-body">A <strong style="color:var(--text)">Certificate Authority (CA)</strong> like Let's Encrypt or DigiCert digitally signs a server's certificate, vouching for its identity. Browsers have a built-in list of trusted CAs and reject unknown ones.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">🔑 Asymmetric + Symmetric</div>
+        <div class="fact-body">The handshake uses <strong style="color:var(--text)">asymmetric encryption</strong> (public/private keys) to safely exchange a session key. Actual data transfer uses faster <strong style="color:var(--text)">symmetric encryption</strong> (AES) with that shared key.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">⚡ Performance</div>
+        <div class="fact-body">Modern TLS 1.3 adds only <strong style="color:var(--text)">~1ms</strong> of overhead for the handshake. HTTPS is effectively free in terms of performance and is now required for HTTP/2, which is actually faster than HTTP/1.1.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🔒</div>
+      <div class="text"><strong>Analogy:</strong> HTTPS is like sending documents in a <strong>locked briefcase</strong>. Before you start, you and the recipient agree on a lock combination using a secure method no one else can overhear. After that, everything travels in locked cases — even if someone intercepts it, they can't open it.</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> INTERACTIVE DEMO</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:20px">
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:12px">❌ HTTP (Insecure)</div>
+      <div style="background:#0d1320;border-radius:8px;padding:12px;font-family:var(--mono);font-size:12px;margin-bottom:12px">
+        <div style="color:var(--muted)">Data sent over the wire:</div>
+        <div style="color:var(--red);margin-top:6px">password=mysecret123</div>
+        <div style="color:var(--red)">card=4111111111111111</div>
+        <div style="color:var(--red)">user=alice@email.com</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted)">Anyone on the network can read this! 😱</div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;color:var(--green);margin-bottom:12px">✅ HTTPS (Encrypted)</div>
+      <div style="background:#0d1320;border-radius:8px;padding:12px;font-family:var(--mono);font-size:12px;margin-bottom:12px">
+        <div style="color:var(--muted)">Data sent over the wire:</div>
+        <div style="color:var(--green);margin-top:6px" class="pulse">█▓░▒▓█▒░█▓▒░▒█</div>
+        <div style="color:var(--green)" class="pulse">▓░█▒▓░▒█▓░█▒▓░</div>
+        <div style="color:var(--green)" class="pulse">░▒▓█░▒▓█░▒▓▒░█</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted)">Encrypted — looks like random noise 🔐</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--cyan)">TLS Handshake — How they agree on encryption</div>
+    <div style="display:grid;gap:10px">
+      <div class="card-sm" style="display:flex;gap:14px;align-items:center"><span class="pill pill-blue" style="min-width:28px;justify-content:center">1</span><div><div style="font-size:13px;font-weight:600">Client Hello</div><div style="font-size:12px;color:var(--muted)">"I support TLS 1.3, here are the encryption methods I know"</div></div></div>
+      <div class="card-sm" style="display:flex;gap:14px;align-items:center"><span class="pill pill-green" style="min-width:28px;justify-content:center">2</span><div><div style="font-size:13px;font-weight:600">Server Hello + Certificate</div><div style="font-size:12px;color:var(--muted)">"Let's use AES-256. Here's my certificate (signed by a CA)"</div></div></div>
+      <div class="card-sm" style="display:flex;gap:14px;align-items:center"><span class="pill pill-orange" style="min-width:28px;justify-content:center">3</span><div><div style="font-size:13px;font-weight:600">Key Exchange</div><div style="font-size:12px;color:var(--muted)">Both sides agree on a secret session key — never sent over the wire</div></div></div>
+      <div class="card-sm" style="display:flex;gap:14px;align-items:center"><span class="pill pill-purple" style="min-width:28px;justify-content:center">4</span><div><div style="font-size:13px;font-weight:600">Encrypted Channel Open</div><div style="font-size:12px;color:var(--muted)">All future data is encrypted with the shared secret 🔐</div></div></div>
+    </div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="cookies">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(251,191,36,.15);color:var(--yellow)">06</div>
+    <div>
+      <div class="section-title">Cookies</div>
+      <div class="section-sub">Small pieces of data stored in your browser by websites</div>
+    </div>
+  </div>
+
+  <div class="theory-block yellow">
+    <div class="theory-label yellow">📖 THEORY</div>
+    <p class="theory-text">
+      A <strong>cookie</strong> is a small key-value pair (up to 4KB) that a server sends to the browser via a <code style="color:var(--green);font-family:var(--mono);font-size:13px">Set-Cookie</code> header. The browser stores it and automatically <strong>attaches it to every subsequent request</strong> to the same domain. Cookies solve the problem of HTTP being stateless — they give the server a way to recognise you across requests.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">🍪 Session Cookies</div>
+        <div class="fact-body">Cookies without an <strong style="color:var(--text)">Expires</strong> or <strong style="color:var(--text)">Max-Age</strong> attribute are <em style="color:var(--text);font-style:normal">session cookies</em> — they're deleted when you close the browser tab. Used for temporary login states.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">📅 Persistent Cookies</div>
+        <div class="fact-body">Cookies with an <strong style="color:var(--text)">Expires</strong> date persist even after the browser is closed. Used for "remember me" features, preferences, and long-lived authentication tokens.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">🚫 Third-Party Cookies</div>
+        <div class="fact-body">Set by a different domain than the one you're visiting (e.g. ad networks). Used for cross-site tracking. Modern browsers are phasing these out for <strong style="color:var(--text)">privacy</strong> reasons.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">⚠️ Security Risks</div>
+        <div class="fact-body"><strong style="color:var(--text)">XSS attacks</strong> can steal cookies if JS can read them — use <code style="color:var(--accent)">HttpOnly</code> to prevent this. <strong style="color:var(--text)">CSRF attacks</strong> forge requests using your cookies — use <code style="color:var(--accent)">SameSite=Strict</code> to block them.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🎫</div>
+      <div class="text"><strong>Analogy:</strong> Cookies are like a <strong>loyalty card stamp</strong> from a café. The café (server) gives you a stamp (cookie) on your first visit. Every time you return, you show the stamp and they know you're a regular customer — without needing you to introduce yourself each time.</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> INTERACTIVE DEMO</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--yellow)">🍪 Your Cookie Jar</div>
+      <div class="cookie-jar">
+        <div id="cookie-list">
+          <div class="cookie-item" id="c1"><span class="cookie-key">user_id</span><span class="cookie-eq">=</span><span class="cookie-val">u_8843</span><span class="cookie-meta">7d · HttpOnly</span><button onclick="deleteCookie('c1')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px">×</button></div>
+          <div class="cookie-item" id="c2"><span class="cookie-key">theme</span><span class="cookie-eq">=</span><span class="cookie-val">dark</span><span class="cookie-meta">30d</span><button onclick="deleteCookie('c2')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px">×</button></div>
+          <div class="cookie-item" id="c3"><span class="cookie-key">cart_items</span><span class="cookie-eq">=</span><span class="cookie-val">3</span><span class="cookie-meta">session</span><button onclick="deleteCookie('c3')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px">×</button></div>
+          <div class="cookie-item" id="c4"><span class="cookie-key">lang</span><span class="cookie-eq">=</span><span class="cookie-val">en-US</span><span class="cookie-meta">1y · Secure</span><button onclick="deleteCookie('c4')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px">×</button></div>
+        </div>
+        <button class="cookie-add-btn" onclick="addCookie()" style="margin-top:8px">+ Add Cookie</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card-sm">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--yellow)">How cookies work</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7">
+          <b style="color:var(--text)">1. Server sets cookie:</b><br>
+          <code style="font-family:var(--mono);font-size:11px;color:var(--green)">Set-Cookie: user_id=123; HttpOnly</code><br><br>
+          <b style="color:var(--text)">2. Browser stores it</b> and sends it with every future request:<br>
+          <code style="font-family:var(--mono);font-size:11px;color:var(--accent)">Cookie: user_id=123</code>
+        </div>
+      </div>
+      <div class="card-sm">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--yellow)">Cookie flags</div>
+        <div style="display:grid;gap:6px">
+          <div style="font-size:12px"><span style="color:var(--accent);font-weight:600">HttpOnly</span> — JS can't access it (safer)</div>
+          <div style="font-size:12px"><span style="color:var(--green);font-weight:600">Secure</span> — only sent over HTTPS</div>
+          <div style="font-size:12px"><span style="color:var(--yellow);font-weight:600">SameSite</span> — prevents CSRF attacks</div>
+          <div style="font-size:12px"><span style="color:var(--pink);font-weight:600">Expires</span> — when it gets deleted</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="sessions">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(167,139,250,.15);color:var(--accent2)">07</div>
+    <div>
+      <div class="section-title">Sessions</div>
+      <div class="section-sub">Tracking a user across multiple requests — remembering who you are</div>
+    </div>
+  </div>
+
+  <div class="theory-block purple">
+    <div class="theory-label purple">📖 THEORY</div>
+    <p class="theory-text">
+      A <strong>session</strong> is a server-side mechanism for maintaining state across multiple HTTP requests from the same user. When you log in, the server creates a <strong>session record</strong> in its memory or database and gives you a unique <strong>Session ID</strong> (a long random string) stored in a cookie. On each subsequent request, your browser sends this ID, and the server looks up your session to know who you are.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent2)">🗄 Session Storage</div>
+        <div class="fact-body">Sessions can be stored in <strong style="color:var(--text)">server memory</strong> (fast, but lost on restart), a <strong style="color:var(--text)">database</strong> (persistent), or a <strong style="color:var(--text)">Redis cache</strong> (fast + persistent, used by large apps with multiple servers).</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent2)">🆚 JWT Tokens</div>
+        <div class="fact-body">Modern apps often use <strong style="color:var(--text)">JWT (JSON Web Tokens)</strong> instead of sessions. The server signs a token with user data. The client stores and sends it. No server-side storage needed — the token is self-contained.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent2)">⏱ Session Expiry</div>
+        <div class="fact-body">Sessions should expire after a period of <strong style="color:var(--text)">inactivity</strong> (typically 30 mins–2 hours) or after a maximum duration for security. Banking apps expire sessions very quickly; social media keeps them longer.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--accent2)">🔐 Session Fixation</div>
+        <div class="fact-body">A security attack where an attacker forces a victim to use a known session ID. Prevention: <strong style="color:var(--text)">regenerate the session ID</strong> after login so the pre-login ID becomes invalid.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🎪</div>
+      <div class="text"><strong>Analogy:</strong> A session is like a <strong>theme park wristband</strong>. When you enter (login), they give you a wristband (session ID). For each ride (request), you show your wristband. They check it against their records to know your age, pass type, and access level — without asking you to prove identity each time.</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> INTERACTIVE DEMO</div>
+  <div class="card" style="margin-bottom:20px">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">HTTP is <strong style="color:var(--text)">stateless</strong> — each request is independent. Sessions solve this by assigning you a unique ID stored in a cookie.</div>
+    <div class="session-flow">
+      <div class="session-side">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-align:center;margin-bottom:8px">BROWSER</div>
+        <div class="card-sm" style="text-align:center">
+          <div style="font-size:24px;margin-bottom:4px">👤</div>
+          <div style="font-size:13px;font-weight:600" id="session-user-label">Not logged in</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--yellow);margin-top:4px" id="session-cookie-display">No session cookie</div>
+        </div>
+        <button class="btn-primary" style="justify-content:center;margin-top:8px" onclick="simulateLogin()">Login as Alice</button>
+        <button class="btn-ghost" style="margin-top:8px;width:100%;text-align:center" onclick="simulateLogout()">Logout</button>
+      </div>
+      <div class="session-arrow-col">
+        <div style="font-size:20px;color:var(--muted)">⇄</div>
+        <div class="arrow-label">Cookie with Session ID</div>
+      </div>
+      <div class="session-side">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-align:center;margin-bottom:8px">SERVER</div>
+        <div class="session-server-store">
+          <div style="font-size:12px;font-weight:600;color:var(--accent2);margin-bottom:4px">Session Store</div>
+          <div id="session-store"><div style="font-size:12px;color:var(--muted)">Empty</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-sm">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent2)">Cookies vs Sessions</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+      <div><div style="color:var(--yellow);font-weight:600;margin-bottom:6px">🍪 Cookies</div><div style="color:var(--muted);line-height:1.7">Data stored in the browser. Can be read by the client. Limited to ~4KB.</div></div>
+      <div><div style="color:var(--accent2);font-weight:600;margin-bottom:6px">🗝 Sessions</div><div style="color:var(--muted);line-height:1.7">Data stored on the server. Only an ID is in the cookie. More secure for sensitive data.</div></div>
+    </div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="apis">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(34,211,238,.15);color:var(--cyan)">08</div>
+    <div>
+      <div class="section-title">APIs</div>
+      <div class="section-sub">Application Programming Interfaces — how apps talk to each other</div>
+    </div>
+  </div>
+
+  <div class="theory-block cyan">
+    <div class="theory-label cyan">📖 THEORY</div>
+    <p class="theory-text">
+      An <strong>API (Application Programming Interface)</strong> is a contract that defines how two pieces of software should communicate. On the web, we mostly use <strong>REST APIs</strong> — they use HTTP methods and URLs to represent operations on resources. When your phone app shows the weather, it's calling a weather API. When you pay with Stripe, your app calls the Stripe API.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">📐 REST Principles</div>
+        <div class="fact-body">REST (Representational State Transfer) has key rules: use HTTP methods correctly, resources are identified by URLs, responses are <strong style="color:var(--text)">stateless</strong>, use <strong style="color:var(--text)">JSON</strong> for data exchange, and use standard <strong style="color:var(--text)">status codes</strong>.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">🔐 API Authentication</div>
+        <div class="fact-body">APIs are usually protected. Common methods: <strong style="color:var(--text)">API Keys</strong> (a secret string in headers), <strong style="color:var(--text)">OAuth 2.0</strong> (for user permissions), and <strong style="color:var(--text)">JWT tokens</strong> (signed tokens with user identity).</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">📊 REST vs GraphQL</div>
+        <div class="fact-body"><strong style="color:var(--text)">REST</strong> has fixed endpoints (GET /users/1). <strong style="color:var(--text)">GraphQL</strong> has one endpoint and lets clients request exactly the fields they need — no over-fetching or under-fetching. Used by Facebook, GitHub.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--cyan)">⚡ Rate Limiting</div>
+        <div class="fact-body">APIs limit how many requests you can make per time window (e.g. 100 req/minute) to prevent abuse. Exceeding the limit returns a <strong style="color:var(--text)">429 Too Many Requests</strong> status code.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🍽️</div>
+      <div class="text"><strong>Analogy:</strong> An API is like a <strong>restaurant menu</strong>. The menu (API docs) tells you what you can order (endpoints). You tell the waiter (API) your order. The kitchen (server) prepares it. You get your food (data) — without ever entering the kitchen or knowing how it was made.</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> INTERACTIVE API EXPLORER</div>
+  <div class="api-demo">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="api-endpoint selected" id="ep-get-users" onclick="selectApi('get-users')">
+        <span class="method-badge method-get">GET</span>
+        <span class="api-path">/api/users</span>
+      </div>
+      <div class="api-endpoint" id="ep-post-user" onclick="selectApi('post-user')">
+        <span class="method-badge method-post">POST</span>
+        <span class="api-path">/api/users</span>
+      </div>
+      <div class="api-endpoint" id="ep-put-user" onclick="selectApi('put-user')">
+        <span class="method-badge method-put">PUT</span>
+        <span class="api-path">/api/users/1</span>
+      </div>
+      <div class="api-endpoint" id="ep-delete-user" onclick="selectApi('delete-user')">
+        <span class="method-badge method-delete">DELETE</span>
+        <span class="api-path">/api/users/1</span>
+      </div>
+    </div>
+    <div>
+      <div class="api-response">
+        <pre id="api-json-output">Select an endpoint to look at its payload or response text...</pre>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="databases">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(251,191,36,.15);color:var(--yellow)">09</div>
+    <div>
+      <div class="section-title">Databases</div>
+      <div class="section-sub">Where structured information is organized and permanently kept</div>
+    </div>
+  </div>
+
+  <div class="theory-block yellow">
+    <div class="theory-label yellow">📖 THEORY</div>
+    <p class="theory-text">
+      A <strong>database</strong> is an organized system used by application backends to store, access, modify, and manage information permanently. While application code variables are wiped whenever a server restarts, databases run as independent services to ensure data durability and integrity.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">📊 Relational (SQL)</div>
+        <div class="fact-body">Organizes records into strict tables with predefined columns. Employs <strong style="color:var(--text)">Primary Keys</strong> to identify items and <strong style="color:var(--text)">Foreign Keys</strong> to build links between tables. Uses PostgreSQL, MySQL, SQL Server.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">📦 Non-Relational (NoSQL)</div>
+        <div class="fact-body">Maintains flexible storage formats without predefined schemas. Often saves elements as JSON-like documents or key-value entries. Excellent for changing data maps. Uses MongoDB, Redis.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">⚡ Indexing</div>
+        <div class="fact-body">A background data map created on specific table columns. An index stops slow row-by-row lookups, turning massive search tasks into super-fast lookups.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--yellow)">🛡️ ACID Transactions</div>
+        <div class="fact-body">A set of properties ensuring reliable operations: <strong>Atomicity</strong> (all or nothing), <strong>Consistency</strong>, <strong>Isolation</strong>, and <strong>Durability</strong>. Essential for things like banking balances.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🗄️</div>
+      <div class="text"><strong>Analogy:</strong> A relational database is like a collection of highly organized <strong>spreadsheets linked together</strong>. If you update a customer's address in the main Customer list, every Order spreadsheet referencing that customer immediately reflects the new location.</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> RELATIONAL DATA AND QUERY SIMULATION</div>
+  <div class="card">
+    <div class="db-tables">
+      <div class="db-table">
+        <div class="db-table-header">📁 Users Table</div>
+        <div class="db-row db-row-header" style="grid-template-columns: 40px 1fr">
+          <span>id</span><span>name</span>
+        </div>
+        <div class="db-row" style="grid-template-columns: 40px 1fr">
+          <span class="db-pk">1</span><span class="db-str">"Alice"</span>
+        </div>
+        <div class="db-row" style="grid-template-columns: 40px 1fr">
+          <span class="db-pk">2</span><span class="db-str">"Bob"</span>
+        </div>
+      </div>
+      
+      <div class="db-table">
+        <div class="db-table-header">📁 Orders Table</div>
+        <div class="db-row db-row-header" style="grid-template-columns: 40px 60px 1fr">
+          <span>id</span><span>user_id</span><span>item</span>
+        </div>
+        <div class="db-row" style="grid-template-columns: 40px 60px 1fr">
+          <span class="db-pk">101</span><span class="db-fk">1</span><span class="db-str">"Laptop"</span>
+        </div>
+        <div class="db-row" style="grid-template-columns: 40px 60px 1fr">
+          <span class="db-pk">102</span><span class="db-fk">2</span><span class="db-str">"Phone"</span>
+        </div>
+        <div class="db-row" style="grid-template-columns: 40px 60px 1fr">
+          <span class="db-pk">103</span><span class="db-fk">1</span><span class="db-str">"Book"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sql-box">
+      <button class="run-btn" onclick="runSqlSim()">Run Query</button>
+      <span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> <span class="sql-tb">Orders</span> <span class="sql-kw">WHERE</span> user_id <span class="sql-op">=</span> <span class="sql-str">1</span>;
+    </div>
+    <div id="sql-result" style="margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--muted);">Click 'Run Query' to filter records from disk...</div>
+  </div>
+</section>
+<div class="topic-divider"></div>
+
+<section class="section" id="frontend">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(52,211,153,.15);color:var(--green)">10</div>
+    <div>
+      <div class="section-title">Frontend vs Backend</div>
+      <div class="section-sub">Splitting the view you interact with from the hidden logical machine</div>
+    </div>
+  </div>
+
+  <div class="theory-block green">
+    <div class="theory-label green">📖 THEORY</div>
+    <p class="theory-text">
+      Modern web applications split code responsibilities into two separate layers: the <strong>Frontend (Client-Side)</strong>, which runs right inside the visitor's web browser, and the <strong>Backend (Server-Side)</strong>, which executes remotely on dedicated infrastructure away from the user's view.
+    </p>
+    <div class="theory-grid">
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">🎨 Frontend Tasks</div>
+        <div class="fact-body">Constructs layout structure, controls element styles, tracks button gestures, and updates display views instantly. Built using languages and runtimes like <strong style="color:var(--text)">HTML, CSS, JavaScript, React, Vue</strong>.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">⚙️ Backend Tasks</div>
+        <div class="fact-body">Maintains core application business logic, processes secure payments, updates database fields, and verifies identity rules. Powered by servers like <strong style="color:var(--text)">Node.js, Python, Java, PHP, Ruby</strong>.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">📡 The Connection API</div>
+        <div class="fact-body">The frontend doesn't talk directly to database tables for security reasons. Instead, it sends secure HTTP network messages to backend routes to modify data.</div>
+      </div>
+      <div class="theory-fact">
+        <div class="fact-title" style="color:var(--green)">🔒 Security Context</div>
+        <div class="fact-body">Client code can always be examined using browser inspection menus. Private secret keys, proprietary formulas, or credential strings must always remain protected on the backend server.</div>
+      </div>
+    </div>
+    <div class="theory-analogy">
+      <div class="emoji">🎭</div>
+      <div class="text"><strong>Analogy:</strong> Think of a web app like a <strong>theater production</strong>. The frontend is the stage crew, visual props, and actors you see in front of you. The backend represents the backstage managers, lighting switches, and writers orchestrating the narrative out of sight.</div>
+    </div>
+  </div>
+
+  <div class="interact-label"><span class="interact-dot"></span> LIVE NETWORK DISPATCH MAP</div>
+  <div class="fb-split">
+    <div class="fb-side fb-front">
+      <div class="fb-title">🎨 Frontend (Client)</div>
+      <div class="fb-item"><div class="fb-icon" style="background:var(--accent)">🌐</div> UI Component Rendering</div>
+      <div class="fb-item"><div class="fb-icon" style="background:var(--accent)">🖱️</div> User Event Interception</div>
+      <div class="fb-item"><div class="fb-icon" style="background:var(--accent)">📊</div> Local UI State Management</div>
+    </div>
+    <div class="fb-side fb-back">
+      <div class="fb-title">⚙️ Backend (Server)</div>
+      <div class="fb-item"><div class="fb-icon" style="background:var(--green)">🛡️</div> Session Validation</div>
+      <div class="fb-item"><div class="fb-icon" style="background:var(--green)">🗄️</div> Database Persistence Operations</div>
+      <div class="fb-item"><div class="fb-icon" style="background:var(--green)">🔑</div> Encrypted Password Matching</div>
+    </div>
+  </div>
+  
+  <div class="req-flow-container">
+    <div style="font-size: 12px; color: var(--muted); text-align: center;">Continuous Network Traffic Stream (JSON payloads over HTTP/HTTPS)</div>
+    <div class="req-line">
+      <div class="req-dot"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// SCROLL NAVIGATION PROGRESS
+window.addEventListener('scroll', () => {
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = (winScroll / height) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+  
+  // Update active nav button
+  const sections = ['browsers', 'servers', 'urls', 'http', 'https', 'cookies', 'sessions', 'apis', 'databases', 'frontend'];
+  let current = '';
+  for (let s of sections) {
+    const el = document.getElementById(s);
+    if (el && el.getBoundingClientRect().top < 120) {
+      current = s;
+    }
+  }
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.getAttribute('onclick').includes(current)) {
+      btn.classList.add('active');
+    }
+  });
+});
+
+function goto(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 1. BROWSER ENGINE SIMULATION
+function simulateBrowse() {
+  const body = document.getElementById('browser-body');
+  const loading = document.getElementById('page-loading');
+  const loaded = document.getElementById('page-loaded');
+  
+  loading.style.display = 'block';
+  loaded.classList.remove('active');
+  
+  setTimeout(() => {
+    loading.style.display = 'none';
+    loaded.classList.add('active');
+  }, 1200);
+}
+
+// 2. SERVER SIMULATION
+let reqCount = 0;
+function simulateRequest() {
+  reqCount++;
+  document.getElementById('req-counter').innerText = reqCount;
+  const log = document.getElementById('server-log');
+  
+  const methods = ['GET', 'POST', 'PUT', 'DELETE'];
+  const paths = ['/index.html', '/api/users', '/styles.css', '/dashboard', '/products?id=99'];
+  const statuses = ['200 OK', '200 OK', '404 Not Found', '201 Created', '500 Error'];
+  
+  const m = methods[Math.floor(Math.random()*methods.length)];
+  const p = paths[Math.floor(Math.random()*paths.length)];
+  const s = statuses[Math.floor(Math.random()*statuses.length)];
+  const color = s.includes('200') || s.includes('201') ? 'var(--green)' : s.includes('404') ? 'var(--orange)' : 'var(--red)';
+  
+  const entry = document.createElement('div');
+  entry.style.paddingBottom = '4px';
+  entry.innerHTML = `<span style="color:var(--accent)">[${new Date().toLocaleTimeString()}]</span> <span>${m}</span> <span style="color:var(--muted)">${p}</span> → <span style="color:${color}">${s}</span>`;
+  
+  if (log.children.length === 1 && log.children[0].style.color === 'var(--muted)') {
+    log.innerHTML = '';
+  }
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 8) log.removeChild(log.lastChild);
+}
+
+// 3. URL TOOLTIP DESCRIPTION ENGINE
+const urlDetails = {
+  scheme: '<strong>Scheme / Protocol (https):</strong> Defines how data is encrypted and transferred. HTTPS is the global modern standard for encrypted, confidential web requests.',
+  host: '<strong>Host / Domain Name (www.shop.com):</strong> The human-readable name of the targeted web platform. The browser queries a DNS server to turn this text label into a numeric IP routing address.',
+  path: '<strong>Path (/products/shoes):</strong> Points to the specific directory or file asset route inside the web server container structure.',
+  query: '<strong>Query Parameters (?color=red&size=10):</strong> Configurable key-value variables providing extra instructions to the page logic, like filtering elements, sorting rows, or tracking clicks.',
+  fragment: '<strong>Fragment Anchor (#reviews):</strong> Tells the user browser to scroll instantly to an internal container ID element within the loaded page without fetching a new document.'
+};
+function showUrlPart(part) {
+  document.getElementById('url-tooltip').innerHTML = urlDetails[part];
+}
+
+// 4. HTTP PIPELINE ANIMATION STEPS
+function playHttpFlow() {
+  const steps = ['step1', 'step2', 'step3', 'step4'];
+  steps.forEach(s => document.getElementById(s).classList.remove('visible'));
+  
+  steps.forEach((id, idx) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('visible');
+    }, idx * 600);
+  });
+}
+
+// 6. COOKIE JAR MODIFICATION UTILITIES
+function deleteCookie(id) {
+  const item = document.getElementById(id);
+  if (item) {
+    item.classList.add('cookie-eaten');
+    setTimeout(() => item.remove(), 400);
+  }
+}
+function addCookie() {
+  const list = document.getElementById('cookie-list');
+  const keys = ['session_token', 'user_preference', 'location_zip', 'dismissed_banner', 'affiliate_id'];
+  const vals = ['xyz_9921', 'compact_view', '90210', 'true', 'ref_promo_2026'];
+  const meta = ['session · Secure', '365d', '7d', '30d · HttpOnly', 'session'];
+  
+  const randIdx = Math.floor(Math.random() * keys.length);
+  const id = 'c_' + Date.now();
+  
+  const el = document.createElement('div');
+  el.className = 'cookie-item';
+  el.id = id;
+  el.innerHTML = `<span class="cookie-key">${keys[randIdx]}</span><span class="cookie-eq">=</span><span class="cookie-val">${vals[randIdx]}</span><span class="cookie-meta">${meta[randIdx]}</span><button onclick="deleteCookie('${id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px">×</button>`;
+  
+  list.appendChild(el);
+}
+
+// 7. STATEFUL SERVER SESSION ACTIONS
+function simulateLogin() {
+  const label = document.getElementById('session-user-label');
+  const cookie = document.getElementById('session-cookie-display');
+  const store = document.getElementById('session-store');
+  
+  const randId = 'sess_' + Math.random().toString(16).substr(2, 8).toUpperCase();
+  label.innerText = 'Alice (Authenticated)';
+  cookie.innerText = 'sid=' + randId;
+  
+  store.innerHTML = `<div class="session-entry"><span class="session-id">${randId}</span><span class="session-data">{user:"Alice", role:"Admin"}</span></div>`;
+}
+function simulateLogout() {
+  document.getElementById('session-user-label').innerText = 'Not logged in';
+  document.getElementById('session-cookie-display').innerText = 'No session cookie';
+  document.getElementById('session-store').innerHTML = '<div style="font-size:12px;color:var(--muted)">Empty</div>';
+}
+
+// 8. API SELECTOR PAYLOAD DISPLAY ENGINE
+const apiData = {
+  'get-users': `// HTTP/1.1 200 OK\n[\n  { <span class="json-key">"id"</span>: <span class="json-num">1</span>, <span class="json-key">"name"</span>: <span class="json-str">"Alice"</span>, <span class="json-key">"active"</span>: <span class="json-bool">true</span> },\n  { <span class="json-key">"id"</span>: <span class="json-num">2</span>, <span class="json-key">"name"</span>: <span class="json-str">"Bob"</span>, <span class="json-key">"active"</span>: <span class="json-bool">false</span> }\n]`,
+  'post-user': `// HTTP/1.1 201 Created\n{\n  <span class="json-key">"status"</span>: <span class="json-str">"success"</span>,\n  <span class="json-key">"insertedId"</span>: <span class="json-num">3</span>\n}`,
+  'put-user': `// HTTP/1.1 200 OK\n{\n  <span class="json-key">"updated"</span>: <span class="json-bool">true</span>,\n  <span class="json-key">"id"</span>: <span class="json-num">1</span>\n}`,
+  'delete-user': `// HTTP/1.1 200 OK\n{\n  <span class="json-key">"deleted"</span>: <span class="json-bool">true</span>,\n  <span class="json-key">"targetId"</span>: <span class="json-num">1</span>\n}`
+};
+function selectApi(id) {
+  document.querySelectorAll('.api-endpoint').forEach(el => el.classList.remove('selected'));
+  document.getElementById('ep-' + id).classList.add('selected');
+  document.getElementById('api-json-output').innerHTML = apiData[id];
+}
+// Init selection
+selectApi('get-users');
+
+// 9. SQL DATABASE SIMULATION QUERY EXECUTION
+function runSqlSim() {
+  const out = document.getElementById('sql-result');
+  out.style.color = 'var(--green)';
+  out.innerHTML = `Running query mapping across references...<br>
+  [Found 2 records match criteria user_id = 1]:<br><br>
+  • Record 101: Laptop (Belongs to User: Alice)<br>
+  • Record 103: Book (Belongs to User: Alice)`;
+}
+</script>
+
+</body>
+</html>

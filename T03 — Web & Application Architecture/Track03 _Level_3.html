@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure Application Design — Level 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b12;
+    --surface: #0e1420;
+    --surface2: #141c2e;
+    --border: #1e2d4a;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --glow: 0 0 20px rgba(0,229,255,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  /* ── PARTICLES CANVAS ── */
+  #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.4; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(7,11,18,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; gap: 1rem;
+    height: 58px;
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .nav-logo span { color: var(--text-muted); font-weight: 400; }
+  .nav-links {
+    display: flex; gap: 0.25rem;
+    overflow-x: auto; flex: 1;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-link {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--text-muted);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px; border: 1px solid transparent;
+    text-decoration: none; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-link:hover, .nav-link.active {
+    color: var(--accent); border-color: var(--accent);
+    background: rgba(0,229,255,0.06);
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main { position: relative; z-index: 1; padding-top: 58px; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 92vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 4rem 2rem 3rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-grid-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+  }
+  .hero-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 100px; padding: 0.3rem 1rem;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.05; letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: fadeUp 0.7s ease 0.1s both;
+    max-width: 900px;
+  }
+  .hero-sub {
+    margin-top: 1.5rem; max-width: 560px;
+    color: var(--text-dim); font-size: 1.05rem; line-height: 1.7;
+    animation: fadeUp 0.7s ease 0.2s both;
+  }
+  .hero-cta {
+    margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s ease 0.3s both;
+  }
+  .btn {
+    padding: 0.75rem 2rem; border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; border: none; text-decoration: none;
+    transition: all 0.25s;
+  }
+  .btn-primary {
+    background: var(--accent); color: #070b12;
+    box-shadow: 0 0 30px rgba(0,229,255,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,229,255,0.5); }
+  .btn-outline {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hero-stats {
+    margin-top: 4rem; display: flex; gap: 3rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s ease 0.4s both;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem; font-weight: 700; color: var(--accent);
+    display: block;
+  }
+  .stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ── SECTION WRAPPER ── */
+  .section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+  .section-header { margin-bottom: 3rem; }
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    display: block; margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .section-desc { margin-top: 0.75rem; color: var(--text-dim); max-width: 540px; font-size: 1rem; }
+
+  /* ── TOPIC CARDS GRID ── */
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.25rem;
+  }
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    position: relative; overflow: hidden;
+  }
+  .topic-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .topic-card:hover { transform: translateY(-4px); border-color: rgba(0,229,255,0.25); box-shadow: var(--glow); }
+  .topic-card:hover::before { opacity: 1; }
+  .card-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--text-muted);
+  }
+  .card-icon { font-size: 2rem; margin: 0.75rem 0 0.5rem; }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700;
+    color: var(--text); margin-bottom: 0.5rem;
+  }
+  .card-desc { font-size: 0.88rem; color: var(--text-dim); line-height: 1.6; }
+  .card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 1rem; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; padding: 0.2rem 0.55rem;
+    border-radius: 4px; border: 1px solid;
+  }
+  .tag-cyan { color: var(--accent); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.05); }
+  .tag-purple { color: #a78bfa; border-color: rgba(167,139,250,0.25); background: rgba(167,139,250,0.05); }
+  .tag-green { color: var(--accent3); border-color: rgba(16,185,129,0.25); background: rgba(16,185,129,0.05); }
+  .tag-orange { color: var(--warn); border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.05); }
+  .tag-red { color: var(--danger); border-color: rgba(239,68,68,0.25); background: rgba(239,68,68,0.05); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(7,11,18,0.92); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    max-width: 860px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    padding: 2.5rem;
+    animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-muted); border-radius: 8px;
+    width: 36px; height: 36px; cursor: pointer;
+    font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .modal-close:hover { border-color: var(--danger); color: var(--danger); }
+  .modal-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.25); border-radius: 100px;
+    padding: 0.2rem 0.75rem; display: inline-block; margin-bottom: 1rem;
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+    letter-spacing: -0.02em; margin-bottom: 1rem;
+  }
+  .modal-intro { color: var(--text-dim); line-height: 1.8; margin-bottom: 2rem; font-size: 1rem; }
+  .modal-section { margin-bottom: 2rem; }
+  .modal-section h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .modal-section h3::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── INTERACTIVE DEMOS ── */
+  .demo-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+  }
+  .demo-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; color: var(--text-muted);
+    margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .demo-title::before { content: '▶'; color: var(--accent3); }
+
+  /* Input Validation Demo */
+  .input-group { margin-bottom: 1rem; }
+  .input-group label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.4rem; }
+  .demo-input {
+    width: 100%; padding: 0.6rem 0.9rem;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .demo-input:focus { border-color: var(--accent); }
+  .demo-input.valid { border-color: var(--accent3); }
+  .demo-input.invalid { border-color: var(--danger); }
+  .validation-msg { font-size: 0.75rem; margin-top: 0.35rem; min-height: 1rem; }
+  .msg-ok { color: var(--accent3); }
+  .msg-err { color: var(--danger); }
+  .demo-btn {
+    padding: 0.55rem 1.25rem; border-radius: 8px;
+    background: var(--accent); color: var(--bg);
+    font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s;
+  }
+  .demo-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .demo-btn.danger { background: var(--danger); }
+  .demo-btn.neutral { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+  /* XSS Demo */
+  .xss-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .xss-tab {
+    padding: 0.4rem 0.9rem; border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    cursor: pointer; border: 1px solid var(--border); color: var(--text-muted);
+    transition: all 0.2s;
+  }
+  .xss-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.06); }
+  .code-block {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    color: var(--text-dim); overflow-x: auto; line-height: 1.7;
+  }
+  .code-block .danger-code { color: var(--danger); }
+  .code-block .safe-code { color: var(--accent3); }
+
+  /* Session Timer */
+  .session-display {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; margin-bottom: 1rem;
+  }
+  .session-status {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent3); flex-shrink: 0;
+    box-shadow: 0 0 8px var(--accent3);
+    transition: background 0.3s;
+  }
+  .session-status.expired { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+  .session-id {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    color: var(--text-dim); flex: 1;
+    word-break: break-all;
+  }
+  .session-timer {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+    color: var(--accent); font-weight: 700; flex-shrink: 0;
+  }
+
+  /* Auth Demo */
+  .auth-steps { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .auth-step {
+    flex: 1; min-width: 100px;
+    padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--border); text-align: center;
+    transition: all 0.3s;
+  }
+  .auth-step.done { border-color: var(--accent3); background: rgba(16,185,129,0.08); }
+  .auth-step.active { border-color: var(--accent); background: rgba(0,229,255,0.08); animation: pulse-border 1s infinite; }
+  .auth-step-icon { font-size: 1.4rem; display: block; margin-bottom: 0.25rem; }
+  .auth-step-label { font-size: 0.72rem; color: var(--text-muted); }
+
+  /* RBAC Demo */
+  .rbac-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .rbac-role {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s;
+  }
+  .rbac-role:hover, .rbac-role.selected { border-color: var(--accent); background: rgba(0,229,255,0.04); }
+  .rbac-role-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .rbac-perms { list-style: none; }
+  .rbac-perms li { font-size: 0.75rem; color: var(--text-dim); padding: 0.15rem 0; }
+  .rbac-perms li::before { content: '✓ '; color: var(--accent3); }
+  .rbac-perms li.denied::before { content: '✗ '; color: var(--danger); }
+  .rbac-perms li.denied { color: var(--text-muted); }
+  .rbac-result {
+    margin-top: 1rem; padding: 0.75rem 1rem;
+    border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+    display: none;
+  }
+  .rbac-result.show { display: block; }
+  .rbac-result.granted { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--accent3); }
+  .rbac-result.denied-msg { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); }
+
+  /* Threat Model STRIDE */
+  .stride-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; }
+  .stride-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.9rem; cursor: pointer;
+    transition: all 0.25s; text-align: center;
+  }
+  .stride-item:hover { border-color: var(--accent2); transform: scale(1.02); }
+  .stride-item.flipped { background: rgba(124,58,237,0.1); border-color: var(--accent2); }
+  .stride-letter { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--accent2); }
+  .stride-word { font-size: 0.72rem; color: var(--text-dim); }
+  .stride-desc { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.5rem; display: none; line-height: 1.5; }
+  .stride-item.flipped .stride-desc { display: block; }
+  .stride-item.flipped .stride-word { display: none; }
+
+  /* SDLC Timeline */
+  .sdlc-timeline { position: relative; }
+  .sdlc-timeline::before {
+    content: ''; position: absolute; left: 20px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--accent), var(--accent2));
+  }
+  .sdlc-phase {
+    position: relative; padding-left: 52px; margin-bottom: 1.5rem; cursor: pointer;
+  }
+  .sdlc-dot {
+    position: absolute; left: 12px; top: 6px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--accent);
+    transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+    font-size: 0.5rem; color: var(--accent);
+  }
+  .sdlc-phase:hover .sdlc-dot, .sdlc-phase.active .sdlc-dot {
+    background: var(--accent); color: var(--bg);
+    box-shadow: 0 0 12px rgba(0,229,255,0.5);
+  }
+  .sdlc-phase-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+  .sdlc-phase-detail {
+    font-size: 0.82rem; color: var(--text-dim); margin-top: 0.25rem;
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+  }
+  .sdlc-phase.active .sdlc-phase-detail { max-height: 200px; }
+
+  /* Log Stream */
+  .log-stream {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; height: 160px; overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    line-height: 1.8;
+  }
+  .log-line { animation: fadeIn 0.2s ease; }
+  .log-time { color: var(--text-muted); }
+  .log-user { color: var(--accent); }
+  .log-action-ok { color: var(--accent3); }
+  .log-action-fail { color: var(--danger); }
+  .log-ip { color: #a78bfa; }
+
+  /* API Rate Limiter */
+  .rate-bar-wrap { margin: 0.75rem 0; }
+  .rate-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.35rem; }
+  .rate-bar { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .rate-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; background: var(--accent3); }
+  .rate-fill.warn { background: var(--warn); }
+  .rate-fill.danger { background: var(--danger); }
+
+  /* Secrets Demo */
+  .secret-toggle { position: relative; }
+  .secret-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    word-break: break-all; padding: 0.75rem; border-radius: 6px;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text-dim);
+  }
+  .bad-secret { border-color: var(--danger); color: var(--danger); }
+  .good-secret { border-color: var(--accent3); color: var(--accent3); }
+
+  /* Trust Boundary Diagram */
+  .trust-diagram {
+    display: flex; align-items: center; gap: 0; width: 100%; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .trust-zone {
+    flex: 1; min-width: 110px; padding: 1rem 0.75rem; text-align: center;
+    border-radius: 12px; border: 1px dashed;
+    position: relative;
+  }
+  .trust-zone.external { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.05); }
+  .trust-zone.dmz { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.05); }
+  .trust-zone.internal { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.05); }
+  .trust-zone-label { font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; margin-bottom: 0.5rem; }
+  .trust-zone.external .trust-zone-label { color: var(--danger); }
+  .trust-zone.dmz .trust-zone-label { color: var(--warn); }
+  .trust-zone.internal .trust-zone-label { color: var(--accent3); }
+  .trust-icon { font-size: 1.8rem; display: block; }
+  .trust-name { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.3rem; }
+  .trust-arrow {
+    font-size: 1.2rem; color: var(--accent); padding: 0 0.5rem;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.2rem;
+  }
+  .trust-arrow span { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: var(--text-muted); white-space: nowrap; }
+  .trust-boundary-label {
+    font-size: 0.62rem; color: var(--warn);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+  }
+
+  /* Progress indicator */
+  .progress-wrap { margin-top: 2rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.4rem; }
+  .progress-bar { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(to right, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.5s ease; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 0 2rem; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes pulse-border { 0%,100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.3); } 50% { box-shadow: 0 0 0 4px rgba(0,229,255,0.1); } }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 3rem 2rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    color: var(--text-muted); border-top: 1px solid var(--border);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .topics-grid { grid-template-columns: 1fr; }
+    .stride-grid { grid-template-columns: repeat(2,1fr); }
+    .rbac-grid { grid-template-columns: 1fr; }
+    .modal { padding: 1.5rem; }
+    .hero h1 { font-size: 2.4rem; }
+    nav { padding: 0 1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SEC<span>DESIGN</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="#topics">Topics</a>
+    <a class="nav-link" href="#trust">Trust</a>
+    <a class="nav-link" href="#validation">Validation</a>
+    <a class="nav-link" href="#xss">XSS</a>
+    <a class="nav-link" href="#session">Session</a>
+    <a class="nav-link" href="#auth">Auth</a>
+    <a class="nav-link" href="#authz">AuthZ</a>
+    <a class="nav-link" href="#secrets">Secrets</a>
+    <a class="nav-link" href="#api">API</a>
+    <a class="nav-link" href="#logging">Logging</a>
+    <a class="nav-link" href="#threat">Threat</a>
+    <a class="nav-link" href="#sdlc">SDLC</a>
+  </div>
+</nav>
+
+<main>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-badge">Level 3 · Secure Application Design</div>
+  <h1>Build security in.<br>Not on top.</h1>
+  <p class="hero-sub">Understand the 11 core principles of secure application design — through interactive demos, live examples, and hands-on exploration.</p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="#topics">Start Learning</a>
+    <a class="btn btn-outline" href="#sdlc">View SDLC →</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">11</span><span class="stat-label">Core Topics</span></div>
+    <div class="stat"><span class="stat-num">10+</span><span class="stat-label">Live Demos</span></div>
+    <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Attack Vectors</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TOPICS OVERVIEW -->
+<section class="section" id="topics">
+  <div class="section-header reveal">
+    <span class="section-eyebrow">Overview</span>
+    <h2 class="section-title">All 11 Topics</h2>
+    <p class="section-desc">Click any card to open an interactive deep-dive with live demos.</p>
+  </div>
+  <div class="topics-grid reveal">
+
+    <div class="topic-card" style="--card-accent:#00e5ff" onclick="openModal('trust')">
+      <div class="card-num">01</div>
+      <div class="card-icon">🔐</div>
+      <div class="card-title">Trust Boundaries</div>
+      <div class="card-desc">Where data crosses security zones — and why every boundary is a potential attack surface.</div>
+      <div class="card-tags">
+        <span class="tag tag-cyan">Architecture</span>
+        <span class="tag tag-red">Attack Surface</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#10b981" onclick="openModal('validation')">
+      <div class="card-num">02</div>
+      <div class="card-icon">✅</div>
+      <div class="card-title">Input Validation</div>
+      <div class="card-desc">Never trust user input. Check type, length, format, and allowed characters before processing.</div>
+      <div class="card-tags">
+        <span class="tag tag-green">Prevention</span>
+        <span class="tag tag-red">Injection</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#f59e0b" onclick="openModal('encoding')">
+      <div class="card-num">03</div>
+      <div class="card-icon">🛡️</div>
+      <div class="card-title">Output Encoding</div>
+      <div class="card-desc">Convert dangerous characters to safe representations. The primary defense against XSS attacks.</div>
+      <div class="card-tags">
+        <span class="tag tag-orange">XSS Defense</span>
+        <span class="tag tag-cyan">HTML Safety</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#7c3aed" onclick="openModal('session')">
+      <div class="card-num">04</div>
+      <div class="card-icon">🍪</div>
+      <div class="card-title">Session Security</div>
+      <div class="card-desc">Protect session tokens from theft. Expiry, regeneration, and secure flags explained.</div>
+      <div class="card-tags">
+        <span class="tag tag-purple">Cookies</span>
+        <span class="tag tag-red">Hijacking</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#00e5ff" onclick="openModal('authn')">
+      <div class="card-num">05</div>
+      <div class="card-icon">🪪</div>
+      <div class="card-title">Authentication Models</div>
+      <div class="card-desc">From passwords to MFA to biometrics — proving who you are before you're let in.</div>
+      <div class="card-tags">
+        <span class="tag tag-cyan">MFA</span>
+        <span class="tag tag-green">JWT</span>
+        <span class="tag tag-purple">Biometric</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#10b981" onclick="openModal('authz')">
+      <div class="card-num">06</div>
+      <div class="card-icon">🎫</div>
+      <div class="card-title">Authorization Models</div>
+      <div class="card-desc">Who can do what? RBAC, ABAC, DAC, and MAC — control what authenticated users can access.</div>
+      <div class="card-tags">
+        <span class="tag tag-green">RBAC</span>
+        <span class="tag tag-cyan">ABAC</span>
+        <span class="tag tag-orange">Privilege</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#f59e0b" onclick="openModal('secrets')">
+      <div class="card-num">07</div>
+      <div class="card-icon">🔑</div>
+      <div class="card-title">Secrets Management</div>
+      <div class="card-desc">API keys, DB passwords, JWT signing keys — never hardcode them. Store, rotate, audit.</div>
+      <div class="card-tags">
+        <span class="tag tag-orange">API Keys</span>
+        <span class="tag tag-red">Credentials</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#7c3aed" onclick="openModal('api')">
+      <div class="card-num">08</div>
+      <div class="card-icon">⚡</div>
+      <div class="card-title">API Security</div>
+      <div class="card-desc">Rate limiting, authentication, encryption — protect every endpoint from abuse and attacks.</div>
+      <div class="card-tags">
+        <span class="tag tag-purple">Rate Limit</span>
+        <span class="tag tag-red">Injection</span>
+        <span class="tag tag-cyan">HTTPS</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#00e5ff" onclick="openModal('logging')">
+      <div class="card-num">09</div>
+      <div class="card-icon">📋</div>
+      <div class="card-title">Logging</div>
+      <div class="card-desc">Record events, detect threats, support compliance. Know what happened and when.</div>
+      <div class="card-tags">
+        <span class="tag tag-cyan">Monitoring</span>
+        <span class="tag tag-green">Compliance</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#ef4444" onclick="openModal('threat')">
+      <div class="card-num">10</div>
+      <div class="card-icon">🎯</div>
+      <div class="card-title">Threat Modeling</div>
+      <div class="card-desc">Proactively identify threats using STRIDE. Think like an attacker before attackers do.</div>
+      <div class="card-tags">
+        <span class="tag tag-red">STRIDE</span>
+        <span class="tag tag-orange">Risk</span>
+        <span class="tag tag-purple">Design</span>
+      </div>
+    </div>
+
+    <div class="topic-card" style="--card-accent:#10b981" onclick="openModal('sdlc')">
+      <div class="card-num">11</div>
+      <div class="card-icon">🔄</div>
+      <div class="card-title">Secure SDLC</div>
+      <div class="card-desc">Security at every phase — requirements, design, code, test, deploy, and maintain.</div>
+      <div class="card-tags">
+        <span class="tag tag-green">Lifecycle</span>
+        <span class="tag tag-cyan">DevSecOps</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<!-- ──────────────────── MODALS ──────────────────── -->
+
+<!-- MODAL: Trust Boundaries -->
+<div class="modal-overlay" id="modal-trust" onclick="closeOnOverlay(event,'trust')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('trust')">✕</button>
+    <div class="modal-badge">Topic 01 · Architecture</div>
+    <h2 class="modal-title">🔐 Trust Boundaries</h2>
+    <p class="modal-intro">A trust boundary is a point where data, users, or systems move from one trust level to another. Whenever information crosses this line, security checks <strong>must</strong> be performed — because the source may not be trustworthy.</p>
+
+    <div class="modal-section">
+      <h3>Live Diagram</h3>
+      <div class="demo-box">
+        <div class="demo-title">Trust Zone Map — Click zones to learn more</div>
+        <div class="trust-diagram" id="trustDiagram">
+          <div class="trust-zone external" onclick="highlightZone('external')">
+            <div class="trust-zone-label">UNTRUSTED</div>
+            <span class="trust-icon">🌐</span>
+            <div class="trust-name">Internet / User</div>
+          </div>
+          <div class="trust-arrow">→<br><span class="trust-boundary-label">⚠ Boundary 1<br>Validate!</span></div>
+          <div class="trust-zone dmz" onclick="highlightZone('dmz')">
+            <div class="trust-zone-label">SEMI-TRUSTED</div>
+            <span class="trust-icon">🖥️</span>
+            <div class="trust-name">Web Server</div>
+          </div>
+          <div class="trust-arrow">→<br><span class="trust-boundary-label">⚠ Boundary 2<br>Authenticate!</span></div>
+          <div class="trust-zone internal" onclick="highlightZone('internal')">
+            <div class="trust-zone-label">TRUSTED</div>
+            <span class="trust-icon">🗄️</span>
+            <div class="trust-name">Database</div>
+          </div>
+        </div>
+        <div id="zoneInfo" style="margin-top:1rem;padding:0.75rem;border-radius:8px;background:var(--bg);border:1px solid var(--border);font-size:0.82rem;color:var(--text-dim);min-height:48px;">Click a zone to learn about it.</div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Why It Matters</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.75rem;">
+        <div style="padding:0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+          <div style="font-size:1.2rem;margin-bottom:0.25rem;">🛡️</div>
+          <strong style="display:block;margin-bottom:0.25rem;">Identifies Risk Points</strong>
+          <span style="color:var(--text-dim)">Know where security checks are needed.</span>
+        </div>
+        <div style="padding:0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+          <div style="font-size:1.2rem;margin-bottom:0.25rem;">🔒</div>
+          <strong style="display:block;margin-bottom:0.25rem;">Prevents Unauthorized Access</strong>
+          <span style="color:var(--text-dim)">Each boundary is a checkpoint.</span>
+        </div>
+        <div style="padding:0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+          <div style="font-size:1.2rem;margin-bottom:0.25rem;">📐</div>
+          <strong style="display:block;margin-bottom:0.25rem;">Guides System Design</strong>
+          <span style="color:var(--text-dim)">Helps engineers place controls correctly.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Input Validation -->
+<div class="modal-overlay" id="modal-validation" onclick="closeOnOverlay(event,'validation')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('validation')">✕</button>
+    <div class="modal-badge">Topic 02 · Prevention</div>
+    <h2 class="modal-title">✅ Input Validation</h2>
+    <p class="modal-intro">Never trust user input. Validate data type, length, format, range, and allowed characters on both client and server before processing anything.</p>
+
+    <div class="modal-section">
+      <h3>Live Validator — Try Breaking It</h3>
+      <div class="demo-box">
+        <div class="demo-title">Real-time validation checks</div>
+        <div class="input-group">
+          <label>Email Address</label>
+          <input class="demo-input" id="valEmail" type="text" placeholder="Enter email..." oninput="validateEmail(this)">
+          <div class="validation-msg" id="valEmailMsg"></div>
+        </div>
+        <div class="input-group">
+          <label>Age (must be 18–120)</label>
+          <input class="demo-input" id="valAge" type="text" placeholder="Enter age..." oninput="validateAge(this)">
+          <div class="validation-msg" id="valAgeMsg"></div>
+        </div>
+        <div class="input-group">
+          <label>Username (letters, numbers, _ only)</label>
+          <input class="demo-input" id="valUser" type="text" placeholder="e.g. john_doe" oninput="validateUsername(this)">
+          <div class="validation-msg" id="valUserMsg"></div>
+        </div>
+        <div class="input-group">
+          <label>SQL Injection Attempt — try: <code style="color:var(--danger);font-size:0.75rem">'; DROP TABLE users;--</code></label>
+          <input class="demo-input" id="valSQL" type="text" placeholder="Try injecting..." oninput="validateSQL(this)">
+          <div class="validation-msg" id="valSQLMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Client vs Server Validation</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div style="padding:1rem;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.2);border-radius:8px;font-size:0.82rem;">
+          <strong style="color:var(--accent);display:block;margin-bottom:0.5rem;">🖥️ Client-Side</strong>
+          <p style="color:var(--text-dim)">Fast UX feedback. Easily bypassed by attackers. Use for experience only, never security.</p>
+        </div>
+        <div style="padding:1rem;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:8px;font-size:0.82rem;">
+          <strong style="color:var(--accent3);display:block;margin-bottom:0.5rem;">⚙️ Server-Side</strong>
+          <p style="color:var(--text-dim)">The <em>real</em> security layer. Always required — attackers can skip the browser entirely.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Output Encoding / XSS -->
+<div class="modal-overlay" id="modal-encoding" onclick="closeOnOverlay(event,'encoding')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('encoding')">✕</button>
+    <div class="modal-badge">Topic 03 · XSS Defense</div>
+    <h2 class="modal-title">🛡️ Output Encoding</h2>
+    <p class="modal-intro">Output encoding converts potentially dangerous characters into safe representations before displaying data. This is the primary defense against Cross-Site Scripting (XSS).</p>
+
+    <div class="modal-section">
+      <h3>XSS Attack Simulator</h3>
+      <div class="demo-box">
+        <div class="demo-title">See what happens without encoding vs with encoding</div>
+        <div class="input-group">
+          <label>Enter malicious input (try: <code style="color:var(--danger);font-size:0.75rem">&lt;script&gt;alert('hacked')&lt;/script&gt;</code>)</label>
+          <input class="demo-input" id="xssInput" type="text" placeholder="Type or paste here..." value="<script>alert('hacked')</script>">
+        </div>
+        <div class="xss-tabs">
+          <div class="xss-tab active" onclick="switchXSS('unsafe',this)">❌ Unsafe (no encoding)</div>
+          <div class="xss-tab" onclick="switchXSS('safe',this)">✅ Safe (encoded)</div>
+        </div>
+        <div id="xssOutput" class="code-block" style="min-height:80px;"></div>
+        <div id="xssExplanation" style="margin-top:0.75rem;font-size:0.82rem;color:var(--text-dim);padding:0.75rem;background:var(--bg);border-radius:8px;border:1px solid var(--border);"></div>
+        <button class="demo-btn" style="margin-top:0.75rem" onclick="renderXSS()">Re-render</button>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Encoding Reference</h3>
+      <div class="code-block">
+        <div><span style="color:var(--text-muted)">Dangerous char  →  HTML encoded</span></div>
+        <div><span class="danger-code">&lt;</span>  →  <span class="safe-code">&amp;lt;</span></div>
+        <div><span class="danger-code">&gt;</span>  →  <span class="safe-code">&amp;gt;</span></div>
+        <div><span class="danger-code">"</span>  →  <span class="safe-code">&amp;quot;</span></div>
+        <div><span class="danger-code">'</span>  →  <span class="safe-code">&amp;#x27;</span></div>
+        <div><span class="danger-code">&amp;</span>  →  <span class="safe-code">&amp;amp;</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Session Security -->
+<div class="modal-overlay" id="modal-session" onclick="closeOnOverlay(event,'session')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('session')">✕</button>
+    <div class="modal-badge">Topic 04 · Session</div>
+    <h2 class="modal-title">🍪 Session Security</h2>
+    <p class="modal-intro">Sessions connect an authenticated user to their server state. Attackers who steal session IDs can impersonate users — even without knowing their password.</p>
+
+    <div class="modal-section">
+      <h3>Session Lifecycle Demo</h3>
+      <div class="demo-box">
+        <div class="demo-title">Live session simulation — watch expiry in real time</div>
+        <div class="session-display">
+          <div class="session-status" id="sessStatus"></div>
+          <div class="session-id" id="sessId">Not logged in</div>
+          <div class="session-timer" id="sessTimer">—</div>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button class="demo-btn" onclick="loginSession()">Login (Generate Session)</button>
+          <button class="demo-btn neutral" onclick="regenerateSession()">Regenerate ID</button>
+          <button class="demo-btn danger" onclick="logoutSession()">Logout (Invalidate)</button>
+        </div>
+        <div id="sessLog" style="margin-top:0.75rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-dim);min-height:40px;"></div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Security Checklist</h3>
+      <div style="display:grid;gap:0.5rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="color:var(--accent3)">✓</span> <strong>HTTPS only</strong> <span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem">Prevents network sniffing</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="color:var(--accent3)">✓</span> <strong>HttpOnly cookies</strong> <span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem">Blocks JS access</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="color:var(--accent3)">✓</span> <strong>Session expiry</strong> <span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem">Auto-logout on inactivity</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="color:var(--accent3)">✓</span> <strong>Regenerate after login</strong> <span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem">Prevents session fixation</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="color:var(--accent3)">✓</span> <strong>Logout invalidation</strong> <span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem">Destroy server-side token</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Authentication -->
+<div class="modal-overlay" id="modal-authn" onclick="closeOnOverlay(event,'authn')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('authn')">✕</button>
+    <div class="modal-badge">Topic 05 · Identity</div>
+    <h2 class="modal-title">🪪 Authentication Models</h2>
+    <p class="modal-intro">Authentication answers: <em>"Who are you?"</em> It must be strong enough to resist guessing, credential theft, and phishing — while remaining usable for real people.</p>
+
+    <div class="modal-section">
+      <h3>MFA Flow — Step Through It</h3>
+      <div class="demo-box">
+        <div class="demo-title">Multi-Factor Authentication simulation</div>
+        <div class="auth-steps" id="authSteps">
+          <div class="auth-step active" id="authStep1">
+            <span class="auth-step-icon">🔑</span>
+            <div class="auth-step-label">Password</div>
+          </div>
+          <div class="auth-step" id="authStep2">
+            <span class="auth-step-icon">📱</span>
+            <div class="auth-step-label">OTP Code</div>
+          </div>
+          <div class="auth-step" id="authStep3">
+            <span class="auth-step-icon">🫆</span>
+            <div class="auth-step-label">Biometric</div>
+          </div>
+          <div class="auth-step" id="authStep4">
+            <span class="auth-step-icon">✅</span>
+            <div class="auth-step-label">Granted</div>
+          </div>
+        </div>
+        <div id="authInputArea">
+          <input class="demo-input" id="authPasswordInput" type="password" placeholder="Enter password: password123" style="margin-bottom:0.75rem">
+          <button class="demo-btn" onclick="authNext()">Submit →</button>
+        </div>
+        <div id="authMsg" style="margin-top:0.75rem;font-size:0.82rem;color:var(--text-dim);"></div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Authentication Types Compared</h3>
+      <div style="display:grid;gap:0.5rem;">
+        <div style="padding:0.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:1rem;font-size:0.85rem;">
+          <span style="font-size:1.4rem">🔑</span>
+          <div><strong>Password-Based</strong><p style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">Simple but easily phished or guessed. Must use hashing (bcrypt, Argon2).</p></div>
+          <span style="margin-left:auto;color:var(--warn);font-size:0.72rem;font-family:'JetBrains Mono',monospace">LOW–MED</span>
+        </div>
+        <div style="padding:0.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:1rem;font-size:0.85rem;">
+          <span style="font-size:1.4rem">📱</span>
+          <div><strong>Multi-Factor (MFA)</strong><p style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">Something you know + something you have. Blocks 99.9% of automated attacks.</p></div>
+          <span style="margin-left:auto;color:var(--accent3);font-size:0.72rem;font-family:'JetBrains Mono',monospace">HIGH</span>
+        </div>
+        <div style="padding:0.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:1rem;font-size:0.85rem;">
+          <span style="font-size:1.4rem">🫆</span>
+          <div><strong>Biometric</strong><p style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">Fingerprint, face, iris. Convenient and hard to replicate, but consider privacy.</p></div>
+          <span style="margin-left:auto;color:var(--accent3);font-size:0.72rem;font-family:'JetBrains Mono',monospace">HIGH</span>
+        </div>
+        <div style="padding:0.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:1rem;font-size:0.85rem;">
+          <span style="font-size:1.4rem">🎫</span>
+          <div><strong>Token-Based (JWT)</strong><p style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">Signed tokens carry identity claims. Stateless — used in APIs and SPAs.</p></div>
+          <span style="margin-left:auto;color:var(--accent);font-size:0.72rem;font-family:'JetBrains Mono',monospace">MED–HIGH</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Authorization -->
+<div class="modal-overlay" id="modal-authz" onclick="closeOnOverlay(event,'authz')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('authz')">✕</button>
+    <div class="modal-badge">Topic 06 · Access Control</div>
+    <h2 class="modal-title">🎫 Authorization Models</h2>
+    <p class="modal-intro">Authorization answers: <em>"What can you do?"</em> Even after identity is confirmed, permissions must be enforced for every action and resource access.</p>
+
+    <div class="modal-section">
+      <h3>RBAC Simulator — Pick a Role</h3>
+      <div class="demo-box">
+        <div class="demo-title">Role-Based Access Control demo</div>
+        <div class="rbac-grid">
+          <div class="rbac-role" id="role-admin" onclick="selectRole('admin')">
+            <div class="rbac-role-name">👑 Admin</div>
+            <ul class="rbac-perms">
+              <li>Read all data</li><li>Write all data</li>
+              <li>Delete users</li><li>Manage settings</li>
+            </ul>
+          </div>
+          <div class="rbac-role" id="role-manager" onclick="selectRole('manager')">
+            <div class="rbac-role-name">🧑‍💼 Manager</div>
+            <ul class="rbac-perms">
+              <li>Read all data</li><li>Write team data</li>
+              <li class="denied">Delete users</li><li class="denied">Manage settings</li>
+            </ul>
+          </div>
+          <div class="rbac-role" id="role-employee" onclick="selectRole('employee')">
+            <div class="rbac-role-name">👤 Employee</div>
+            <ul class="rbac-perms">
+              <li>Read own data</li>
+              <li class="denied">Write team data</li>
+              <li class="denied">Delete users</li><li class="denied">Manage settings</li>
+            </ul>
+          </div>
+          <div class="rbac-role" id="role-guest" onclick="selectRole('guest')">
+            <div class="rbac-role-name">🧑 Guest</div>
+            <ul class="rbac-perms">
+              <li class="denied">Read all data</li><li class="denied">Write team data</li>
+              <li class="denied">Delete users</li><li class="denied">Manage settings</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <label style="font-size:0.8rem;color:var(--text-dim);display:block;margin-bottom:0.4rem">Try accessing: <strong>User Management Page</strong></label>
+          <button class="demo-btn" onclick="checkAccess()">Attempt Access</button>
+          <div class="rbac-result" id="rbacResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Access Control Models</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div style="padding:0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+          <strong style="color:var(--accent);display:block;margin-bottom:0.3rem">RBAC</strong>
+          <span style="color:var(--text-dim)">Permissions tied to roles. Simple and scalable for most apps.</span>
+        </div>
+        <div style="padding:0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+          <strong style="color:var(--accent2);display:block;margin-bottom:0.3rem">ABAC</strong>
+          <span style="color:var(--text-dim)">Access based on attributes: department, location, time of day.</span>
+        </div>
+        <div style="padding:0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+          <strong style="color:var(--accent3);display:block;margin-bottom:0.3rem">DAC</strong>
+          <span style="color:var(--text-dim)">Resource owners grant permissions. Used in file systems.</span>
+        </div>
+        <div style="padding:0.9rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+          <strong style="color:var(--warn);display:block;margin-bottom:0.3rem">MAC</strong>
+          <span style="color:var(--text-dim)">Central authority controls all permissions. Used in government/military.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Secrets -->
+<div class="modal-overlay" id="modal-secrets" onclick="closeOnOverlay(event,'secrets')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('secrets')">✕</button>
+    <div class="modal-badge">Topic 07 · Credentials</div>
+    <h2 class="modal-title">🔑 Secrets Management</h2>
+    <p class="modal-intro">Secrets (API keys, passwords, tokens, certificates) must never be hardcoded in source code. Attackers regularly scan public repositories for exposed credentials.</p>
+
+    <div class="modal-section">
+      <h3>Bad vs Good — Spot the Difference</h3>
+      <div class="demo-box">
+        <div class="demo-title">Hardcoded secret (BAD) vs. Vault-managed secret (GOOD)</div>
+        <div style="margin-bottom:0.75rem;">
+          <div style="font-size:0.75rem;color:var(--danger);font-family:'JetBrains Mono',monospace;margin-bottom:0.35rem">❌ app.js (committed to GitHub)</div>
+          <div class="code-block">
+            <div><span style="color:var(--text-muted)">// Line 42</span></div>
+            <div>const DB_PASS = <span class="danger-code">"P@ssw0rd!123"</span>;</div>
+            <div>const API_KEY = <span class="danger-code">"sk-live-abc123xyz456"</span>;</div>
+            <div><span style="color:var(--text-muted)">// EXPOSED to anyone with repo access!</span></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-bottom:0.35rem">✅ app.js (safe approach)</div>
+          <div class="code-block">
+            <div><span style="color:var(--text-muted)">// Load from environment / vault</span></div>
+            <div>const DB_PASS = <span class="safe-code">process.env.DB_PASSWORD</span>;</div>
+            <div>const API_KEY = <span class="safe-code">await vault.getSecret('api-key')</span>;</div>
+            <div><span style="color:var(--text-muted)">// Secrets never in source code!</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Secret Rotation Simulator</h3>
+      <div class="demo-box">
+        <div class="demo-title">Rotate secrets regularly to limit exposure windows</div>
+        <div class="secret-value bad-secret" id="secretDisplay">sk-live-abc123xyz456...&lt;EXPOSED IN REPO&gt;</div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+          <button class="demo-btn" onclick="rotateSecret()">🔄 Rotate Secret</button>
+          <button class="demo-btn neutral" onclick="revokeSecret()">🚫 Revoke</button>
+        </div>
+        <div id="secretStatus" style="margin-top:0.5rem;font-size:0.78rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Best Practices</h3>
+      <div style="display:grid;gap:0.5rem;">
+        <div style="display:flex;gap:0.75rem;align-items:flex-start;font-size:0.85rem;"><span style="color:var(--accent3);margin-top:0.1rem">✓</span> <span><strong>Never hardcode</strong> secrets in code or config files</span></div>
+        <div style="display:flex;gap:0.75rem;align-items:flex-start;font-size:0.85rem;"><span style="color:var(--accent3);margin-top:0.1rem">✓</span> <span><strong>Encrypt</strong> secrets at rest using a key management system</span></div>
+        <div style="display:flex;gap:0.75rem;align-items:flex-start;font-size:0.85rem;"><span style="color:var(--accent3);margin-top:0.1rem">✓</span> <span><strong>Rotate credentials</strong> on a schedule and after any suspected breach</span></div>
+        <div style="display:flex;gap:0.75rem;align-items:flex-start;font-size:0.85rem;"><span style="color:var(--accent3);margin-top:0.1rem">✓</span> <span><strong>Audit access</strong> — log every time a secret is retrieved</span></div>
+        <div style="display:flex;gap:0.75rem;align-items:flex-start;font-size:0.85rem;"><span style="color:var(--accent3);margin-top:0.1rem">✓</span> <span>Use tools like <strong>HashiCorp Vault</strong>, AWS Secrets Manager, or Azure Key Vault</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: API Security -->
+<div class="modal-overlay" id="modal-api" onclick="closeOnOverlay(event,'api')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('api')">✕</button>
+    <div class="modal-badge">Topic 08 · API Protection</div>
+    <h2 class="modal-title">⚡ API Security</h2>
+    <p class="modal-intro">APIs expose your business logic and data to the world. Every endpoint is a potential attack vector — authentication, rate limiting, input validation, and logging must all be enforced.</p>
+
+    <div class="modal-section">
+      <h3>Rate Limiter Demo</h3>
+      <div class="demo-box">
+        <div class="demo-title">Send API requests — watch the rate limit fill up</div>
+        <div class="rate-bar-wrap">
+          <div class="rate-label"><span>API Requests</span><span id="rateCount">0 / 10 per minute</span></div>
+          <div class="rate-bar"><div class="rate-fill" id="rateFill" style="width:0%"></div></div>
+        </div>
+        <div id="rateStatus" style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.75rem;">Click to send requests</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button class="demo-btn" onclick="sendRequest()">Send Request</button>
+          <button class="demo-btn neutral" onclick="sendBurst()">Burst x5</button>
+          <button class="demo-btn neutral" onclick="resetRate()">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Common API Attacks</h3>
+      <div style="display:grid;gap:0.5rem;">
+        <div style="padding:0.75rem 1rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:0.85rem;display:flex;gap:1rem;align-items:flex-start;">
+          <span style="color:var(--danger);font-size:1.2rem;flex-shrink:0">⚠</span>
+          <div><strong>Broken Authentication</strong><p style="color:var(--text-dim);font-size:0.78rem;margin-top:0.15rem">Missing or weak auth allows attackers to call endpoints as any user.</p></div>
+        </div>
+        <div style="padding:0.75rem 1rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:0.85rem;display:flex;gap:1rem;align-items:flex-start;">
+          <span style="color:var(--danger);font-size:1.2rem;flex-shrink:0">⚠</span>
+          <div><strong>Excessive Data Exposure</strong><p style="color:var(--text-dim);font-size:0.78rem;margin-top:0.15rem">Returning more fields than needed in API responses leaks sensitive data.</p></div>
+        </div>
+        <div style="padding:0.75rem 1rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:0.85rem;display:flex;gap:1rem;align-items:flex-start;">
+          <span style="color:var(--danger);font-size:1.2rem;flex-shrink:0">⚠</span>
+          <div><strong>Injection Attacks</strong><p style="color:var(--text-dim);font-size:0.78rem;margin-top:0.15rem">API parameters that accept unvalidated input are vulnerable to SQL/NoSQL injection.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Logging -->
+<div class="modal-overlay" id="modal-logging" onclick="closeOnOverlay(event,'logging')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('logging')">✕</button>
+    <div class="modal-badge">Topic 09 · Monitoring</div>
+    <h2 class="modal-title">📋 Logging</h2>
+    <p class="modal-intro">Logs are your security camera system. Without them, you can't detect attacks, investigate incidents, or prove compliance. But logs must never contain sensitive data like passwords.</p>
+
+    <div class="modal-section">
+      <h3>Live Log Stream</h3>
+      <div class="demo-box">
+        <div class="demo-title">Simulated security event log</div>
+        <div class="log-stream" id="logStream"></div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+          <button class="demo-btn" onclick="logEvent('login_success')">Log Login ✓</button>
+          <button class="demo-btn danger" onclick="logEvent('login_fail')">Log Failed Login ✗</button>
+          <button class="demo-btn neutral" onclick="logEvent('perm_change')">Log Perm Change</button>
+          <button class="demo-btn neutral" onclick="clearLog()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>What to Log (and What Not To)</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div>
+          <div style="font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--accent3);margin-bottom:0.5rem">✅ DO LOG</div>
+          <div style="display:grid;gap:0.35rem;">
+            <div style="font-size:0.8rem;color:var(--text-dim)">• Login attempts (success/fail)</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• Permission changes</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• API request IDs and status</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• Security events</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• System errors</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--danger);margin-bottom:0.5rem">❌ NEVER LOG</div>
+          <div style="display:grid;gap:0.35rem;">
+            <div style="font-size:0.8rem;color:var(--text-dim)">• Passwords (even hashed)</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• Full credit card numbers</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• Session tokens</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• Private keys</div>
+            <div style="font-size:0.8rem;color:var(--text-dim)">• PII beyond what's needed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Threat Modeling -->
+<div class="modal-overlay" id="modal-threat" onclick="closeOnOverlay(event,'threat')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('threat')">✕</button>
+    <div class="modal-badge">Topic 10 · Proactive Security</div>
+    <h2 class="modal-title">🎯 Threat Modeling</h2>
+    <p class="modal-intro">Threat modeling means thinking like an attacker <em>before</em> you deploy. Using structured frameworks like STRIDE, teams identify and mitigate threats during design — not after a breach.</p>
+
+    <div class="modal-section">
+      <h3>STRIDE Framework — Click Each Category</h3>
+      <div class="demo-box">
+        <div class="demo-title">Tap any letter to reveal the threat category and example</div>
+        <div class="stride-grid">
+          <div class="stride-item" onclick="flipStride(this,'Spoofing','Attacker pretends to be a legitimate user by forging identity (e.g., stealing a session token).')">
+            <div class="stride-letter">S</div><div class="stride-word">Spoofing</div>
+            <div class="stride-desc"></div>
+          </div>
+          <div class="stride-item" onclick="flipStride(this,'Tampering','Malicious modification of data — in transit or in storage (e.g., MITM attack altering a request).')">
+            <div class="stride-letter">T</div><div class="stride-word">Tampering</div>
+            <div class="stride-desc"></div>
+          </div>
+          <div class="stride-item" onclick="flipStride(this,'Repudiation','A user performs an action and later denies it. Without logs, you cannot prove what happened.')">
+            <div class="stride-letter">R</div><div class="stride-word">Repudiation</div>
+            <div class="stride-desc"></div>
+          </div>
+          <div class="stride-item" onclick="flipStride(this,'Info Disclosure','Sensitive data exposed to unauthorized parties (e.g., error messages revealing stack traces).')">
+            <div class="stride-letter">I</div><div class="stride-word">Info Disclosure</div>
+            <div class="stride-desc"></div>
+          </div>
+          <div class="stride-item" onclick="flipStride(this,'Denial of Service','Overwhelming a system so legitimate users cannot access it (e.g., DDoS, resource exhaustion).')">
+            <div class="stride-letter">D</div><div class="stride-word">Denial of Service</div>
+            <div class="stride-desc"></div>
+          </div>
+          <div class="stride-item" onclick="flipStride(this,'Elevation of Privilege','A low-privilege user gains high-privilege access (e.g., bypassing admin checks to access admin API).')">
+            <div class="stride-letter">E</div><div class="stride-word">Elevation of Privilege</div>
+            <div class="stride-desc"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Threat Modeling Steps</h3>
+      <div style="display:grid;gap:0.5rem;">
+        <div style="display:flex;gap:1rem;align-items:flex-start;padding:0.65rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent);min-width:24px;margin-top:0.1rem">01</span>
+          <div><strong>Identify Assets</strong> — What are you protecting? (data, services, reputation)</div>
+        </div>
+        <div style="display:flex;gap:1rem;align-items:flex-start;padding:0.65rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent);min-width:24px;margin-top:0.1rem">02</span>
+          <div><strong>Identify Threats</strong> — Apply STRIDE to each component</div>
+        </div>
+        <div style="display:flex;gap:1rem;align-items:flex-start;padding:0.65rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent);min-width:24px;margin-top:0.1rem">03</span>
+          <div><strong>Assess Risk</strong> — Likelihood × Impact = Priority</div>
+        </div>
+        <div style="display:flex;gap:1rem;align-items:flex-start;padding:0.65rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent);min-width:24px;margin-top:0.1rem">04</span>
+          <div><strong>Implement Mitigations</strong> — Add security controls per threat</div>
+        </div>
+        <div style="display:flex;gap:1rem;align-items:flex-start;padding:0.65rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent);min-width:24px;margin-top:0.1rem">05</span>
+          <div><strong>Review Regularly</strong> — Threats evolve as systems change</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SDLC -->
+<div class="modal-overlay" id="modal-sdlc" onclick="closeOnOverlay(event,'sdlc')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('sdlc')">✕</button>
+    <div class="modal-badge">Topic 11 · Process</div>
+    <h2 class="modal-title">🔄 Secure SDLC</h2>
+    <p class="modal-intro">Secure SDLC integrates security at every phase of software development. Fixing a vulnerability during design costs 10× less than fixing it after deployment — and 100× less than fixing it after a breach.</p>
+
+    <div class="modal-section">
+      <h3>Phase Explorer — Click to Expand</h3>
+      <div class="demo-box">
+        <div class="demo-title">Click each phase to see security activities</div>
+        <div class="sdlc-timeline">
+          <div class="sdlc-phase" onclick="toggleSDLC(this)">
+            <div class="sdlc-dot">●</div>
+            <div class="sdlc-phase-name">📋 1. Requirements</div>
+            <div class="sdlc-phase-detail">Identify security requirements and compliance needs (GDPR, PCI-DSS, HIPAA). Define security user stories: "As a user, my data must be encrypted at rest."</div>
+          </div>
+          <div class="sdlc-phase" onclick="toggleSDLC(this)">
+            <div class="sdlc-dot">●</div>
+            <div class="sdlc-phase-name">🎨 2. Design</div>
+            <div class="sdlc-phase-detail">Perform threat modeling (STRIDE). Define trust boundaries, authentication flows, and encryption strategies. Get security architecture reviewed before a line of code is written.</div>
+          </div>
+          <div class="sdlc-phase" onclick="toggleSDLC(this)">
+            <div class="sdlc-dot">●</div>
+            <div class="sdlc-phase-name">💻 3. Development</div>
+            <div class="sdlc-phase-detail">Apply secure coding standards. Use SAST tools (static analysis) in the IDE. Conduct peer code reviews with a security checklist. Validate all inputs, encode all outputs.</div>
+          </div>
+          <div class="sdlc-phase" onclick="toggleSDLC(this)">
+            <div class="sdlc-dot">●</div>
+            <div class="sdlc-phase-name">🧪 4. Testing</div>
+            <div class="sdlc-phase-detail">Run DAST (dynamic analysis), vulnerability scanning, and penetration testing. Test for OWASP Top 10. Fuzz inputs to find edge cases. Use automated security test suites in CI/CD.</div>
+          </div>
+          <div class="sdlc-phase" onclick="toggleSDLC(this)">
+            <div class="sdlc-dot">●</div>
+            <div class="sdlc-phase-name">🚀 5. Deployment</div>
+            <div class="sdlc-phase-detail">Harden server configurations. Enforce TLS, disable debug modes, set security headers. Use WAF (Web Application Firewall). Control secrets via vault, not environment files.</div>
+          </div>
+          <div class="sdlc-phase" onclick="toggleSDLC(this)">
+            <div class="sdlc-dot">●</div>
+            <div class="sdlc-phase-name">🔧 6. Maintenance</div>
+            <div class="sdlc-phase-detail">Apply patches promptly. Monitor logs for anomalies. Run incident response drills. Re-run threat modeling when adding major features. Track CVEs for all dependencies.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Cost of Fixing Bugs by Phase</h3>
+      <div style="display:grid;gap:0.5rem;">
+        <div class="rate-bar-wrap">
+          <div class="rate-label"><span>Requirements</span><span style="color:var(--accent3)">1× cost</span></div>
+          <div class="rate-bar"><div class="rate-fill" style="width:5%;background:var(--accent3)"></div></div>
+        </div>
+        <div class="rate-bar-wrap">
+          <div class="rate-label"><span>Design</span><span style="color:var(--accent3)">3× cost</span></div>
+          <div class="rate-bar"><div class="rate-fill" style="width:15%;background:var(--accent3)"></div></div>
+        </div>
+        <div class="rate-bar-wrap">
+          <div class="rate-label"><span>Development</span><span style="color:var(--accent)">10× cost</span></div>
+          <div class="rate-bar"><div class="rate-fill" style="width:35%;background:var(--accent)"></div></div>
+        </div>
+        <div class="rate-bar-wrap">
+          <div class="rate-label"><span>Testing</span><span style="color:var(--warn)">25× cost</span></div>
+          <div class="rate-bar"><div class="rate-fill" style="width:60%;background:var(--warn)"></div></div>
+        </div>
+        <div class="rate-bar-wrap">
+          <div class="rate-label"><span>Post-Deployment</span><span style="color:var(--danger)">100× cost</span></div>
+          <div class="rate-bar"><div class="rate-fill" style="width:100%;background:var(--danger)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Secure Application Design · Level 3 · Interactive Learning Platform
+</footer>
+
+<script>
+// ─── PARTICLES ───────────────────────────────────
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+for (let i = 0; i < 60; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    r: Math.random() * 1.5 + 0.5,
+    a: Math.random()
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0,229,255,${p.a * 0.5})`;
+    ctx.fill();
+  });
+  // Draw connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(0,229,255,${0.08 * (1 - dist/100)})`;
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ─── REVEAL ON SCROLL ───────────────────────────
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 100);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(r => observer.observe(r));
+
+// ─── MODAL SYSTEM ───────────────────────────────
+function openModal(id) {
+  document.getElementById('modal-' + id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (id === 'logging') startAutoLog();
+  if (id === 'session') resetSession();
+  if (id === 'encoding') renderXSS();
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('open');
+  document.body.style.overflow = '';
+  if (id === 'session') clearInterval(sessionTimer);
+  if (id === 'logging') clearInterval(autoLogTimer);
+}
+function closeOnOverlay(event, id) {
+  if (event.target === document.getElementById('modal-' + id)) closeModal(id);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => {
+      const id = m.id.replace('modal-', '');
+      closeModal(id);
+    });
+  }
+});
+
+// ─── TRUST BOUNDARY DEMO ────────────────────────
+const zoneInfo = {
+  external: { text: '🌐 Internet / Untrusted Zone: This is where users and attackers originate. ALL data from here must be validated, sanitized, and treated as potentially malicious. Never trust input from this zone automatically.', color: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' },
+  dmz: { text: '🖥️ Web Server / DMZ (Semi-Trusted): Acts as a buffer between public internet and private infrastructure. Performs initial validation, authentication, and forwards authorized requests to the backend.', color: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
+  internal: { text: '🗄️ Database / Internal Zone (Trusted): Contains sensitive data. Should NEVER be directly accessible from the internet. Access is tightly controlled via parameterized queries, authentication, and network segmentation.', color: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.3)' }
+};
+function highlightZone(zone) {
+  const info = zoneInfo[zone];
+  const el = document.getElementById('zoneInfo');
+  el.style.background = info.color;
+  el.style.borderColor = info.border;
+  el.textContent = info.text;
+}
+
+// ─── INPUT VALIDATION ───────────────────────────
+function validateEmail(el) {
+  const v = el.value, msg = document.getElementById('valEmailMsg');
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  el.className = 'demo-input ' + (v ? (ok ? 'valid' : 'invalid') : '');
+  msg.className = 'validation-msg ' + (ok ? 'msg-ok' : 'msg-err');
+  msg.textContent = !v ? '' : ok ? '✓ Valid email format' : '✗ Invalid email format';
+}
+function validateAge(el) {
+  const v = parseInt(el.value), msg = document.getElementById('valAgeMsg');
+  const isNum = !isNaN(v), inRange = v >= 18 && v <= 120;
+  el.className = 'demo-input ' + (el.value ? (isNum && inRange ? 'valid' : 'invalid') : '');
+  msg.className = 'validation-msg ' + (isNum && inRange ? 'msg-ok' : 'msg-err');
+  msg.textContent = !el.value ? '' : !isNum ? '✗ Must be a number' : !inRange ? '✗ Must be between 18 and 120' : '✓ Valid age';
+}
+function validateUsername(el) {
+  const v = el.value, msg = document.getElementById('valUserMsg');
+  const ok = /^[a-zA-Z0-9_]{3,20}$/.test(v);
+  el.className = 'demo-input ' + (v ? (ok ? 'valid' : 'invalid') : '');
+  msg.className = 'validation-msg ' + (ok ? 'msg-ok' : 'msg-err');
+  msg.textContent = !v ? '' : ok ? '✓ Valid username' : '✗ Only letters, numbers, _ allowed (3-20 chars)';
+}
+function validateSQL(el) {
+  const v = el.value, msg = document.getElementById('valSQLMsg');
+  const dangerous = /['";\\-]|DROP|SELECT|INSERT|UPDATE|DELETE|UNION|EXEC|xp_/i.test(v);
+  el.className = 'demo-input ' + (v ? (dangerous ? 'invalid' : 'valid') : '');
+  msg.className = 'validation-msg ' + (dangerous ? 'msg-err' : 'msg-ok');
+  msg.textContent = !v ? '' : dangerous ? '🚨 SQL Injection detected! Input REJECTED by server.' : '✓ No injection patterns detected';
+}
+
+// ─── XSS / OUTPUT ENCODING ──────────────────────
+let xssMode = 'unsafe';
+function switchXSS(mode, tab) {
+  xssMode = mode;
+  document.querySelectorAll('.xss-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderXSS();
+}
+function renderXSS() {
+  const input = document.getElementById('xssInput').value || "<script>alert('hacked')<\/script>";
+  const out = document.getElementById('xssOutput');
+  const exp = document.getElementById('xssExplanation');
+  if (xssMode === 'unsafe') {
+    out.innerHTML = `<span class="danger-code">// WITHOUT ENCODING — Dangerous characters passed as-is:</span>\n${input}`;
+    exp.innerHTML = `<span style="color:var(--danger)">⚠ UNSAFE:</span> The browser would interpret &lt;script&gt; tags and execute any JavaScript — allowing attackers to steal cookies, redirect users, or deface pages. This is Cross-Site Scripting (XSS).`;
+  } else {
+    const encoded = input.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+    out.innerHTML = `<span class="safe-code">// WITH OUTPUT ENCODING — Characters rendered as text:</span>\n${encoded}`;
+    exp.innerHTML = `<span style="color:var(--accent3)">✓ SAFE:</span> Special characters are converted to HTML entities. The browser displays them as plain text instead of executing them. The attack is neutralized completely.`;
+  }
+}
+
+// ─── SESSION SECURITY ───────────────────────────
+let sessionTimer = null;
+let sessionActive = false;
+let sessionExpiry = null;
+let sessionRevoked = false;
+function genSessionId() {
+  return 'sess_' + Array.from({length:32}, () => Math.random().toString(36)[2]).join('');
+}
+function resetSession() {
+  clearInterval(sessionTimer);
+  sessionActive = false;
+  document.getElementById('sessId').textContent = 'Not logged in';
+  document.getElementById('sessTimer').textContent = '—';
+  document.getElementById('sessStatus').className = 'session-status';
+  document.getElementById('sessLog').textContent = '';
+}
+function loginSession() {
+  clearInterval(sessionTimer);
+  sessionActive = true;
+  sessionRevoked = false;
+  const id = genSessionId();
+  sessionExpiry = Date.now() + 30000;
+  document.getElementById('sessId').textContent = id;
+  document.getElementById('sessStatus').className = 'session-status';
+  addSessLog(`✓ Session created: ${id.substring(0,20)}...`);
+  addSessLog('⏱ Expires in 30 seconds');
+  sessionTimer = setInterval(() => {
+    if (!sessionActive) { clearInterval(sessionTimer); return; }
+    const left = Math.max(0, Math.round((sessionExpiry - Date.now()) / 1000));
+    document.getElementById('sessTimer').textContent = left + 's';
+    if (left <= 0) {
+      document.getElementById('sessStatus').className = 'session-status expired';
+      document.getElementById('sessTimer').textContent = 'EXPIRED';
+      addSessLog('⚠ Session expired due to inactivity — user logged out');
+      sessionActive = false;
+      clearInterval(sessionTimer);
+    }
+  }, 500);
+}
+function regenerateSession() {
+  if (!sessionActive) { addSessLog('✗ No active session to regenerate'); return; }
+  const newId = genSessionId();
+  document.getElementById('sessId').textContent = newId;
+  sessionExpiry = Date.now() + 30000;
+  addSessLog(`↺ Session ID regenerated → ${newId.substring(0,20)}... (prevents fixation attacks)`);
+}
+function logoutSession() {
+  if (!sessionActive) { addSessLog('✗ No active session'); return; }
+  clearInterval(sessionTimer);
+  sessionActive = false;
+  document.getElementById('sessStatus').className = 'session-status expired';
+  document.getElementById('sessTimer').textContent = 'INVALID';
+  addSessLog('✗ Session invalidated server-side — logout complete');
+  document.getElementById('sessId').textContent = '[INVALIDATED]';
+}
+function addSessLog(msg) {
+  const el = document.getElementById('sessLog');
+  el.innerHTML += `<div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-dim);margin-bottom:0.15rem">${new Date().toLocaleTimeString()} — ${msg}</div>`;
+}
+
+// ─── AUTHENTICATION ──────────────────────────────
+let authStep = 1;
+const authStepData = [
+  { input: 'password', placeholder: 'Password: password123', validate: v => v === 'password123', hint: 'Hint: type "password123"' },
+  { input: 'text', placeholder: 'OTP Code: 123456', validate: v => v === '123456', hint: 'Hint: type "123456"' },
+  { input: 'text', placeholder: 'Biometric: scan', validate: v => v.toLowerCase() === 'scan', hint: 'Hint: type "scan"' }
+];
+function authNext() {
+  const input = document.getElementById('authPasswordInput');
+  const msg = document.getElementById('authMsg');
+  const data = authStepData[authStep - 1];
+  if (!data.validate(input.value)) {
+    msg.textContent = `✗ Incorrect — ${data.hint}`;
+    msg.style.color = 'var(--danger)';
+    return;
+  }
+  msg.textContent = '';
+  document.getElementById('authStep' + authStep).className = 'auth-step done';
+  authStep++;
+  if (authStep <= 3) {
+    document.getElementById('authStep' + authStep).className = 'auth-step active';
+    const next = authStepData[authStep - 1];
+    input.type = next.input; input.value = ''; input.placeholder = next.placeholder;
+    msg.textContent = `✓ Step ${authStep - 1} verified — proceed to step ${authStep}`;
+    msg.style.color = 'var(--accent3)';
+  } else {
+    document.getElementById('authStep4').className = 'auth-step done';
+    document.getElementById('authInputArea').innerHTML = '<div style="padding:1rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;color:var(--accent3);font-weight:600;text-align:center">🎉 Access Granted! All 3 factors verified.</div>';
+    authStep = 1;
+    setTimeout(() => {
+      ['authStep1','authStep2','authStep3','authStep4'].forEach(id => document.getElementById(id).className = 'auth-step');
+      document.getElementById('authStep1').className = 'auth-step active';
+      document.getElementById('authInputArea').innerHTML = '<input class="demo-input" id="authPasswordInput" type="password" placeholder="Password: password123" style="margin-bottom:0.75rem"><button class="demo-btn" onclick="authNext()">Submit →</button>';
+    }, 3000);
+  }
+}
+
+// ─── RBAC ───────────────────────────────────────
+let selectedRole = null;
+function selectRole(role) {
+  selectedRole = role;
+  ['admin','manager','employee','guest'].forEach(r => {
+    document.getElementById('role-' + r).classList.remove('selected');
+  });
+  document.getElementById('role-' + role).classList.add('selected');
+  document.getElementById('rbacResult').className = 'rbac-result';
+}
+function checkAccess() {
+  if (!selectedRole) { return; }
+  const result = document.getElementById('rbacResult');
+  const adminAccess = ['admin'];
+  if (adminAccess.includes(selectedRole)) {
+    result.className = 'rbac-result show granted';
+    result.textContent = `✓ Access Granted — "${selectedRole}" role has permission to manage users.`;
+  } else {
+    result.className = 'rbac-result show denied-msg';
+    result.textContent = `✗ Access Denied — "${selectedRole}" role does not have permission to access User Management. Requires: admin role.`;
+  }
+}
+
+// ─── SECRETS ────────────────────────────────────
+let secretRevoked = false;
+function rotateSecret() {
+  if (secretRevoked) { document.getElementById('secretStatus').textContent = '✗ Cannot rotate — secret has been revoked'; return; }
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const newKey = 'sk-live-' + Array.from({length:24}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  const el = document.getElementById('secretDisplay');
+  el.className = 'secret-value good-secret';
+  el.textContent = newKey + ' (rotated ' + new Date().toLocaleTimeString() + ')';
+  document.getElementById('secretStatus').textContent = '✓ New secret issued. Old secret invalidated. Rotation logged.';
+}
+function revokeSecret() {
+  secretRevoked = true;
+  const el = document.getElementById('secretDisplay');
+  el.className = 'secret-value bad-secret';
+  el.textContent = '[REVOKED — no longer valid]';
+  document.getElementById('secretStatus').textContent = '✗ Secret permanently revoked. All access using old key will fail.';
+}
+
+// ─── API RATE LIMITING ──────────────────────────
+let reqCount = 0;
+const maxReq = 10;
+function sendRequest() {
+  if (reqCount >= maxReq) {
+    document.getElementById('rateStatus').innerHTML = '<span style="color:var(--danger)">🚫 429 Too Many Requests — rate limit exceeded. Wait 60s.</span>';
+    return;
+  }
+  reqCount++;
+  updateRate();
+  document.getElementById('rateStatus').innerHTML = `<span style="color:var(--accent3)">✓ 200 OK — Request ${reqCount} processed successfully</span>`;
+}
+function sendBurst() {
+  for (let i = 0; i < 5; i++) setTimeout(sendRequest, i * 80);
+}
+function updateRate() {
+  const pct = (reqCount / maxReq) * 100;
+  const fill = document.getElementById('rateFill');
+  document.getElementById('rateCount').textContent = `${reqCount} / ${maxReq} per minute`;
+  fill.style.width = pct + '%';
+  fill.className = 'rate-fill' + (pct >= 100 ? ' danger' : pct >= 70 ? ' warn' : '');
+}
+function resetRate() {
+  reqCount = 0;
+  updateRate();
+  document.getElementById('rateStatus').textContent = 'Reset. Ready for requests.';
+}
+
+// ─── LOGGING ────────────────────────────────────
+let autoLogTimer;
+const users = ['admin', 'jsmith', 'msharma', 'klee', 'unknown'];
+const ips = ['192.168.1.10', '10.0.0.42', '45.67.89.100', '172.16.0.5'];
+function logEvent(type) {
+  const stream = document.getElementById('logStream');
+  const time = new Date().toISOString().replace('T',' ').substring(0,19);
+  const user = users[Math.floor(Math.random() * users.length)];
+  const ip = ips[Math.floor(Math.random() * ips.length)];
+  let line = '';
+  if (type === 'login_success') {
+    line = `<div class="log-line"><span class="log-time">${time}</span> | <span class="log-user">${user}</span> | <span class="log-action-ok">LOGIN_SUCCESS</span> | <span class="log-ip">${ip}</span></div>`;
+  } else if (type === 'login_fail') {
+    line = `<div class="log-line"><span class="log-time">${time}</span> | <span class="log-user">${user}</span> | <span class="log-action-fail">LOGIN_FAILED — INVALID PASSWORD</span> | <span class="log-ip">${ip}</span></div>`;
+  } else if (type === 'perm_change') {
+    line = `<div class="log-line"><span class="log-time">${time}</span> | <span class="log-user">admin</span> | <span style="color:var(--warn)">ROLE_CHANGED: ${user} → ADMIN</span> | <span class="log-ip">${ip}</span></div>`;
+  }
+  stream.innerHTML += line;
+  stream.scrollTop = stream.scrollHeight;
+}
+function clearLog() { document.getElementById('logStream').innerHTML = ''; }
+function startAutoLog() {
+  clearInterval(autoLogTimer);
+  const types = ['login_success', 'login_success', 'login_fail', 'perm_change', 'login_success', 'login_fail'];
+  let i = 0;
+  logEvent(types[i++ % types.length]);
+  autoLogTimer = setInterval(() => logEvent(types[i++ % types.length]), 2500);
+}
+
+// ─── THREAT MODELING / STRIDE ───────────────────
+function flipStride(el, word, desc) {
+  el.classList.toggle('flipped');
+  el.querySelector('.stride-desc').textContent = desc;
+}
+
+// ─── SDLC ───────────────────────────────────────
+function toggleSDLC(el) {
+  const isActive = el.classList.contains('active');
+  document.querySelectorAll('.sdlc-phase').forEach(p => p.classList.remove('active'));
+  if (!isActive) el.classList.add('active');
+}
+
+// ─── NAV ACTIVE STATE ───────────────────────────
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

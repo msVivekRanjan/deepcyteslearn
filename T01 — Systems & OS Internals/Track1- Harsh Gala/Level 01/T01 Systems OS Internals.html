@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T01 — Systems & OS Internals</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #181c27;
+    --card2: #1e2336;
+    --border: #2a3050;
+    --accent1: #6ee7f7;
+    --accent2: #a78bfa;
+    --accent3: #f9a8d4;
+    --accent4: #6efab3;
+    --accent5: #fcd34d;
+    --accent6: #fb923c;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* HEADER */
+  .hero {
+    background: linear-gradient(135deg, #0f1117 0%, #1a1040 50%, #0f1117 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 60px 40px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(110,231,247,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 30%, rgba(167,139,250,0.07) 0%, transparent 60%);
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(110,231,247,0.1);
+    border: 1px solid var(--accent1);
+    color: var(--accent1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 4px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* TOC */
+  .toc-wrap {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 24px;
+  }
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .toc h2 { font-size: 1rem; color: var(--accent5); font-family: 'JetBrains Mono', monospace; margin-bottom: 16px; letter-spacing: 1px; }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .toc-item {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toc-item:hover { color: var(--text); border-color: var(--accent1); background: rgba(110,231,247,0.05); }
+  .toc-item .num { color: var(--accent1); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+
+  /* MAIN */
+  .content { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* SECTION CARD */
+  .section {
+    margin-bottom: 48px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 24px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+  .section-header .sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .section-body { padding: 28px 32px; }
+
+  /* WHAT IS */
+  .what-is {
+    background: var(--card2);
+    border-left: 4px solid var(--accent1);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+  }
+  .what-is .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent1);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  /* ANALOGY */
+  .analogy {
+    background: rgba(249,168,212,0.06);
+    border: 1px dashed rgba(249,168,212,0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+  }
+  .analogy .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent3); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+
+  /* DIAGRAM */
+  .diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    color: #cdd9e5;
+  }
+
+  /* KEY POINTS */
+  .key-points { list-style: none; margin: 16px 0; }
+  .key-points li {
+    padding: 8px 0 8px 28px;
+    position: relative;
+    color: var(--text);
+    font-size: 0.95rem;
+    border-bottom: 1px solid rgba(42,48,80,0.5);
+  }
+  .key-points li:last-child { border-bottom: none; }
+  .key-points li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent4);
+  }
+
+  /* EXAMPLE BOX */
+  .example-box {
+    background: rgba(110,250,179,0.05);
+    border: 1px solid rgba(110,250,179,0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .example-box .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent4); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+
+  /* FUN FACT */
+  .fun-fact {
+    background: rgba(252,211,77,0.06);
+    border: 1px solid rgba(252,211,77,0.25);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  .fun-fact .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent5); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+
+  /* MINI TABLE */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.88rem; }
+  th { background: var(--card2); padding: 10px 14px; text-align: left; color: var(--accent2); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; border: 1px solid var(--border); }
+  td { padding: 10px 14px; border: 1px solid var(--border); color: var(--text); }
+  tr:hover td { background: rgba(167,139,250,0.04); }
+
+  /* COLOR TAGS per section */
+  .c1 { color: var(--accent1); } .bg1 { background: rgba(110,231,247,0.1); }
+  .c2 { color: var(--accent2); } .bg2 { background: rgba(167,139,250,0.1); }
+  .c3 { color: var(--accent3); } .bg3 { background: rgba(249,168,212,0.1); }
+  .c4 { color: var(--accent4); } .bg4 { background: rgba(110,250,179,0.1); }
+  .c5 { color: var(--accent5); } .bg5 { background: rgba(252,211,77,0.1); }
+  .c6 { color: var(--accent6); } .bg6 { background: rgba(251,146,60,0.1); }
+
+  h3 { font-size: 1rem; font-weight: 700; margin: 20px 0 10px; color: var(--accent2); }
+  p { margin-bottom: 12px; color: var(--text); font-size: 0.97rem; }
+  strong { color: var(--accent1); }
+
+  .tag { display: inline-block; font-size: 0.72rem; padding: 2px 10px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; margin-right: 6px; margin-bottom: 4px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media(max-width: 600px) { .two-col { grid-template-columns: 1fr; } .section-body { padding: 20px 18px; } .section-header { padding: 18px 20px; } }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">T01 · LEVEL 1</div>
+  <h1>Systems & OS Internals</h1>
+  <p>Computing Foundations — explained in simple words, with examples a 5th grader can understand 🚀</p>
+</div>
+
+<!-- TOC -->
+<div class="toc-wrap">
+  <div class="toc">
+    <h2>// TABLE OF CONTENTS</h2>
+    <div class="toc-grid">
+      <a href="#arch" class="toc-item"><span class="num">01</span> Computer Architecture</a>
+      <a href="#cpu" class="toc-item"><span class="num">02</span> CPU Fundamentals</a>
+      <a href="#memory" class="toc-item"><span class="num">03</span> Memory Fundamentals</a>
+      <a href="#storage" class="toc-item"><span class="num">04</span> Storage Systems</a>
+      <a href="#os" class="toc-item"><span class="num">05</span> Operating Systems</a>
+      <a href="#proc" class="toc-item"><span class="num">06</span> Processes & Threads</a>
+      <a href="#fs" class="toc-item"><span class="num">07</span> File Systems</a>
+      <a href="#boot" class="toc-item"><span class="num">08</span> System Boot Process</a>
+      <a href="#apps" class="toc-item"><span class="num">09</span> Applications & Services</a>
+      <a href="#virt" class="toc-item"><span class="num">10</span> Virtualization Basics</a>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- 01 COMPUTER ARCHITECTURE -->
+<div class="section" id="arch">
+  <div class="section-header">
+    <div class="section-icon bg1" style="border:1px solid rgba(110,231,247,0.3)">🏗️</div>
+    <div>
+      <h2 class="c1">01 · Computer Architecture</h2>
+      <div class="sub">How all the parts of a computer are organized and work together</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is">
+      <div class="label">// WHAT IS IT?</div>
+      Computer Architecture is the <strong>blueprint</strong> of a computer — it describes how all the parts (CPU, memory, storage, input/output) are connected and talk to each other.
+    </div>
+
+    <div class="analogy">
+      <div class="label">🍕 Real-Life Analogy</div>
+      Think of a computer like a <strong>pizza restaurant</strong>:<br>
+      • The <strong>Chef</strong> = CPU (does all the cooking/work)<br>
+      • The <strong>Kitchen Counter</strong> = RAM (holds ingredients currently being used)<br>
+      • The <strong>Storage Room</strong> = Hard Drive (stores all ingredients long-term)<br>
+      • The <strong>Menu Board</strong> = Input (tells the chef what to make)<br>
+      • The <strong>Pizza Box</strong> = Output (delivers the result to you)
+    </div>
+
+    <div class="diagram">
+┌─────────────────────────────────────────────────────┐
+│                   COMPUTER SYSTEM                   │
+│                                                     │
+│  ┌──────────────┐    ┌──────────────────────────┐   │
+│  │  INPUT       │───▶│        CPU               │   │
+│  │  Keyboard    │    │  (Brain - does work)     │   │
+│  │  Mouse       │    └────────────┬─────────────┘   │
+│  └──────────────┘                 │                 │
+│                                   │                 │
+│  ┌──────────────┐    ┌────────────▼─────────────┐   │
+│  │  OUTPUT      │◀───│        RAM               │   │
+│  │  Monitor     │    │  (Short-term memory)     │   │
+│  │  Speakers    │    └────────────┬─────────────┘   │
+│  └──────────────┘                 │                 │
+│                                   │                 │
+│                      ┌────────────▼─────────────┐   │
+│                      │     STORAGE (HDD/SSD)    │   │
+│                      │  (Long-term memory)      │   │
+│                      └──────────────────────────┘   │
+└─────────────────────────────────────────────────────┘</div>
+
+    <h3>Key Components</h3>
+    <table>
+      <tr><th>Part</th><th>What it does</th><th>Example</th></tr>
+      <tr><td>CPU</td><td>Executes instructions</td><td>Intel Core i7, AMD Ryzen</td></tr>
+      <tr><td>RAM</td><td>Temporary fast storage</td><td>8 GB, 16 GB</td></tr>
+      <tr><td>Storage</td><td>Permanent data storage</td><td>512 GB SSD</td></tr>
+      <tr><td>Motherboard</td><td>Connects everything</td><td>The main circuit board</td></tr>
+      <tr><td>GPU</td><td>Handles graphics</td><td>NVIDIA RTX 4090</td></tr>
+    </table>
+
+    <div class="fun-fact">
+      <div class="label">💡 Fun Fact</div>
+      The first computer (ENIAC, 1945) weighed <strong>30 tons</strong> and filled an entire room. Your smartphone today is <strong>1 million times more powerful</strong>!
+    </div>
+  </div>
+</div>
+
+<!-- 02 CPU -->
+<div class="section" id="cpu">
+  <div class="section-header">
+    <div class="section-icon bg2" style="border:1px solid rgba(167,139,250,0.3)">⚡</div>
+    <div>
+      <h2 class="c2">02 · CPU Fundamentals</h2>
+      <div class="sub">The brain of the computer — does all the calculations</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color: var(--accent2)">
+      <div class="label" style="color:var(--accent2)">// WHAT IS IT?</div>
+      CPU stands for <strong>Central Processing Unit</strong>. It's the chip that reads instructions and does the actual computing — math, decisions, moving data around.
+    </div>
+
+    <div class="analogy">
+      <div class="label">🧑‍🍳 Real-Life Analogy</div>
+      The CPU is like your <strong>brain</strong>. When you solve 5 + 3, your brain:<br>
+      1. <strong>Fetches</strong> the problem (reads "5 + 3")<br>
+      2. <strong>Decodes</strong> it (understands it's addition)<br>
+      3. <strong>Executes</strong> it (calculates the answer = 8)<br>
+      4. <strong>Stores</strong> the result (writes down 8)<br><br>
+      The CPU does the exact same 4 steps — billions of times per second!
+    </div>
+
+    <div class="diagram">
+        THE CPU FETCH-DECODE-EXECUTE CYCLE
+        ┌─────────────────────────────────────┐
+        │                                     │
+        │   1. FETCH                          │
+        │   "Get the next instruction          │
+        │    from memory"                     │
+        │         ↓                           │
+        │   2. DECODE                         │
+        │   "Figure out what the              │
+        │    instruction means"               │
+        │         ↓                           │
+        │   3. EXECUTE                        │
+        │   "Actually do the work             │
+        │    (add, compare, jump...)"         │
+        │         ↓                           │
+        │   4. WRITE BACK                     │
+        │   "Save the result"                 │
+        │         ↓                           │
+        │   ← repeat forever →               │
+        └─────────────────────────────────────┘
+
+  INSIDE A MODERN CPU:
+  ┌──────────────────────────────────────────┐
+  │  Core 1  │  Core 2  │  Core 3  │  Core 4 │  ← Each core is like
+  │  (works) │  (works) │  (works) │  (works)│    a separate worker
+  ├──────────────────────────────────────────┤
+  │              Cache Memory                │  ← Super fast scratch
+  │    L1 (tiny, fastest)                   │    pad inside the CPU
+  │    L2 (bigger, fast)                    │
+  │    L3 (biggest, still fast)             │
+  ├──────────────────────────────────────────┤
+  │           Control Unit                   │  ← Traffic cop
+  │           ALU (Arithmetic Logic Unit)   │  ← Calculator
+  └──────────────────────────────────────────┘</div>
+
+    <h3>Important Terms</h3>
+    <ul class="key-points">
+      <li><strong>Clock Speed (GHz)</strong> — How many cycles per second. 3 GHz = 3 billion cycles/sec. Faster = better.</li>
+      <li><strong>Cores</strong> — Each core is like a separate worker. More cores = do more things at once.</li>
+      <li><strong>Cache</strong> — Tiny, ultra-fast memory built inside the CPU to avoid slow trips to RAM.</li>
+      <li><strong>Threads</strong> — Each core can handle 2 threads (like having 2 hands per worker). 4 cores = 8 threads.</li>
+    </ul>
+
+    <div class="example-box">
+      <div class="label">✏️ Example</div>
+      When you open a browser and type a search:<br>
+      • CPU fetches your keystrokes → decodes them as text → processes the network request → renders the page<br>
+      All of that happens in <strong>milliseconds</strong>!
+    </div>
+  </div>
+</div>
+
+<!-- 03 MEMORY -->
+<div class="section" id="memory">
+  <div class="section-header">
+    <div class="section-icon bg3" style="border:1px solid rgba(249,168,212,0.3)">🧠</div>
+    <div>
+      <h2 class="c3">03 · Memory Fundamentals</h2>
+      <div class="sub">Where data lives while the computer is working</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color: var(--accent3)">
+      <div class="label" style="color:var(--accent3)">// WHAT IS IT?</div>
+      <strong>Memory (RAM)</strong> = Random Access Memory. It's the computer's short-term workspace — fast but temporary. When you turn off the computer, RAM is wiped clean.
+    </div>
+
+    <div class="analogy">
+      <div class="label">📚 Real-Life Analogy</div>
+      Think of memory like a <strong>desk</strong>:<br>
+      • <strong>RAM</strong> = the desk surface (you put stuff here while working, cleared when you go home)<br>
+      • <strong>Hard Drive</strong> = the filing cabinet (stores things permanently)<br>
+      • <strong>CPU Cache</strong> = your hand/pocket (closest, fastest to access)<br><br>
+      More RAM = bigger desk = work on more things at once!
+    </div>
+
+    <div class="diagram">
+  MEMORY HIERARCHY (from fastest to slowest):
+
+  ┌──────────────────────────────────────────────────────┐
+  │ SPEED ▲                               SIZE ▼         │
+  │                                                      │
+  │  ┌─────────────┐                                     │
+  │  │  REGISTERS  │  ← Fastest! Inside CPU core         │
+  │  │   (~1 ns)   │    Holds current instruction data   │
+  │  └──────┬──────┘    Very tiny (bytes)                │
+  │         │                                            │
+  │  ┌──────▼──────┐                                     │
+  │  │    CACHE    │  ← Still inside/near CPU            │
+  │  │ L1/L2/L3   │    Very fast (~2-10 ns)             │
+  │  │ (~1-16 MB) │    Stores recently used data        │
+  │  └──────┬──────┘                                     │
+  │         │                                            │
+  │  ┌──────▼──────┐                                     │
+  │  │     RAM     │  ← Your main memory                 │
+  │  │  (~100 ns)  │    8-32 GB typical                 │
+  │  │   8-64 GB  │    Clears on shutdown               │
+  │  └──────┬──────┘                                     │
+  │         │                                            │
+  │  ┌──────▼──────┐                                     │
+  │  │   STORAGE   │  ← Hard Drive / SSD                 │
+  │  │ (~1-10 ms) │    500 GB to several TB            │
+  │  │   Terabytes│    Permanent storage                │
+  │  └─────────────┘                                     │
+  └──────────────────────────────────────────────────────┘</div>
+
+    <div class="two-col">
+      <div class="example-box">
+        <div class="label">✅ RAM is fast because...</div>
+        It uses electricity to store data — no moving parts. Reading is near-instant.
+      </div>
+      <div class="example-box">
+        <div class="label">❌ RAM loses data because...</div>
+        It's "volatile" — it needs power to keep data. Turn off power → data gone!
+      </div>
+    </div>
+
+    <h3>How RAM Works</h3>
+    <p>RAM is like a giant grid of tiny switches. Each switch = 1 bit (0 or 1). A group of 8 bits = 1 byte. The CPU can jump directly to any address in RAM — that's why it's called <strong>Random Access</strong>.</p>
+
+    <div class="fun-fact">
+      <div class="label">💡 Fun Fact</div>
+      In 1981, Bill Gates said "640 KB ought to be enough for anybody." Today, a simple browser tab uses <strong>more than 640 KB</strong>!
+    </div>
+  </div>
+</div>
+
+<!-- 04 STORAGE -->
+<div class="section" id="storage">
+  <div class="section-header">
+    <div class="section-icon bg4" style="border:1px solid rgba(110,250,179,0.3)">💾</div>
+    <div>
+      <h2 class="c4">04 · Storage Systems</h2>
+      <div class="sub">Where data is kept permanently — even with power off</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color: var(--accent4)">
+      <div class="label" style="color:var(--accent4)">// WHAT IS IT?</div>
+      Storage stores data <strong>permanently</strong>. Your photos, games, documents — all live on storage. Unlike RAM, turning off power doesn't erase it.
+    </div>
+
+    <div class="analogy">
+      <div class="label">📦 Real-Life Analogy</div>
+      Storage is like a <strong>bookshelf or filing cabinet</strong>:<br>
+      • You put books (files) on the shelf when not reading them<br>
+      • When you need a book, you take it out (load into RAM) to read it<br>
+      • The books stay on the shelf even when you leave the room!
+    </div>
+
+    <h3>Types of Storage</h3>
+    <div class="diagram">
+  ┌──────────────────────────────────────────────────────┐
+  │    HDD — Hard Disk Drive                             │
+  │    ┌───────────────────┐                            │
+  │    │  🔄 Spinning disc │  ← Like a vinyl record     │
+  │    │  Magnetic needle  │  ← Reads/writes magnetically│
+  │    └───────────────────┘                            │
+  │    Speed: ~100-150 MB/s   Price: Cheap   Size: 1-8TB│
+  │    Good for: storing lots of data cheaply           │
+  ├──────────────────────────────────────────────────────┤
+  │    SSD — Solid State Drive                          │
+  │    ┌───────────────────┐                            │
+  │    │  ⚡ Flash chips   │  ← No moving parts!        │
+  │    │  Electric cells   │  ← Like USB drive, but fast│
+  │    └───────────────────┘                            │
+  │    Speed: ~500-7000 MB/s  Price: Moderate  Size:1-4TB│
+  │    Good for: OS, apps — blazing fast                │
+  ├──────────────────────────────────────────────────────┤
+  │    NVMe SSD — Fastest Consumer Storage              │
+  │    ┌───────────────────┐                            │
+  │    │  ⚡⚡ M.2 slot    │  ← Sits directly on        │
+  │    │  PCIe interface   │    motherboard!             │
+  │    └───────────────────┘                            │
+  │    Speed: ~3000-7000 MB/s  Much faster than SATA    │
+  └──────────────────────────────────────────────────────┘</div>
+
+    <table>
+      <tr><th>Type</th><th>Speed</th><th>Durability</th><th>Price</th><th>Best For</th></tr>
+      <tr><td>HDD</td><td>Slow</td><td>Fragile (moving parts)</td><td>Cheapest</td><td>Bulk data</td></tr>
+      <tr><td>SATA SSD</td><td>Fast</td><td>Very durable</td><td>Moderate</td><td>OS + Apps</td></tr>
+      <tr><td>NVMe SSD</td><td>Blazing</td><td>Very durable</td><td>Higher</td><td>Gaming, Pro work</td></tr>
+      <tr><td>USB Drive</td><td>Slow/Med</td><td>Portable</td><td>Cheap</td><td>Transferring files</td></tr>
+    </table>
+
+    <div class="example-box">
+      <div class="label">✏️ Example: Saving a Photo</div>
+      You take a photo → it's in RAM (temporary) → you click "Save" → the OS writes it to your storage drive → now it stays there forever, even after restart.
+    </div>
+  </div>
+</div>
+
+<!-- 05 OS -->
+<div class="section" id="os">
+  <div class="section-header">
+    <div class="section-icon bg5" style="border:1px solid rgba(252,211,77,0.3)">🖥️</div>
+    <div>
+      <h2 class="c5">05 · Operating Systems</h2>
+      <div class="sub">The manager software that runs everything</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color: var(--accent5)">
+      <div class="label" style="color:var(--accent5)">// WHAT IS IT?</div>
+      An <strong>Operating System (OS)</strong> is the master software that manages all hardware and software on a computer. It sits between your apps and the hardware, making sure everything works together.
+    </div>
+
+    <div class="analogy">
+      <div class="label">🏫 Real-Life Analogy</div>
+      The OS is like the <strong>principal of a school</strong>:<br>
+      • Students (apps) need resources (classrooms = CPU, paper = memory)<br>
+      • The principal (OS) assigns classrooms, manages schedules, resolves conflicts<br>
+      • Students don't directly grab classrooms — they ask the principal!
+    </div>
+
+    <div class="diagram">
+  THE OS LAYER MODEL:
+
+  ┌──────────────────────────────────────────────────┐
+  │              USER APPLICATIONS                   │
+  │    Browser   Word   Games   YouTube   etc.      │
+  ├──────────────────────────────────────────────────┤
+  │           OPERATING SYSTEM (OS)                  │
+  │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐ │
+  │  │ Process  │ │ Memory   │ │   File System    │ │
+  │  │ Manager  │ │ Manager  │ │   Manager        │ │
+  │  └──────────┘ └──────────┘ └──────────────────┘ │
+  │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐ │
+  │  │ Device   │ │ Network  │ │   Security &     │ │
+  │  │ Drivers  │ │ Stack    │ │   User Accounts  │ │
+  │  └──────────┘ └──────────┘ └──────────────────┘ │
+  ├──────────────────────────────────────────────────┤
+  │              HARDWARE                            │
+  │     CPU    RAM    Disk    Network    Display     │
+  └──────────────────────────────────────────────────┘</div>
+
+    <h3>Popular Operating Systems</h3>
+    <table>
+      <tr><th>OS</th><th>Made by</th><th>Used on</th><th>Famous for</th></tr>
+      <tr><td>Windows 11</td><td>Microsoft</td><td>PCs, Laptops</td><td>Most common desktop OS</td></tr>
+      <tr><td>macOS</td><td>Apple</td><td>Mac computers</td><td>Design, smooth UI</td></tr>
+      <tr><td>Linux</td><td>Community</td><td>Servers, Dev PCs</td><td>Free, open-source, powerful</td></tr>
+      <tr><td>Android</td><td>Google</td><td>Phones, Tablets</td><td>Most used mobile OS</td></tr>
+      <tr><td>iOS</td><td>Apple</td><td>iPhone, iPad</td><td>Smooth, secure</td></tr>
+    </table>
+
+    <h3>What Does the OS Do?</h3>
+    <ul class="key-points">
+      <li><strong>Process Management</strong> — runs apps, gives each app CPU time</li>
+      <li><strong>Memory Management</strong> — decides which app gets how much RAM</li>
+      <li><strong>File Management</strong> — organizes your files into folders on disk</li>
+      <li><strong>Device Drivers</strong> — talks to hardware (printer, keyboard, GPU)</li>
+      <li><strong>Security</strong> — controls who can access what (user accounts, permissions)</li>
+      <li><strong>Networking</strong> — manages internet connection, sending/receiving data</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 06 PROCESSES & THREADS -->
+<div class="section" id="proc">
+  <div class="section-header">
+    <div class="section-icon bg6" style="border:1px solid rgba(251,146,60,0.3)">⚙️</div>
+    <div>
+      <h2 class="c6">06 · Processes &amp; Threads</h2>
+      <div class="sub">How the OS runs multiple programs at the same time</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color: var(--accent6)">
+      <div class="label" style="color:var(--accent6)">// WHAT IS IT?</div>
+      A <strong>Process</strong> is a running program. A <strong>Thread</strong> is a smaller unit of work inside a process. One process can have many threads working at the same time.
+    </div>
+
+    <div class="analogy">
+      <div class="label">🍔 Real-Life Analogy</div>
+      Imagine a <strong>burger restaurant</strong>:<br>
+      • Each <strong>order</strong> = a Process (running instance of "make a burger")<br>
+      • Each <strong>worker</strong> on that order = a Thread (one grills patty, one toasts bun, one adds toppings)<br><br>
+      Multiple workers (threads) on one order (process) = faster burger!
+    </div>
+
+    <div class="diagram">
+  PROCESS vs THREAD:
+
+  ┌──────────────────────────────────────────────────────┐
+  │  PROCESS: Chrome Browser                            │
+  │  ┌─────────────────────────────────────────────┐   │
+  │  │  Own Memory Space  │  Own files  │  Own PID │   │
+  │  │  ┌──────────────────────────────────────┐   │   │
+  │  │  │  Thread 1: Rendering the webpage     │   │   │
+  │  │  ├──────────────────────────────────────┤   │   │
+  │  │  │  Thread 2: Downloading images        │   │   │
+  │  │  ├──────────────────────────────────────┤   │   │
+  │  │  │  Thread 3: Playing audio             │   │   │
+  │  │  └──────────────────────────────────────┘   │   │
+  │  │        (All threads share the same memory)  │   │
+  │  └─────────────────────────────────────────────┘   │
+  └──────────────────────────────────────────────────────┘
+
+  PROCESS STATES:
+  
+  NEW ──▶ READY ──▶ RUNNING ──▶ TERMINATED
+                ◀──         │
+                            ▼
+                          WAITING
+                    (waiting for input/disk)
+                            │
+                            ▼
+                          READY (again)</div>
+
+    <h3>Key Differences</h3>
+    <table>
+      <tr><th>Feature</th><th>Process</th><th>Thread</th></tr>
+      <tr><td>Memory</td><td>Own separate memory</td><td>Shares process memory</td></tr>
+      <tr><td>Creation time</td><td>Slow (heavy)</td><td>Fast (lightweight)</td></tr>
+      <tr><td>Communication</td><td>Complex (IPC needed)</td><td>Easy (shared memory)</td></tr>
+      <tr><td>Crash impact</td><td>Only that process dies</td><td>Can crash entire process</td></tr>
+      <tr><td>Example</td><td>Opening Chrome</td><td>Each Chrome tab</td></tr>
+    </table>
+
+    <div class="example-box">
+      <div class="label">✏️ Example: Playing a Game</div>
+      When you play Minecraft:<br>
+      • <strong>Process</strong>: The entire Minecraft app<br>
+      • <strong>Thread 1</strong>: Rendering graphics (drawing the world)<br>
+      • <strong>Thread 2</strong>: Playing background music<br>
+      • <strong>Thread 3</strong>: Saving your world to disk<br>
+      All happening simultaneously!
+    </div>
+  </div>
+</div>
+
+<!-- 07 FILE SYSTEMS -->
+<div class="section" id="fs">
+  <div class="section-header">
+    <div class="section-icon bg1" style="border:1px solid rgba(110,231,247,0.3)">📁</div>
+    <div>
+      <h2 class="c1">07 · File Systems</h2>
+      <div class="sub">How the OS organizes and finds data on storage</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is">
+      <div class="label">// WHAT IS IT?</div>
+      A <strong>File System</strong> is the method the OS uses to organize, store, find, and manage files on a disk. Without it, data would just be a sea of random 0s and 1s with no structure.
+    </div>
+
+    <div class="analogy">
+      <div class="label">🗄️ Real-Life Analogy</div>
+      A file system is like a <strong>library catalog system</strong>:<br>
+      • <strong>Files</strong> = individual books<br>
+      • <strong>Folders/Directories</strong> = shelves and sections<br>
+      • <strong>File System</strong> = the catalog that tells you where every book is<br>
+      Without the catalog, finding a book would mean searching every shelf randomly!
+    </div>
+
+    <div class="diagram">
+  FILE SYSTEM TREE STRUCTURE:
+
+  /  (Root directory — the very top)
+  │
+  ├── /home/
+  │     ├── /alice/
+  │     │     ├── Documents/
+  │     │     │     ├── essay.docx
+  │     │     │     └── notes.txt
+  │     │     ├── Pictures/
+  │     │     │     ├── vacation.jpg
+  │     │     │     └── cat.png
+  │     │     └── Downloads/
+  │     └── /bob/
+  │
+  ├── /etc/           ← System config files
+  ├── /var/           ← Variable data (logs)
+  └── /usr/           ← Programs & utilities
+
+  Each file has METADATA stored with it:
+  ┌────────────────────────────────────────┐
+  │  essay.docx                           │
+  │  Size: 45 KB                          │
+  │  Created: 2024-01-15                  │
+  │  Modified: 2024-03-22                 │
+  │  Owner: alice                         │
+  │  Permissions: -rw-r--r--             │
+  │  Location on disk: block #48291       │
+  └────────────────────────────────────────┘</div>
+
+    <h3>Common File Systems</h3>
+    <table>
+      <tr><th>File System</th><th>Used by</th><th>Max file size</th></tr>
+      <tr><td>NTFS</td><td>Windows</td><td>16 EB (huge!)</td></tr>
+      <tr><td>ext4</td><td>Linux</td><td>16 TB</td></tr>
+      <tr><td>APFS</td><td>macOS</td><td>8 EB</td></tr>
+      <tr><td>FAT32</td><td>USB drives</td><td>4 GB limit</td></tr>
+      <tr><td>exFAT</td><td>USB/SD cards</td><td>128 PB</td></tr>
+    </table>
+
+    <div class="fun-fact">
+      <div class="label">💡 Fun Fact</div>
+      When you "delete" a file, the OS doesn't erase the data immediately — it just removes the catalog entry! The data stays until overwritten. That's why file recovery software works!
+    </div>
+  </div>
+</div>
+
+<!-- 08 BOOT PROCESS -->
+<div class="section" id="boot">
+  <div class="section-header">
+    <div class="section-icon bg2" style="border:1px solid rgba(167,139,250,0.3)">🚀</div>
+    <div>
+      <h2 class="c2">08 · System Boot Process</h2>
+      <div class="sub">What happens from pressing power button to the desktop appearing</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color:var(--accent2)">
+      <div class="label" style="color:var(--accent2)">// WHAT IS IT?</div>
+      <strong>Booting</strong> is the process of starting a computer from zero — loading the OS into RAM so it's ready to use. From the moment you press the power button to when you see the desktop, a LOT happens in seconds!
+    </div>
+
+    <div class="analogy">
+      <div class="label">☕ Real-Life Analogy</div>
+      Booting is like <strong>opening a restaurant in the morning</strong>:<br>
+      1. Unlock the door (Power ON)<br>
+      2. Check everything works — ovens, fridges (POST: hardware test)<br>
+      3. Get the recipe book (load BIOS/UEFI)<br>
+      4. Hire the staff for the day (load OS kernel)<br>
+      5. Set up all the stations (load drivers & services)<br>
+      6. Open for customers (Login screen!)
+    </div>
+
+    <div class="diagram">
+  BOOT SEQUENCE — STEP BY STEP:
+
+  ┌────────────────────────────────────────────────────┐
+  │  1. POWER ON                                       │
+  │     Electricity flows to motherboard               │
+  │                    ↓                               │
+  │  2. POST (Power-On Self Test)                      │
+  │     CPU tests: RAM ✓  Keyboard ✓  GPU ✓           │
+  │     "Is all hardware working?"                     │
+  │     (That beep you hear = POST complete)           │
+  │                    ↓                               │
+  │  3. BIOS / UEFI                                    │
+  │     Firmware stored on motherboard chip            │
+  │     Finds bootable device (SSD, USB, etc.)         │
+  │     Looks for the bootloader                       │
+  │                    ↓                               │
+  │  4. BOOTLOADER (e.g. GRUB on Linux)               │
+  │     Small program that loads the OS               │
+  │     May show menu to choose which OS              │
+  │                    ↓                               │
+  │  5. OS KERNEL LOADS                               │
+  │     Core of the OS loads into RAM                 │
+  │     Sets up memory management, processes          │
+  │                    ↓                               │
+  │  6. INIT / systemd (Linux) or WinInit (Windows)  │
+  │     Starts all background services               │
+  │     Network, audio, display manager...            │
+  │                    ↓                               │
+  │  7. LOGIN SCREEN / DESKTOP                        │
+  │     Ready to use! 🎉                              │
+  └────────────────────────────────────────────────────┘</div>
+
+    <h3>BIOS vs UEFI</h3>
+    <table>
+      <tr><th>Feature</th><th>BIOS (Old)</th><th>UEFI (New)</th></tr>
+      <tr><td>Speed</td><td>Slower boot</td><td>Faster boot</td></tr>
+      <tr><td>Disk size support</td><td>Max 2 TB</td><td>Over 9 ZB</td></tr>
+      <tr><td>Interface</td><td>Text only</td><td>Mouse + GUI</td></tr>
+      <tr><td>Security</td><td>Basic</td><td>Secure Boot</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 09 APPLICATIONS & SERVICES -->
+<div class="section" id="apps">
+  <div class="section-header">
+    <div class="section-icon bg3" style="border:1px solid rgba(249,168,212,0.3)">📱</div>
+    <div>
+      <h2 class="c3">09 · Applications &amp; Services</h2>
+      <div class="sub">The programs you use and the background workers keeping things running</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color:var(--accent3)">
+      <div class="label" style="color:var(--accent3)">// WHAT IS IT?</div>
+      <strong>Applications</strong> are programs users interact with (browser, games, Word). <strong>Services</strong> (or daemons on Linux) are background programs that run silently to keep the system working — like Wi-Fi management, print spooler, antivirus, etc.
+    </div>
+
+    <div class="analogy">
+      <div class="label">🏨 Real-Life Analogy</div>
+      Think of a hotel:<br>
+      • <strong>Applications</strong> = guests using the rooms (visible, interactive)<br>
+      • <strong>Services</strong> = hotel staff working behind the scenes: housekeeping, front desk, security, chef — running 24/7 so guests have a good experience!
+    </div>
+
+    <div class="diagram">
+  APPLICATION vs SERVICE:
+
+  FOREGROUND (you interact):        BACKGROUND (invisible workers):
+  ┌──────────────────────┐          ┌──────────────────────────┐
+  │  Chrome Browser      │          │  Wi-Fi Manager           │
+  │  VS Code             │          │  Windows Update          │
+  │  Spotify             │          │  Antivirus Scanner       │
+  │  Discord             │          │  Print Spooler           │
+  │  Notepad             │          │  Clock Sync (NTP)        │
+  │  Calculator          │          │  SSH Daemon              │
+  └──────────────────────┘          └──────────────────────────┘
+
+  APPLICATION LAYERS:
+  ┌──────────────────────────────────────────────┐
+  │          User Interface (what you see)       │
+  ├──────────────────────────────────────────────┤
+  │          Application Logic (how it works)    │
+  ├──────────────────────────────────────────────┤
+  │          System APIs (talks to OS)           │
+  ├──────────────────────────────────────────────┤
+  │          Operating System                    │
+  ├──────────────────────────────────────────────┤
+  │          Hardware                            │
+  └──────────────────────────────────────────────┘</div>
+
+    <h3>Types of Applications</h3>
+    <ul class="key-points">
+      <li><strong>Native Apps</strong> — Built for a specific OS (e.g., .exe for Windows, .app for macOS)</li>
+      <li><strong>Web Apps</strong> — Run in a browser (Google Docs, Gmail, YouTube)</li>
+      <li><strong>Mobile Apps</strong> — For phones (Instagram, Maps, WhatsApp)</li>
+      <li><strong>System Apps</strong> — Part of the OS (File Explorer, Terminal, Task Manager)</li>
+    </ul>
+
+    <div class="example-box">
+      <div class="label">✏️ Example: Services on Your PC Right Now</div>
+      Open Task Manager → Services tab on Windows. You'll see dozens of services like:<br>
+      • <strong>Spooler</strong> — manages printing<br>
+      • <strong>DHCP Client</strong> — gets your IP address from router<br>
+      • <strong>Windows Defender</strong> — scans for viruses in background
+    </div>
+  </div>
+</div>
+
+<!-- 10 VIRTUALIZATION -->
+<div class="section" id="virt">
+  <div class="section-header">
+    <div class="section-icon bg4" style="border:1px solid rgba(110,250,179,0.3)">🪄</div>
+    <div>
+      <h2 class="c4">10 · Virtualization Basics</h2>
+      <div class="sub">Running multiple computers inside one computer</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="what-is" style="border-color:var(--accent4)">
+      <div class="label" style="color:var(--accent4)">// WHAT IS IT?</div>
+      <strong>Virtualization</strong> lets you run multiple operating systems on one physical machine at the same time. Each one thinks it has its own hardware — but they're all sharing the real hardware underneath.
+    </div>
+
+    <div class="analogy">
+      <div class="label">🏢 Real-Life Analogy</div>
+      Imagine one big building (physical computer) divided into <strong>separate apartments</strong> (virtual machines):<br>
+      • Each apartment has its own door, kitchen, bedroom (OS, apps, files)<br>
+      • The tenants don't know they're sharing walls, pipes, electricity (CPU, RAM, disk)<br>
+      • The <strong>building manager (Hypervisor)</strong> controls everything and keeps them separate!
+    </div>
+
+    <div class="diagram">
+  WITHOUT VIRTUALIZATION:         WITH VIRTUALIZATION:
+  ┌──────────────────┐            ┌──────────────────────────────┐
+  │   Windows OS     │            │  VM 1: Windows  VM 2: Linux  │
+  │   (only one OS)  │            │  ┌─────────┐  ┌──────────┐  │
+  │                  │            │  │ Apps    │  │  Apps    │  │
+  ├──────────────────┤            │  │ Windows │  │  Linux   │  │
+  │   Hardware       │            │  └─────────┘  └──────────┘  │
+  │   CPU / RAM      │            ├──────────────────────────────┤
+  │   Disk / GPU     │            │    HYPERVISOR (Manager)      │
+  └──────────────────┘            │  (VMware / VirtualBox / KVM) │
+                                  ├──────────────────────────────┤
+                                  │   Physical Hardware          │
+                                  │   ONE real CPU, RAM, Disk    │
+                                  └──────────────────────────────┘
+
+  TYPES OF HYPERVISORS:
+  ┌────────────────────────────────────────────────────┐
+  │  TYPE 1 — Bare Metal (Direct on hardware)          │
+  │  Hardware → Hypervisor → VMs                       │
+  │  Examples: VMware ESXi, Microsoft Hyper-V          │
+  │  Used in: Data centers, cloud servers              │
+  │  Very fast, very efficient                         │
+  ├────────────────────────────────────────────────────┤
+  │  TYPE 2 — Hosted (Runs on top of an OS)            │
+  │  Hardware → Host OS → Hypervisor → VMs             │
+  │  Examples: VirtualBox, VMware Workstation          │
+  │  Used in: Developers, students, testing            │
+  │  Easy to use, slightly slower                      │
+  └────────────────────────────────────────────────────┘</div>
+
+    <h3>Containers vs VMs</h3>
+    <table>
+      <tr><th>Feature</th><th>Virtual Machine (VM)</th><th>Container (Docker)</th></tr>
+      <tr><td>What it includes</td><td>Full OS + Apps</td><td>App + dependencies only</td></tr>
+      <tr><td>Size</td><td>GBs</td><td>MBs</td></tr>
+      <tr><td>Start time</td><td>Minutes</td><td>Seconds</td></tr>
+      <tr><td>Isolation</td><td>Very strong</td><td>Process-level</td></tr>
+      <tr><td>Use case</td><td>Run different OS</td><td>Deploy apps fast</td></tr>
+    </table>
+
+    <h3>Why Virtualization Matters</h3>
+    <ul class="key-points">
+      <li><strong>Cloud Computing</strong> — AWS, Azure, GCP are just millions of VMs on massive hardware</li>
+      <li><strong>Cost savings</strong> — One server does the job of 10 (less hardware needed)</li>
+      <li><strong>Testing</strong> — Developers test on VMs without risking their main system</li>
+      <li><strong>Snapshots</strong> — Save VM state like a game save — restore anytime!</li>
+    </ul>
+
+    <div class="fun-fact">
+      <div class="label">💡 Fun Fact</div>
+      When you use AWS, Google Cloud, or Azure — you're renting a <strong>Virtual Machine</strong> running inside a massive data center. The physical server might be shared by hundreds of different customers simultaneously!
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center; padding: 40px 0 20px; color: var(--muted); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border); margin-top: 20px;">
+  T01 · Systems & OS Internals · Level 1 — Computing Foundations<br>
+  <span style="color:var(--accent2)">10 topics covered · Internship Study Notes</span>
+</div>
+
+</div><!-- end .content -->
+</body>
+</html>

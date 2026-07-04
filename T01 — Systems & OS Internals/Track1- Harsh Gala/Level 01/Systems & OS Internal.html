@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberLearn – Systems & OS Internals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+============================================================ */
+:root {
+  --bg: #0B1020;
+  --bg2: #0f1628;
+  --card: #151B2F;
+  --card2: #1a2240;
+  --primary: #00D9FF;
+  --secondary: #7C4DFF;
+  --accent: #00FFB3;
+  --warn: #FF6B35;
+  --text: #FFFFFF;
+  --text2: #8B9DC3;
+  --border: rgba(0,217,255,0.15);
+  --glow: 0 0 20px rgba(0,217,255,0.3);
+  --glow2: 0 0 20px rgba(124,77,255,0.3);
+  --radius: 16px;
+  --sidebar-w: 260px;
+  --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.light-mode {
+  --bg: #F0F4FF;
+  --bg2: #E8EEFF;
+  --card: #FFFFFF;
+  --card2: #F5F7FF;
+  --text: #0B1020;
+  --text2: #4A5568;
+  --border: rgba(0,100,200,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;transition:background var(--transition),color var(--transition)}
+button{cursor:pointer;border:none;font-family:inherit}
+a{text-decoration:none;color:inherit}
+input,select{font-family:inherit}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+
+/* ============================================================
+   TYPOGRAPHY
+============================================================ */
+h1,h2,h3,h4{font-family:'Syne',sans-serif;line-height:1.15}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ============================================================
+   LAYOUT
+============================================================ */
+.layout{display:flex;min-height:100vh}
+.sidebar{
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:var(--card);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;
+  transform:translateX(0);transition:transform var(--transition);
+  overflow-y:auto;
+}
+.main-content{margin-left:var(--sidebar-w);flex:1;min-height:100vh}
+
+/* ============================================================
+   SIDEBAR
+============================================================ */
+.sidebar-logo{
+  padding:24px 20px 16px;border-bottom:1px solid var(--border);
+}
+.logo-text{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--primary)}
+.logo-sub{font-size:.7rem;color:var(--text2);letter-spacing:2px;text-transform:uppercase}
+
+.sidebar-xp{padding:16px 20px;border-bottom:1px solid var(--border)}
+.xp-label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;justify-content:space-between}
+.xp-bar-bg{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:3px;transition:width 0.6s ease;width:0%}
+.xp-stats{display:flex;gap:12px;margin-top:10px}
+.xp-stat{flex:1;background:var(--bg2);border-radius:8px;padding:8px;text-align:center}
+.xp-stat-val{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--primary)}
+.xp-stat-lbl{font-size:.6rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+
+.sidebar-nav{flex:1;padding:12px 0}
+.nav-section-label{font-size:.65rem;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;padding:8px 20px 4px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 20px;
+  font-size:.85rem;color:var(--text2);cursor:pointer;
+  transition:all var(--transition);border-left:3px solid transparent;
+  position:relative;
+}
+.nav-item:hover{color:var(--text);background:var(--card2)}
+.nav-item.active{color:var(--primary);background:rgba(0,217,255,0.08);border-left-color:var(--primary)}
+.nav-item.locked{opacity:.4;cursor:not-allowed}
+.nav-item.completed .nav-check{display:flex}
+.nav-check{
+  display:none;width:18px;height:18px;background:var(--accent);border-radius:50%;
+  align-items:center;justify-content:center;font-size:.6rem;color:#000;margin-left:auto;flex-shrink:0;
+}
+.nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-num{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--text2);margin-left:auto;flex-shrink:0}
+
+.sidebar-bottom{padding:16px 20px;border-top:1px solid var(--border)}
+.theme-toggle{
+  width:100%;padding:10px;border-radius:10px;
+  background:var(--card2);color:var(--text2);font-size:.8rem;
+  display:flex;align-items:center;gap:8px;justify-content:center;
+  transition:all var(--transition);
+}
+.theme-toggle:hover{color:var(--primary);border:1px solid var(--border)}
+.menu-btn{
+  display:none;position:fixed;top:16px;left:16px;z-index:200;
+  width:42px;height:42px;background:var(--card);border-radius:10px;
+  border:1px solid var(--border);color:var(--text);font-size:1.2rem;
+  align-items:center;justify-content:center;
+}
+
+/* ============================================================
+   HERO SECTION
+============================================================ */
+.hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;padding:80px 40px;
+  background:radial-gradient(ellipse at 20% 50%, rgba(0,217,255,0.08) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 20%, rgba(124,77,255,0.08) 0%, transparent 60%),
+             var(--bg);
+}
+.hero-bg-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,217,255,0.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,217,255,0.04) 1px,transparent 1px);
+  background-size:50px 50px;
+  animation:gridMove 20s linear infinite;
+}
+@keyframes gridMove{0%{transform:translate(0,0)}100%{transform:translate(50px,50px)}}
+.hero-orbs{position:absolute;inset:0;pointer-events:none}
+.orb{
+  position:absolute;border-radius:50%;filter:blur(60px);animation:float 6s ease-in-out infinite;
+}
+.orb1{width:300px;height:300px;background:rgba(0,217,255,0.12);top:10%;left:10%;animation-delay:0s}
+.orb2{width:250px;height:250px;background:rgba(124,77,255,0.12);top:40%;right:15%;animation-delay:2s}
+.orb3{width:200px;height:200px;background:rgba(0,255,179,0.08);bottom:20%;left:30%;animation-delay:4s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+
+.hero-content{position:relative;z-index:1;text-align:center;max-width:780px}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,217,255,0.1);border:1px solid rgba(0,217,255,0.3);
+  border-radius:100px;padding:8px 20px;font-size:.8rem;color:var(--primary);
+  margin-bottom:28px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;
+  animation:fadeInDown .8s ease both;
+}
+.badge-dot{width:6px;height:6px;background:var(--primary);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{
+  font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;
+  background:linear-gradient(135deg,#fff 30%,var(--primary) 70%,var(--secondary) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:20px;animation:fadeInDown .8s .1s ease both;
+}
+.hero-subtitle{
+  font-size:1.1rem;color:var(--text2);max-width:560px;margin:0 auto 40px;
+  line-height:1.7;animation:fadeInDown .8s .2s ease both;
+}
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;animation:fadeInDown .8s .3s ease both}
+.btn-primary{
+  padding:14px 32px;background:var(--primary);color:#000;
+  border-radius:12px;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;
+  transition:all var(--transition);box-shadow:0 0 30px rgba(0,217,255,0.3);letter-spacing:.5px;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(0,217,255,0.5)}
+.btn-secondary{
+  padding:14px 32px;background:transparent;color:var(--text);
+  border-radius:12px;font-family:'Syne',sans-serif;font-weight:600;font-size:.95rem;
+  border:1px solid var(--border);transition:all var(--transition);
+}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary);background:rgba(0,217,255,0.05)}
+
+.hero-floating-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.fi{
+  position:absolute;font-size:1.5rem;opacity:.15;animation:floatRandom 8s ease-in-out infinite;
+}
+@keyframes floatRandom{0%,100%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(10px,-15px) rotate(5deg)}75%{transform:translate(-10px,10px) rotate(-5deg)}}
+.fi:nth-child(1){top:15%;left:8%;animation-delay:0s}
+.fi:nth-child(2){top:60%;left:5%;animation-delay:1s}
+.fi:nth-child(3){top:25%;right:8%;animation-delay:2s}
+.fi:nth-child(4){top:70%;right:10%;animation-delay:3s}
+.fi:nth-child(5){top:85%;left:20%;animation-delay:1.5s}
+.fi:nth-child(6){top:10%;right:30%;animation-delay:2.5s}
+.fi:nth-child(7){top:50%;left:15%;animation-delay:.5s}
+.fi:nth-child(8){top:35%;right:25%;animation-delay:3.5s}
+
+/* ============================================================
+   SECTIONS
+============================================================ */
+.section{padding:80px 48px;max-width:1100px;margin:0 auto}
+.section-header{margin-bottom:48px}
+.section-tag{
+  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.75rem;
+  color:var(--primary);letter-spacing:2px;text-transform:uppercase;
+  background:rgba(0,217,255,0.1);padding:4px 12px;border-radius:100px;margin-bottom:12px;
+}
+.section-title{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;margin-bottom:12px}
+.section-sub{color:var(--text2);font-size:1rem;max-width:560px;line-height:1.7}
+.gradient-text{
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* ============================================================
+   ROADMAP
+============================================================ */
+.roadmap{padding:80px 48px;background:var(--bg2)}
+.roadmap-inner{max-width:900px;margin:0 auto}
+.roadmap-grid{display:grid;grid-template-columns:1fr;gap:0;position:relative;margin-top:40px}
+.roadmap-line{
+  position:absolute;left:28px;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,var(--primary),var(--secondary),var(--accent));
+  opacity:.3;
+}
+.roadmap-item{
+  display:flex;gap:24px;align-items:flex-start;padding:16px 0;
+  cursor:pointer;transition:all var(--transition);
+}
+.roadmap-item:hover .rm-card{border-color:var(--primary);box-shadow:var(--glow)}
+.rm-node{
+  width:56px;height:56px;border-radius:50%;background:var(--card);
+  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;flex-shrink:0;position:relative;z-index:1;transition:all var(--transition);
+}
+.roadmap-item.completed .rm-node{border-color:var(--accent);box-shadow:0 0 15px rgba(0,255,179,0.4)}
+.roadmap-item.active .rm-node{border-color:var(--primary);box-shadow:0 0 15px rgba(0,217,255,0.4);animation:nodePulse 2s infinite}
+@keyframes nodePulse{0%,100%{box-shadow:0 0 15px rgba(0,217,255,0.4)}50%{box-shadow:0 0 30px rgba(0,217,255,0.7)}}
+.rm-card{
+  flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:16px 20px;transition:all var(--transition);
+}
+.rm-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:4px}
+.rm-desc{font-size:.82rem;color:var(--text2);line-height:1.5}
+.rm-status{
+  display:inline-flex;align-items:center;gap:6px;font-size:.7rem;
+  font-family:'JetBrains Mono',monospace;margin-top:8px;padding:3px 10px;border-radius:100px;
+}
+.rm-status.done{background:rgba(0,255,179,0.1);color:var(--accent)}
+.rm-status.active{background:rgba(0,217,255,0.1);color:var(--primary)}
+.rm-status.locked{background:rgba(255,255,255,0.05);color:var(--text2)}
+
+/* ============================================================
+   TOPIC CARDS GRID
+============================================================ */
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:40px}
+.module-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;cursor:pointer;transition:all var(--transition);
+  position:relative;overflow:hidden;
+}
+.module-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--primary),var(--secondary));opacity:0;
+  transition:opacity var(--transition);
+}
+.module-card:hover{border-color:var(--primary);transform:translateY(-4px);box-shadow:var(--glow)}
+.module-card:hover::before{opacity:1}
+.module-card.completed{border-color:rgba(0,255,179,0.3)}
+.module-card.completed::before{opacity:1;background:linear-gradient(90deg,var(--accent),var(--primary))}
+.module-card.locked{opacity:.5;cursor:not-allowed}
+.mc-icon{font-size:2rem;margin-bottom:16px}
+.mc-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text2);margin-bottom:6px}
+.mc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:8px}
+.mc-desc{font-size:.82rem;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.mc-footer{display:flex;align-items:center;justify-content:space-between}
+.mc-xp{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--primary)}
+.mc-status{font-size:.75rem;padding:4px 10px;border-radius:100px;font-family:'JetBrains Mono',monospace}
+.mc-status.done{background:rgba(0,255,179,0.1);color:var(--accent)}
+.mc-status.available{background:rgba(0,217,255,0.1);color:var(--primary)}
+.mc-status.locked{background:rgba(255,255,255,0.05);color:var(--text2)}
+
+/* ============================================================
+   ACHIEVEMENTS
+============================================================ */
+.achievements-section{padding:80px 48px;background:var(--bg)}
+.achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-top:40px}
+.achievement-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:20px 16px;text-align:center;transition:all var(--transition);
+  position:relative;overflow:hidden;
+}
+.achievement-card.earned{border-color:rgba(0,255,179,0.4);box-shadow:0 0 20px rgba(0,255,179,0.15)}
+.achievement-card.locked-badge{opacity:.4;filter:grayscale(1)}
+.ach-icon{font-size:2.2rem;margin-bottom:10px;display:block}
+.ach-name{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;margin-bottom:4px}
+.ach-desc{font-size:.7rem;color:var(--text2);line-height:1.4}
+.ach-earned-tag{
+  position:absolute;top:8px;right:8px;font-size:.55rem;
+  background:var(--accent);color:#000;padding:2px 6px;border-radius:100px;
+  font-family:'JetBrains Mono',monospace;font-weight:600;
+}
+
+/* ============================================================
+   MODULE VIEWER (MODAL-STYLE FULL SCREEN)
+============================================================ */
+.module-viewer{
+  position:fixed;inset:0;z-index:500;background:var(--bg);
+  display:none;flex-direction:column;overflow:hidden;
+}
+.module-viewer.open{display:flex}
+.mv-header{
+  background:var(--card);border-bottom:1px solid var(--border);
+  padding:16px 32px;display:flex;align-items:center;gap:16px;flex-shrink:0;
+}
+.mv-back{
+  padding:8px 16px;background:var(--card2);border-radius:8px;
+  color:var(--text2);font-size:.85rem;transition:all var(--transition);
+}
+.mv-back:hover{color:var(--primary)}
+.mv-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-right:auto}
+.mv-progress{display:flex;align-items:center;gap:12px}
+.mv-progress-steps{display:flex;gap:6px}
+.mv-step{
+  width:8px;height:8px;border-radius:50%;background:var(--card2);
+  transition:all var(--transition);
+}
+.mv-step.active{background:var(--primary);box-shadow:0 0 8px rgba(0,217,255,0.6)}
+.mv-step.done{background:var(--accent)}
+.mv-body{flex:1;overflow-y:auto;padding:40px 48px}
+.mv-inner{max-width:860px;margin:0 auto}
+
+/* Module step panels */
+.step-panel{display:none}
+.step-panel.active{display:block;animation:fadeInRight .4s ease}
+@keyframes fadeInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+.step-tag{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--primary);background:rgba(0,217,255,0.1);padding:4px 12px;border-radius:100px;margin-bottom:16px}
+.step-title{font-size:clamp(1.5rem,3vw,2rem);font-weight:800;margin-bottom:16px}
+.step-content{color:var(--text2);line-height:1.8;font-size:.95rem;margin-bottom:24px}
+.step-content p{margin-bottom:14px}
+.step-content strong{color:var(--text)}
+
+.info-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:20px 24px;margin:20px 0;border-left:3px solid var(--primary);
+}
+.info-card.analogy{border-left-color:var(--secondary)}
+.info-card.fun{border-left-color:var(--accent)}
+.info-card h4{font-family:'Syne',sans-serif;font-size:.9rem;margin-bottom:8px}
+.info-card p{font-size:.88rem;line-height:1.7;color:var(--text2)}
+
+.takeaways{background:var(--card);border-radius:12px;padding:24px;margin:20px 0;border:1px solid var(--border)}
+.takeaways h4{font-family:'Syne',sans-serif;font-size:1rem;margin-bottom:14px;color:var(--accent)}
+.takeaway-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--text2);
+}
+.takeaway-item:last-child{border:none}
+.takeaway-bullet{color:var(--primary);flex-shrink:0;margin-top:3px}
+
+.step-nav{display:flex;gap:12px;justify-content:flex-end;margin-top:32px}
+.btn-step{
+  padding:12px 28px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;
+  transition:all var(--transition);
+}
+.btn-step.next{background:var(--primary);color:#000}
+.btn-step.next:hover{box-shadow:var(--glow);transform:translateY(-1px)}
+.btn-step.prev{background:var(--card2);color:var(--text2);border:1px solid var(--border)}
+.btn-step.prev:hover{color:var(--text);border-color:var(--border)}
+
+/* ============================================================
+   INTERACTIVE ACTIVITIES
+============================================================ */
+.activity-box{
+  background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;margin:24px 0;
+}
+.activity-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:6px;color:var(--primary)}
+.activity-desc{font-size:.85rem;color:var(--text2);margin-bottom:20px}
+
+/* Drag & Drop */
+.drag-area{
+  display:flex;flex-wrap:wrap;gap:12px;min-height:80px;
+  padding:16px;background:var(--bg);border-radius:10px;border:2px dashed var(--border);
+  margin-bottom:12px;transition:border-color var(--transition);
+}
+.drag-area.over{border-color:var(--primary)}
+.drag-item{
+  padding:8px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:8px;cursor:grab;font-size:.85rem;transition:all var(--transition);
+  user-select:none;display:flex;align-items:center;gap:8px;
+}
+.drag-item:active{cursor:grabbing;transform:scale(1.05);box-shadow:var(--glow)}
+.drag-item:hover{border-color:var(--primary);color:var(--primary)}
+.drop-slots{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.drop-slot{
+  padding:12px 20px;min-width:140px;background:var(--bg);
+  border:2px dashed var(--border);border-radius:10px;text-align:center;
+  font-size:.8rem;color:var(--text2);transition:all var(--transition);min-height:48px;
+  display:flex;align-items:center;justify-content:center;
+}
+.drop-slot.filled{border-color:var(--accent);border-style:solid;color:var(--text)}
+.drop-slot.correct{border-color:var(--accent);background:rgba(0,255,179,0.08);color:var(--accent)}
+.drop-slot.wrong{border-color:var(--warn);background:rgba(255,107,53,0.08);color:var(--warn)}
+
+/* Sorting game */
+.sort-container{display:flex;gap:16px;flex-wrap:wrap}
+.sort-zone{flex:1;min-width:200px}
+.sort-zone-title{
+  font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--primary);
+  margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;
+}
+.sort-items-pool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.sort-item{
+  padding:8px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:8px;font-size:.82rem;cursor:pointer;transition:all var(--transition);
+}
+.sort-item:hover{border-color:var(--primary);color:var(--primary)}
+.sort-drop-zone{
+  min-height:80px;background:var(--bg);border:2px dashed var(--border);
+  border-radius:10px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;
+  align-content:flex-start;
+}
+.sort-drop-zone.over{border-color:var(--primary)}
+
+/* Sequence Puzzle */
+.sequence-pool{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.sequence-item{
+  padding:12px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;cursor:grab;display:flex;align-items:center;gap:12px;
+  transition:all var(--transition);font-size:.88rem;
+}
+.sequence-item:hover{border-color:var(--primary)}
+.seq-handle{color:var(--text2);font-size:1rem}
+.sequence-target{display:flex;flex-direction:column;gap:8px}
+.seq-slot{
+  padding:12px 16px;background:var(--bg);border:2px dashed var(--border);
+  border-radius:10px;font-size:.88rem;color:var(--text2);text-align:center;
+  min-height:46px;display:flex;align-items:center;justify-content:center;
+  transition:all var(--transition);
+}
+.seq-slot.filled{border-style:solid;border-color:var(--border);color:var(--text);background:var(--card)}
+.seq-slot.correct{border-color:var(--accent);background:rgba(0,255,179,0.08);color:var(--accent)}
+.seq-slot.wrong{border-color:var(--warn);background:rgba(255,107,53,0.08);color:var(--warn)}
+
+/* Check button */
+.btn-check{
+  padding:10px 24px;background:var(--secondary);color:#fff;border-radius:10px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;transition:all var(--transition);
+}
+.btn-check:hover{box-shadow:var(--glow2);transform:translateY(-1px)}
+.btn-reset{
+  padding:10px 24px;background:var(--card2);color:var(--text2);border-radius:10px;
+  border:1px solid var(--border);font-size:.85rem;transition:all var(--transition);margin-left:8px;
+}
+.activity-result{
+  margin-top:12px;padding:12px 16px;border-radius:8px;font-size:.85rem;
+  font-family:'JetBrains Mono',monospace;display:none;
+}
+.activity-result.success{background:rgba(0,255,179,0.1);color:var(--accent);border:1px solid rgba(0,255,179,0.3);display:block}
+.activity-result.fail{background:rgba(255,107,53,0.1);color:var(--warn);border:1px solid rgba(255,107,53,0.3);display:block}
+
+/* Simulation */
+.sim-box{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.sim-task{
+  padding:10px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:8px;font-size:.82rem;cursor:pointer;transition:all var(--transition);
+  display:flex;align-items:center;gap:8px;
+}
+.sim-task:hover{border-color:var(--primary)}
+.sim-task.assigned{opacity:.5;cursor:default}
+.sim-resources{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sim-resource{
+  flex:1;min-width:120px;background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:12px;text-align:center;
+}
+.sim-resource-name{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--primary);margin-bottom:6px}
+.sim-bar-bg{height:8px;background:var(--card);border-radius:4px;overflow:hidden}
+.sim-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:4px;transition:width .4s ease;width:0%}
+.sim-val{font-size:.7rem;color:var(--text2);margin-top:4px}
+
+/* ============================================================
+   QUIZ ENGINE
+============================================================ */
+.quiz-box{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:32px;margin:24px 0;
+}
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.quiz-num{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--text2)}
+.quiz-score-badge{
+  padding:4px 12px;background:rgba(0,217,255,0.1);border:1px solid rgba(0,217,255,0.2);
+  border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--primary);
+}
+.quiz-q{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:20px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.quiz-opt{
+  padding:14px 18px;background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;font-size:.9rem;cursor:pointer;transition:all var(--transition);text-align:left;
+  color:var(--text);
+}
+.quiz-opt:hover:not(.selected):not(.correct):not(.wrong){border-color:var(--primary);background:rgba(0,217,255,0.05)}
+.quiz-opt.selected{border-color:var(--primary);background:rgba(0,217,255,0.08)}
+.quiz-opt.correct{border-color:var(--accent);background:rgba(0,255,179,0.08);color:var(--accent)}
+.quiz-opt.wrong{border-color:var(--warn);background:rgba(255,107,53,0.08);color:var(--warn)}
+.quiz-feedback{
+  padding:12px 16px;border-radius:8px;font-size:.85rem;margin-bottom:16px;
+  display:none;line-height:1.5;
+}
+.quiz-feedback.show{display:block}
+.quiz-feedback.correct{background:rgba(0,255,179,0.1);color:var(--accent);border:1px solid rgba(0,255,179,0.3)}
+.quiz-feedback.wrong{background:rgba(255,107,53,0.1);color:var(--warn);border:1px solid rgba(255,107,53,0.3)}
+.quiz-nav{display:flex;justify-content:flex-end}
+.btn-quiz-next{
+  padding:10px 24px;background:var(--primary);color:#000;border-radius:10px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;transition:all var(--transition);
+  display:none;
+}
+.btn-quiz-next.show{display:block}
+.btn-quiz-next:hover{box-shadow:var(--glow)}
+.quiz-complete{text-align:center;padding:40px 20px;display:none}
+.quiz-complete.show{display:block}
+.quiz-complete-icon{font-size:3rem;margin-bottom:16px}
+.quiz-complete h3{font-family:'Syne',sans-serif;font-size:1.5rem;margin-bottom:8px}
+.quiz-complete p{color:var(--text2);font-size:.9rem;margin-bottom:20px}
+.xp-reward{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,217,255,0.1);border:1px solid rgba(0,217,255,0.3);
+  border-radius:100px;padding:8px 20px;font-family:'JetBrains Mono',monospace;
+  font-size:.85rem;color:var(--primary);margin-bottom:20px;
+}
+
+/* ============================================================
+   FINAL CHALLENGE
+============================================================ */
+.challenge-section{
+  padding:80px 48px;background:radial-gradient(ellipse at center,rgba(124,77,255,0.08) 0%,transparent 70%),var(--bg2);
+}
+.challenge-inner{max-width:900px;margin:0 auto}
+.challenge-card{
+  background:var(--card);border:1px solid rgba(124,77,255,0.3);border-radius:20px;
+  padding:40px;text-align:center;position:relative;overflow:hidden;
+}
+.challenge-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center top,rgba(124,77,255,0.05) 0%,transparent 60%);
+}
+.challenge-title{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;margin-bottom:12px}
+.challenge-desc{color:var(--text2);margin-bottom:32px;font-size:.95rem;line-height:1.7;max-width:600px;margin-left:auto;margin-right:auto}
+.challenge-tasks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:32px;text-align:left}
+.challenge-task{
+  background:var(--card2);border:1px solid var(--border);border-radius:10px;
+  padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:.85rem;
+  transition:all var(--transition);
+}
+.challenge-task.done{border-color:rgba(0,255,179,0.3);color:var(--accent)}
+.task-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all var(--transition);display:flex;align-items:center;justify-content:center;font-size:.65rem}
+.challenge-task.done .task-check{background:var(--accent);border-color:var(--accent);color:#000}
+.btn-challenge{
+  padding:16px 40px;background:linear-gradient(135deg,var(--primary),var(--secondary));
+  color:#000;border-radius:12px;font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;
+  transition:all var(--transition);box-shadow:0 0 30px rgba(124,77,255,0.3);
+}
+.btn-challenge:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(124,77,255,0.5)}
+
+/* Recovery screen */
+.recovery-screen{
+  display:none;padding:60px 40px;text-align:center;
+  background:radial-gradient(ellipse at center,rgba(0,255,179,0.08) 0%,transparent 70%),var(--card);
+  border-radius:20px;margin-top:32px;border:1px solid rgba(0,255,179,0.3);
+}
+.recovery-screen.show{display:block;animation:fadeInDown .6s ease}
+.recovery-title{font-size:clamp(2rem,4vw,3rem);font-weight:800;color:var(--accent);margin-bottom:12px}
+.recovery-sub{color:var(--text2);margin-bottom:32px;font-size:1rem}
+.recovery-stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+.recovery-stat{
+  background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:20px 28px;text-align:center;
+}
+.recovery-stat-val{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--primary)}
+.recovery-stat-lbl{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+
+/* ============================================================
+   NOTIFICATIONS
+============================================================ */
+.notif-container{position:fixed;top:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.notif{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px 20px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);pointer-events:auto;
+  animation:slideIn .4s cubic-bezier(0.34,1.56,0.64,1) both;max-width:320px;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+.notif-icon{font-size:1.3rem;flex-shrink:0}
+.notif-text{font-size:.85rem;line-height:1.4}
+.notif-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:2px}
+.notif.xp{border-color:rgba(0,217,255,0.3);background:rgba(0,217,255,0.05)}
+.notif.badge{border-color:rgba(0,255,179,0.3);background:rgba(0,255,179,0.05)}
+.notif.complete{border-color:rgba(124,77,255,0.3);background:rgba(124,77,255,0.05)}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+.footer{
+  padding:48px;background:var(--card);border-top:1px solid var(--border);
+  text-align:center;
+}
+.footer-logo{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--primary);margin-bottom:8px}
+.footer-text{font-size:.82rem;color:var(--text2)}
+
+/* ============================================================
+   VISUALIZATIONS (simple diagrams)
+============================================================ */
+.viz-box{
+  background:var(--bg);border:1px solid var(--border);border-radius:12px;
+  padding:24px;margin:20px 0;overflow-x:auto;
+}
+.viz-title{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--primary);margin-bottom:16px;text-transform:uppercase;letter-spacing:1px}
+.cpu-diagram{display:flex;gap:0;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}
+.cpu-box{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:14px 20px;text-align:center;cursor:pointer;transition:all var(--transition);
+  min-width:100px;
+}
+.cpu-box:hover{border-color:var(--primary);box-shadow:var(--glow);transform:translateY(-2px)}
+.cpu-box-icon{font-size:1.5rem;margin-bottom:6px}
+.cpu-box-label{font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--text2)}
+.cpu-arrow{font-size:1.2rem;color:var(--text2)}
+.layer-diagram{display:flex;flex-direction:column;gap:0;align-items:center}
+.layer{
+  width:100%;max-width:400px;padding:12px 24px;text-align:center;
+  font-size:.85rem;font-family:'JetBrains Mono',monospace;cursor:pointer;
+  transition:all var(--transition);border:1px solid var(--border);
+}
+.layer:first-child{border-radius:8px 8px 0 0}
+.layer:last-child{border-radius:0 0 8px 8px}
+.layer:hover{filter:brightness(1.3);transform:scaleX(1.02)}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media(max-width:768px){
+  .sidebar{transform:translateX(calc(-1 * var(--sidebar-w)))}
+  .sidebar.open{transform:translateX(0)}
+  .main-content{margin-left:0}
+  .menu-btn{display:flex}
+  .section,.achievements-section,.challenge-section{padding:60px 20px}
+  .roadmap{padding:60px 20px}
+  .hero{padding:80px 20px}
+  .mv-body{padding:24px 20px}
+  .modules-grid{grid-template-columns:1fr}
+  .sort-container{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- MENU BUTTON (mobile) -->
+<button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+
+<!-- NOTIFICATION CONTAINER -->
+<div class="notif-container" id="notifContainer"></div>
+
+<!-- ============================================================
+     SIDEBAR
+============================================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">⚡ CyberLearn</div>
+    <div class="logo-sub">Systems & OS Internals</div>
+  </div>
+  <div class="sidebar-xp">
+    <div class="xp-label"><span>Progress</span><span id="xpPercent">0%</span></div>
+    <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBarFill"></div></div>
+    <div class="xp-stats">
+      <div class="xp-stat"><div class="xp-stat-val" id="totalXP">0</div><div class="xp-stat-lbl">XP</div></div>
+      <div class="xp-stat"><div class="xp-stat-val" id="userLevel">1</div><div class="xp-stat-lbl">Level</div></div>
+      <div class="xp-stat"><div class="xp-stat-val" id="modCount">0/10</div><div class="xp-stat-lbl">Modules</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Navigation</div>
+    <div class="nav-item active" onclick="scrollToSection('home')"><span class="nav-icon">🏠</span> Home</div>
+    <div class="nav-item" onclick="scrollToSection('roadmap')"><span class="nav-icon">🗺️</span> Roadmap</div>
+    <div class="nav-item" onclick="scrollToSection('modules')"><span class="nav-icon">📚</span> Modules</div>
+    <div class="nav-item" onclick="scrollToSection('achievements')"><span class="nav-icon">🏆</span> Achievements</div>
+    <div class="nav-item" onclick="scrollToSection('challenge')"><span class="nav-icon">🚀</span> Final Challenge</div>
+    <div class="nav-section-label" style="margin-top:12px">Modules</div>
+    <div id="navModules"></div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Toggle Light/Dark</button>
+  </div>
+</aside>
+
+<!-- ============================================================
+     MAIN CONTENT
+============================================================ -->
+<div class="main-content">
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-orbs">
+    <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  </div>
+  <div class="hero-floating-icons">
+    <div class="fi">🖥️</div><div class="fi">⚙️</div><div class="fi">💾</div>
+    <div class="fi">🔧</div><div class="fi">📡</div><div class="fi">🔐</div>
+    <div class="fi">🧠</div><div class="fi">⚡</div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="badge-dot"></span> Level 1 – Computing Foundations</div>
+    <h1>Systems & OS Internals</h1>
+    <p class="hero-subtitle">Learn how computers work from the inside through interactive missions and challenges. Become a System Explorer!</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="startLearning()">🚀 Start Learning</button>
+      <button class="btn-secondary" onclick="scrollToSection('modules')">📚 Browse Modules</button>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="roadmap" id="roadmap">
+  <div class="roadmap-inner">
+    <div class="section-header">
+      <div class="section-tag">📍 Learning Path</div>
+      <h2 class="section-title">Your <span class="gradient-text">Mission Roadmap</span></h2>
+      <p class="section-sub">Complete each mission in order to unlock deeper layers of the computer system.</p>
+    </div>
+    <div class="roadmap-grid" id="roadmapGrid">
+      <div class="roadmap-line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES GRID -->
+<section class="section" id="modules">
+  <div class="section-header">
+    <div class="section-tag">📦 Missions</div>
+    <h2 class="section-title">Explore <span class="gradient-text">All Modules</span></h2>
+    <p class="section-sub">Each module is a mission inside the computer. Complete them to earn XP and badges!</p>
+  </div>
+  <div class="modules-grid" id="modulesGrid"></div>
+</section>
+
+<!-- ACHIEVEMENTS -->
+<section class="achievements-section" id="achievements">
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="section-header">
+      <div class="section-tag">🏆 Achievements</div>
+      <h2 class="section-title">Your <span class="gradient-text">Badges</span></h2>
+      <p class="section-sub">Earn badges by completing modules. Show them off!</p>
+    </div>
+    <div class="achievements-grid" id="achievementsGrid"></div>
+  </div>
+</section>
+
+<!-- FINAL CHALLENGE -->
+<section class="challenge-section" id="challenge">
+  <div class="challenge-inner">
+    <div class="section-header" style="text-align:center">
+      <div class="section-tag">🔥 Final Boss</div>
+      <h2 class="section-title">System <span class="gradient-text">Rescue Mission</span></h2>
+    </div>
+    <div class="challenge-card" id="challengeCard">
+      <p class="challenge-desc" style="margin-bottom:20px">
+        🚨 ALERT: A critical computer system has crashed! Use everything you've learned to recover it. Complete all module challenges to restore the system.
+      </p>
+      <div class="challenge-tasks" id="challengeTasks"></div>
+      <button class="btn-challenge" onclick="attemptFinalChallenge()">🛠️ Begin System Recovery</button>
+    </div>
+    <div class="recovery-screen" id="recoveryScreen">
+      <div style="font-size:3rem;margin-bottom:16px">✅</div>
+      <div class="recovery-title">SYSTEM RECOVERED</div>
+      <p style="color:var(--primary);font-family:'JetBrains Mono',monospace;margin-bottom:8px">Congratulations!</p>
+      <p class="recovery-sub">You have completed Systems & OS Internals Level 1!</p>
+      <div class="recovery-stats">
+        <div class="recovery-stat"><div class="recovery-stat-val" id="finalXP">0</div><div class="recovery-stat-lbl">Total XP</div></div>
+        <div class="recovery-stat"><div class="recovery-stat-val" id="finalBadges">0</div><div class="recovery-stat-lbl">Badges Earned</div></div>
+        <div class="recovery-stat"><div class="recovery-stat-val" id="finalPct">0%</div><div class="recovery-stat-lbl">Complete</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">⚡ CyberLearn</div>
+  <div class="footer-text">Systems & OS Internals · Level 1 · Computing Foundations</div>
+  <div class="footer-text" style="margin-top:8px;font-size:.75rem">Built for curious minds everywhere 🌍</div>
+</footer>
+
+</div><!-- end main-content -->
+
+<!-- ============================================================
+     MODULE VIEWER
+============================================================ -->
+<div class="module-viewer" id="moduleViewer">
+  <div class="mv-header">
+    <button class="mv-back" onclick="closeModule()">← Back</button>
+    <div class="mv-title" id="mvTitle">Module</div>
+    <div class="mv-progress">
+      <div class="mv-progress-steps" id="mvSteps"></div>
+    </div>
+  </div>
+  <div class="mv-body">
+    <div class="mv-inner" id="mvInner"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA DEFINITIONS
+// ============================================================
+const MODULES = [
+  {
+    id: 0, title: "Computer Architecture", icon: "🏗️",
+    desc: "Discover how a computer is built — its parts, how they connect, and why each one matters.",
+    xp: 100, badge: "Architecture Explorer",
+    steps: ["intro","why","analogy","visual","activity","fact","takeaways","quiz"],
+    content: {
+      intro: {
+        title: "What is Computer Architecture?",
+        body: `<p>Computer Architecture is like the <strong>blueprint of a building</strong>. Just as an architect designs how rooms, walls, and doors connect, computer architecture defines how all parts of a computer are connected and work together.</p>
+               <p>Every computer — from a tiny smartwatch to a massive supercomputer — is built on the same fundamental ideas: <strong>Input → Process → Output</strong>.</p>`
+      },
+      why: {
+        title: "Why Does This Matter?",
+        body: `<p>Understanding computer architecture helps you understand <strong>why computers are fast or slow</strong>, why they crash, and how to make software run better.</p>
+               <p>Cybersecurity experts need this knowledge to find weaknesses in hardware and firmware — the deepest layers of any system.</p>`
+      },
+      analogy: {
+        title: "Think of it Like a Kitchen 🍳",
+        body: `<p>Imagine a restaurant kitchen:</p>
+               <p>🍽️ <strong>Chef (CPU)</strong> — does all the cooking (processing)</p>
+               <p>📋 <strong>Notepad (RAM)</strong> — keeps track of current orders (temporary memory)</p>
+               <p>📦 <strong>Pantry (Storage/SSD)</strong> — stores all ingredients long-term</p>
+               <p>🛎️ <strong>Waiter (I/O Devices)</strong> — brings orders in and takes food out</p>
+               <p>⚡ <strong>Electricity (Power Supply)</strong> — keeps everything running</p>`
+      },
+      fact: "💡 Fun Fact: The first computer, ENIAC (1945), weighed 30 tons and filled an entire room — yet your smartphone is millions of times more powerful!",
+      takeaways: ["Computers have 5 core components: CPU, RAM, Storage, Input, Output","The CPU is the brain — it processes all instructions","RAM is temporary working memory; Storage is permanent","Input devices send data IN; Output devices show results OUT","Understanding architecture helps in cybersecurity and programming"]
+    },
+    quiz: [
+      {q:"What is the main job of the CPU?",opts:["Store files permanently","Process instructions and perform calculations","Display images on screen","Connect to the internet"],ans:1,exp:"The CPU (Central Processing Unit) is the brain of the computer — it processes all instructions and performs calculations."},
+      {q:"Which component stores data temporarily while the computer is running?",opts:["SSD","Hard Drive","RAM","CPU"],ans:2,exp:"RAM (Random Access Memory) stores data temporarily. When you close a program or restart your computer, RAM is cleared."},
+      {q:"What happens to data in RAM when you turn off the computer?",opts:["It is saved automatically","It moves to the CPU","It is lost","It goes to the cloud"],ans:2,exp:"RAM is volatile memory — its contents are lost when power is removed. That's why we need storage devices."},
+      {q:"Which of these is an INPUT device?",opts:["Monitor","Speaker","Keyboard","Printer"],ans:2,exp:"A keyboard sends data INTO the computer, making it an input device. Monitors, speakers, and printers all OUTPUT data."},
+      {q:"What connects all computer components together?",opts:["The operating system","The motherboard","The power supply","The monitor"],ans:1,exp:"The motherboard is the main circuit board that connects all components — CPU, RAM, storage, and I/O devices — together."}
+    ]
+  },
+  {
+    id: 1, title: "CPU Fundamentals", icon: "🧠",
+    desc: "Discover how the CPU thinks, calculates, and executes instructions at lightning speed.",
+    xp: 120, badge: "CPU Master",
+    content: {
+      intro: {
+        title: "What is a CPU?",
+        body: `<p>The CPU (Central Processing Unit) is the <strong>brain of the computer</strong>. It executes billions of instructions every second — calculations, decisions, data movement — everything your computer does goes through the CPU.</p>
+               <p>Modern CPUs have multiple <strong>cores</strong> — think of cores as separate mini-brains that can work in parallel, making your computer much faster.</p>`
+      },
+      why: {
+        title: "Why CPUs Matter",
+        body: `<p>CPU speed affects <strong>everything</strong>: how fast websites load, how smooth games run, how quickly files compress or encrypt. For security professionals, understanding CPU architecture reveals vulnerabilities like <strong>Spectre and Meltdown</strong> — hardware-level security flaws.</p>`
+      },
+      analogy: {
+        title: "The CPU is Like a Calculator Student 🎓",
+        body: `<p>Imagine a student doing math homework:</p>
+               <p>📖 <strong>Fetch</strong> — Read the next problem from the textbook</p>
+               <p>🤔 <strong>Decode</strong> — Figure out what operation is needed (add? multiply?)</p>
+               <p>✏️ <strong>Execute</strong> — Actually solve the problem and write the answer</p>
+               <p>The CPU does this same 3-step cycle billions of times per second!</p>`
+      },
+      fact: "💡 Fun Fact: A modern CPU can execute over 3 billion instructions per second — that's faster than you can blink (which takes 150-400 milliseconds)!",
+      takeaways: ["CPUs run the Fetch-Decode-Execute cycle for every instruction","Clock speed (GHz) measures how many cycles per second","Multiple cores allow parallel processing","Cache memory stores frequently used data close to the CPU","CPU architecture vulnerabilities can lead to serious security breaches"]
+    },
+    quiz: [
+      {q:"What are the three steps of the CPU instruction cycle?",opts:["Read, Write, Delete","Fetch, Decode, Execute","Input, Process, Output","Start, Run, Stop"],ans:1,exp:"Every CPU instruction goes through Fetch (get the instruction), Decode (understand it), and Execute (run it). This happens billions of times per second!"},
+      {q:"What does 'clock speed' (measured in GHz) represent?",opts:["How much RAM is used","How hot the CPU gets","How many instruction cycles per second","How many cores the CPU has"],ans:2,exp:"Clock speed measures how many instruction cycles per second the CPU can perform. 3 GHz means 3 billion cycles per second!"},
+      {q:"What is a CPU core?",opts:["A cooling fan","An independent processing unit within the CPU","A type of memory","The CPU's power supply"],ans:1,exp:"A core is an independent processing unit. A quad-core CPU has 4 mini-CPUs that can work simultaneously, greatly improving performance."},
+      {q:"What is CPU cache?",opts:["A file storage system","Fast memory inside the CPU for frequently used data","An internet download folder","A backup system"],ans:1,exp:"Cache is super-fast memory built into the CPU that stores frequently used data, so the CPU doesn't have to wait for slower RAM."},
+      {q:"What famous CPU vulnerability was discovered in 2018?",opts:["Heartbleed","SQL Injection","Spectre and Meltdown","WannaCry"],ans:2,exp:"Spectre and Meltdown were hardware-level vulnerabilities in modern CPUs that allowed programs to read each other's memory, affecting almost every computer made in the last 20 years."}
+    ]
+  },
+  {
+    id: 2, title: "Memory Fundamentals", icon: "💾",
+    desc: "Understand RAM, ROM, Cache, and how computers store and access data in the blink of an eye.",
+    xp: 120, badge: "Memory Expert",
+    content: {
+      intro: {
+        title: "How Computers Remember Things",
+        body: `<p>Computers have a <strong>memory hierarchy</strong> — different types of storage with different speeds and sizes. The fastest memory is closest to the CPU; the slowest is farthest away.</p>
+               <p>Think of it as: <strong>CPU Registers → Cache → RAM → SSD/HDD → Cloud</strong>. As you go further, storage gets cheaper and larger, but also much slower.</p>`
+      },
+      why: {
+        title: "Why Memory Architecture Matters",
+        body: `<p>Memory management is one of the most common sources of <strong>security vulnerabilities</strong>. Buffer overflows, memory leaks, and use-after-free bugs are classic attack vectors. Understanding memory is essential for both developing secure software and breaking insecure ones.</p>`
+      },
+      analogy: {
+        title: "Memory is Like a Workspace 📚",
+        body: `<p>Imagine you're working at a desk:</p>
+               <p>🧠 <strong>Your brain (CPU Registers)</strong> — what you're thinking about right now (tiny, instant)</p>
+               <p>📋 <strong>Your desk (RAM)</strong> — papers you're actively working with (medium, fast)</p>
+               <p>🗄️ <strong>Filing cabinet (SSD/HDD)</strong> — archived documents (large, slower)</p>
+               <p>🏛️ <strong>Library (Cloud)</strong> — massive archive, takes time to fetch</p>`
+      },
+      fact: "💡 Fun Fact: RAM is so fast it can transfer data at speeds up to 51.2 GB/s — that's like downloading 10 HD movies every second!",
+      takeaways: ["Memory hierarchy: Registers > Cache > RAM > Storage > Cloud","RAM is volatile (clears on shutdown); Storage is non-volatile (permanent)","Cache reduces the speed gap between CPU and RAM","Memory vulnerabilities like buffer overflow are among the most dangerous bugs","Virtual memory allows computers to use storage as backup RAM"]
+    },
+    quiz: [
+      {q:"What is the correct memory hierarchy from fastest to slowest?",opts:["HDD > RAM > Cache > Registers","Registers > Cache > RAM > HDD","RAM > Cache > HDD > Registers","Cache > RAM > Registers > HDD"],ans:1,exp:"From fastest to slowest: CPU Registers (nanoseconds) > Cache > RAM > HDD (milliseconds). Speed decreases as storage size increases."},
+      {q:"What is 'volatile' memory?",opts:["Memory that can explode","Memory that loses data when power is off","Memory that is read-only","Memory shared between computers"],ans:1,exp:"Volatile memory (like RAM) loses all data when power is removed. Non-volatile memory (like SSDs) retains data permanently."},
+      {q:"What is a buffer overflow attack?",opts:["Filling a sink with water","Writing more data than a memory buffer can hold, causing security vulnerabilities","Running too many programs","A type of CPU overclocking"],ans:1,exp:"A buffer overflow occurs when a program writes more data than its allocated memory can hold. Attackers exploit this to overwrite other memory, potentially executing malicious code."},
+      {q:"What is 'virtual memory'?",opts:["Memory inside the CPU","Cloud storage","Using disk storage as temporary RAM when RAM is full","A type of cache"],ans:2,exp:"Virtual memory allows the OS to use a portion of the hard disk as extra RAM. It's slower but prevents crashes when RAM runs out."},
+      {q:"Which type of memory is closest to the CPU and fastest?",opts:["RAM","SSD","CPU Registers","Hard Drive"],ans:2,exp:"CPU Registers are tiny storage areas inside the CPU itself. They store the data currently being processed and operate at CPU speed — the fastest possible."}
+    ]
+  },
+  {
+    id: 3, title: "Storage Systems", icon: "🗄️",
+    desc: "Explore HDDs, SSDs, NVMe drives, and how data is stored and retrieved permanently.",
+    xp: 110, badge: "Storage Specialist",
+    content: {
+      intro: {
+        title: "How Computers Store Data Permanently",
+        body: `<p>Storage devices keep data <strong>permanently</strong> even when the computer is off. Unlike RAM, storage data survives power loss.</p>
+               <p>There are three main types: <strong>HDD</strong> (spinning magnetic disks), <strong>SSD</strong> (flash memory chips, like a giant USB drive), and <strong>NVMe SSD</strong> (even faster SSDs connected directly to the CPU).</p>`
+      },
+      why: {
+        title: "Why Storage Matters for Security",
+        body: `<p>Deleted files aren't really gone — they stay on disk until overwritten. <strong>Digital forensics</strong> experts recover "deleted" data from criminal investigations. <strong>Encryption</strong> protects stored data from unauthorized access. Understanding storage is crucial for both offense and defense.</p>`
+      },
+      analogy: {
+        title: "Storage Types are Like Books 📚",
+        body: `<p>📼 <strong>HDD (Hard Disk Drive)</strong> — Like a vinyl record. Has spinning platters and a mechanical arm. Cheap, large, but slow and fragile.</p>
+               <p>⚡ <strong>SSD (Solid State Drive)</strong> — Like a digital photo album. No moving parts, fast, silent, but more expensive.</p>
+               <p>🚀 <strong>NVMe SSD</strong> — Like a Formula 1 race car. Connects directly to the motherboard, insanely fast for professional work.</p>`
+      },
+      fact: "💡 Fun Fact: The first hard drive (IBM 350, 1956) stored just 5 MB of data and was the size of two refrigerators! Today's 1TB SSDs are smaller than a credit card.",
+      takeaways: ["HDDs use spinning magnetic platters — cheap and large but slower","SSDs use flash memory chips — fast, silent, no moving parts","NVMe SSDs connect via PCIe for maximum speed","'Deleted' files often remain recoverable until overwritten","Encryption is essential for protecting sensitive stored data"]
+    },
+    quiz: [
+      {q:"What makes an SSD faster than an HDD?",opts:["SSDs have bigger capacity","SSDs use spinning platters","SSDs have no moving parts and use flash memory","SSDs use more electricity"],ans:2,exp:"SSDs have no moving mechanical parts. Data is stored in flash memory chips, so access is nearly instant rather than waiting for a physical disk to spin."},
+      {q:"What is NVMe?",opts:["A type of RAM","A networking protocol","A high-speed storage interface connecting directly to the CPU","A file system format"],ans:2,exp:"NVMe (Non-Volatile Memory Express) is a protocol for connecting SSDs directly to the CPU via PCIe lanes, achieving speeds up to 7GB/s vs ~500MB/s for regular SSDs."},
+      {q:"Why can 'deleted' files often be recovered?",opts:["They go to the Recycle Bin forever","The OS only removes the file entry, not the actual data","Files are backed up automatically","Deleting is actually copying"],ans:1,exp:"When you delete a file, the OS removes its directory entry but the actual data remains until that storage space is written over with new data."},
+      {q:"Which storage type is most vulnerable to physical shock?",opts:["NVMe SSD","SSD","HDD","USB Flash Drive"],ans:2,exp:"HDDs have spinning platters and a mechanical read/write arm. Physical shock can cause the arm to scratch the platter, permanently destroying data — called a 'head crash'."},
+      {q:"What is the purpose of disk encryption?",opts:["Makes the disk spin faster","Protects data from being read if the drive is stolen","Increases storage capacity","Fixes corrupted files"],ans:1,exp:"Disk encryption (like BitLocker or FileVault) scrambles all data on a drive. Without the decryption key, the data is unreadable — protecting sensitive information if hardware is stolen."}
+    ]
+  },
+  {
+    id: 4, title: "Operating Systems", icon: "⚙️",
+    desc: "Learn how the OS manages everything — the invisible layer that makes computers usable.",
+    xp: 150, badge: "OS Navigator",
+    content: {
+      intro: {
+        title: "What is an Operating System?",
+        body: `<p>The Operating System (OS) is like the <strong>manager of a company</strong>. It controls everything — who gets to use the CPU, how memory is shared, which files can be accessed, and how programs communicate with hardware.</p>
+               <p>Without an OS, you'd have to program every task in raw machine code — impossible for normal use! Examples include <strong>Windows, Linux, macOS, Android, iOS</strong>.</p>`
+      },
+      why: {
+        title: "The OS is the Security Gatekeeper",
+        body: `<p>Every cybersecurity incident goes through the OS. It enforces <strong>user permissions</strong>, manages <strong>system calls</strong> from programs, and controls what hardware applications can access. OS vulnerabilities are among the most critical security issues — exploiting them can give attackers full system control.</p>`
+      },
+      analogy: {
+        title: "The OS is Like an Airport 🛫",
+        body: `<p>🏢 <strong>Airport building (Hardware)</strong> — The physical infrastructure</p>
+               <p>👮 <strong>Air traffic control (OS Kernel)</strong> — Coordinates everything, prevents collisions</p>
+               <p>🎫 <strong>Passport control (Security/Permissions)</strong> — Decides who gets where</p>
+               <p>✈️ <strong>Planes (Applications)</strong> — Passengers (users/data) get where they need to go</p>
+               <p>🗺️ <strong>Ground crew (Device drivers)</strong> — Translates between planes and ground infrastructure</p>`
+      },
+      fact: "💡 Fun Fact: Linux powers over 96% of the world's top 500 supercomputers, 74% of smartphones (Android is Linux-based), and most of the internet's servers!",
+      takeaways: ["The OS manages CPU, memory, storage, and I/O resources","The kernel is the core of the OS with full hardware access","User space programs run with limited permissions for security","OS handles multitasking by rapidly switching between processes","System calls are the secure interface between programs and the OS"]
+    },
+    quiz: [
+      {q:"What is the primary role of an operating system?",opts:["Browse the internet","Manage hardware resources and provide services to applications","Store files permanently","Play audio and video"],ans:1,exp:"The OS acts as an intermediary between hardware and applications. It manages CPU time, memory, storage access, and I/O devices for all running programs."},
+      {q:"What is the 'kernel'?",opts:["The desktop interface","A type of file system","The core of the OS that directly controls hardware","An application program"],ans:2,exp:"The kernel is the heart of the OS. It runs with full hardware privileges and provides essential services like memory management, process scheduling, and device drivers."},
+      {q:"What is a 'system call'?",opts:["A phone call to tech support","When an app requests a service from the OS kernel","A scheduled task","A network request"],ans:1,exp:"When an application needs to do something privileged (read a file, allocate memory, access network), it makes a system call — a formal request to the OS kernel to perform the action."},
+      {q:"Why are OS vulnerabilities especially dangerous?",opts:["They slow down the computer","They affect only one program","They can give attackers full control over the entire system","They only affect the file system"],ans:2,exp:"OS vulnerabilities are critical because the OS has control over everything. A kernel exploit can give an attacker complete access to all processes, memory, files, and hardware."},
+      {q:"Which OS powers most web servers and supercomputers?",opts:["Windows","macOS","Linux","Android"],ans:2,exp:"Linux dominates server and supercomputing environments due to its stability, security, open-source nature, and flexibility. It also forms the base of Android."}
+    ]
+  },
+  {
+    id: 5, title: "Processes & Threads", icon: "⚡",
+    desc: "Understand how computers run multiple tasks simultaneously using processes and threads.",
+    xp: 130, badge: "Process Commander",
+    content: {
+      intro: {
+        title: "Multitasking: How Computers Do Many Things",
+        body: `<p>How can a computer play music, download files, and run a browser all at once? The answer is <strong>processes and threads</strong>.</p>
+               <p>A <strong>process</strong> is a running program with its own memory space. A <strong>thread</strong> is a unit of execution within a process — multiple threads in one process can run tasks simultaneously.</p>`
+      },
+      why: {
+        title: "Security Implications",
+        body: `<p><strong>Process isolation</strong> is a key security feature — one process can't normally read another's memory. But bugs like <strong>race conditions</strong> in multithreaded programs can be exploited. Understanding processes is essential for reverse engineering and malware analysis.</p>`
+      },
+      analogy: {
+        title: "Pizza Shop Analogy 🍕",
+        body: `<p>Think of a <strong>Pizza Shop (Process)</strong>:</p>
+               <p>👨‍🍳 <strong>Thread 1: Cook</strong> — Making the pizza</p>
+               <p>📦 <strong>Thread 2: Packer</strong> — Boxing ready pizzas</p>
+               <p>💰 <strong>Thread 3: Cashier</strong> — Taking payments</p>
+               <p>All three workers (threads) work simultaneously within the same shop (process), sharing the same kitchen equipment (memory). Multiple pizza shops can operate independently (separate processes)!</p>`
+      },
+      fact: "💡 Fun Fact: The Chrome browser uses a separate process for EVERY tab — that's why it uses so much RAM, but also why one crashed tab doesn't bring down the entire browser!",
+      takeaways: ["A process is a running program with isolated memory","Threads are lightweight units within a process","The OS scheduler switches between processes rapidly to simulate multitasking","Process isolation prevents one program from corrupting another's data","Race conditions in multi-threaded code are a common security vulnerability"]
+    },
+    quiz: [
+      {q:"What is the difference between a process and a thread?",opts:["They are the same thing","A process is a running program with its own memory; threads share memory within a process","A thread is bigger than a process","Processes run faster than threads"],ans:1,exp:"A process is an independent running program with isolated memory. Threads are smaller execution units within a process that share the same memory space."},
+      {q:"How does the OS achieve multitasking with a single-core CPU?",opts:["It runs programs in parallel","It rapidly switches between processes (context switching)","It slows each program down equally","It only runs one program at a time"],ans:1,exp:"The OS scheduler uses 'context switching' — it rapidly switches the CPU between processes, giving each a tiny time slice. This happens so fast it feels simultaneous."},
+      {q:"Why is process isolation important for security?",opts:["It makes programs faster","It prevents one process from accessing another's memory","It reduces disk usage","It enables multitasking"],ans:1,exp:"Process isolation means each process runs in its own protected memory space. This prevents a buggy or malicious program from reading or corrupting another program's data."},
+      {q:"What is a race condition?",opts:["A CPU benchmark test","When two threads access shared data in an unpredictable order, causing bugs","A network speed test","A process running too fast"],ans:1,exp:"A race condition occurs when two threads access and modify shared data simultaneously, with the outcome depending on which thread 'wins' the race. These are notoriously hard to find and can be exploited."},
+      {q:"Why does Chrome use separate processes for each tab?",opts:["To use less RAM","To look more impressive","So a crashed tab doesn't affect other tabs or the main browser","To load pages faster"],ans:2,exp:"Chrome's multi-process architecture means each tab is isolated. If one crashes, only that tab dies — not the whole browser. It also provides security isolation between websites."}
+    ]
+  },
+  {
+    id: 6, title: "File Systems", icon: "📁",
+    desc: "Learn how files are organized, stored, and retrieved on disk using file systems.",
+    xp: 120, badge: "File System Detective",
+    content: {
+      intro: {
+        title: "How Files are Organized",
+        body: `<p>A file system is like a <strong>giant library catalog</strong> for your storage device. Without it, data would just be random bytes with no way to find anything!</p>
+               <p>File systems organize data into <strong>files and directories (folders)</strong>, track where each file's data is stored on disk, and manage permissions for who can read or write each file. Common examples: <strong>NTFS</strong> (Windows), <strong>ext4</strong> (Linux), <strong>APFS</strong> (macOS).</p>`
+      },
+      why: {
+        title: "File Systems in Security",
+        body: `<p>File system knowledge is critical for <strong>digital forensics</strong> (recovering deleted files), <strong>malware analysis</strong> (finding hidden files), and <strong>privilege escalation</strong> (exploiting misconfigured file permissions). The famous Linux attack "symlink attacks" exploit file system behavior.</p>`
+      },
+      analogy: {
+        title: "A File System is Like a Library 📚",
+        body: `<p>🏛️ <strong>Library = Storage Device</strong></p>
+               <p>📚 <strong>Books = Files</strong> (containing data)</p>
+               <p>🗂️ <strong>Sections/Shelves = Directories</strong> (organizing files)</p>
+               <p>📋 <strong>Catalog System = File System Table</strong> (knowing where everything is)</p>
+               <p>🔑 <strong>Library Card = Permissions</strong> (who can access what)</p>`
+      },
+      fact: "💡 Fun Fact: The maximum file path length in Windows is 260 characters — a limitation from MS-DOS in the 1970s that still affects Windows today (though modern Windows can bypass it with a setting)!",
+      takeaways: ["File systems organize data into files and directories","Metadata includes filename, size, timestamps, and permissions","File permissions control read/write/execute access for users","Deleted files often remain on disk until overwritten","Different OSes use different file systems (NTFS, ext4, APFS)"]
+    },
+    quiz: [
+      {q:"What is a file system?",opts:["A collection of documents","Software that organizes and manages how data is stored on a disk","The operating system's interface","A type of network protocol"],ans:1,exp:"A file system is the structure and logic that manages how data is written, organized, and retrieved from a storage device. Without it, storage would be unreadable raw bytes."},
+      {q:"What is an inode (in Linux)?",opts:["A type of virus","A metadata structure storing file information (size, permissions, location)","The file content itself","A network interface"],ans:1,exp:"An inode is a data structure in Linux/Unix file systems that stores metadata about a file — its size, owner, permissions, timestamps, and where its data blocks are located on disk."},
+      {q:"What does 'chmod 777' do in Linux?",opts:["Deletes a file","Sets full read/write/execute permissions for everyone","Encrypts a file","Creates a new directory"],ans:1,exp:"chmod 777 grants read (4) + write (2) + execute (1) permissions to the owner, group, AND all other users. This is generally a security risk as it allows anyone to do anything to the file."},
+      {q:"What is a symbolic link (symlink)?",opts:["A secure connection","A shortcut that points to another file or directory","A type of file compression","A file backup"],ans:1,exp:"A symlink is like a shortcut or alias that points to another file or directory. Following the symlink gives access to the target. Symlink attacks exploit this to access unintended files."},
+      {q:"How does file recovery software work after deletion?",opts:["Restores from a hidden backup","Reads data from cloud storage","Scans disk for data that exists beyond deleted directory entries","Asks the OS to un-delete"],ans:2,exp:"When you delete a file, only its directory entry is removed. The actual data remains until overwritten. Recovery tools scan for these orphaned data blocks to reconstruct deleted files."}
+    ]
+  },
+  {
+    id: 7, title: "System Boot Process", icon: "🚀",
+    desc: "Follow a computer's journey from power button to ready desktop — step by step.",
+    xp: 110, badge: "Boot Wizard",
+    content: {
+      intro: {
+        title: "From Power On to Desktop",
+        body: `<p>When you press the power button, a precisely ordered sequence of events must happen before you see your desktop. This is the <strong>boot process</strong> — one of the most critical and security-sensitive moments in a computer's life.</p>
+               <p>The sequence: <strong>Power → BIOS/UEFI → Bootloader → Kernel → OS → Desktop</strong></p>`
+      },
+      why: {
+        title: "Why Boot Security Matters",
+        body: `<p><strong>Boot-level attacks</strong> are among the most dangerous — malware that hides in the boot process (bootkits) can survive OS reinstallation. <strong>Secure Boot</strong> (a UEFI feature) prevents unsigned code from running during startup. Understanding boot is essential for incident response and forensics.</p>`
+      },
+      analogy: {
+        title: "Boot Process is Like Opening a Shop 🏪",
+        body: `<p>🔑 <strong>Unlock the door (Power On)</strong> — Electricity flows to components</p>
+               <p>🔍 <strong>Inspect the building (POST)</strong> — BIOS checks that all hardware works</p>
+               <p>📋 <strong>Read the opening checklist (BIOS/UEFI)</strong> — Find where the OS is stored</p>
+               <p>👔 <strong>Manager arrives (Bootloader)</strong> — Loads the OS into memory</p>
+               <p>⚙️ <strong>Staff gets to work (Kernel)</strong> — OS takes control of hardware</p>
+               <p>🎉 <strong>Open for business (Desktop)</strong> — Ready for users!</p>`
+      },
+      fact: "💡 Fun Fact: BIOS (Basic Input/Output System) dates back to 1975. Modern computers use UEFI which supports drives larger than 2TB, faster boot times, and built-in security features like Secure Boot!",
+      takeaways: ["Boot sequence: Power → POST → BIOS/UEFI → Bootloader → Kernel → Login","POST (Power-On Self Test) checks that hardware is working","BIOS/UEFI configures hardware and finds the bootable device","Bootloader (GRUB, Windows Boot Manager) loads the OS kernel","Secure Boot prevents untrusted code from running during startup"]
+    },
+    quiz: [
+      {q:"What is POST?",opts:["A type of internet request","Power-On Self Test — checks hardware before booting","Post Office System Technology","A Linux command"],ans:1,exp:"POST (Power-On Self Test) runs immediately when power is applied. It checks that essential hardware (CPU, RAM, keyboard) is present and functioning before the boot process continues."},
+      {q:"What is the difference between BIOS and UEFI?",opts:["They are identical","BIOS is newer than UEFI","UEFI is modern firmware with better security, GUI support, and drives over 2TB","BIOS supports larger drives than UEFI"],ans:2,exp:"UEFI replaced BIOS as the standard firmware interface. UEFI supports drives over 2TB, has a graphical interface, supports Secure Boot, and boots faster than legacy BIOS."},
+      {q:"What does a bootloader do?",opts:["Displays the desktop","Tests the hardware","Loads the OS kernel into memory from storage","Manages running applications"],ans:2,exp:"The bootloader (like GRUB or Windows Boot Manager) is a small program that finds and loads the OS kernel from storage into RAM, then transfers control to it."},
+      {q:"What is Secure Boot?",opts:["A password for your BIOS","A feature that prevents unsigned/untrusted code from running during startup","Full disk encryption","A firewall feature"],ans:1,exp:"Secure Boot is a UEFI security feature that ensures only digitally signed bootloaders and kernels can run during startup. It prevents bootkits from loading malicious code before the OS."},
+      {q:"What is a 'bootkit'?",opts:["A toolkit for installing a new OS","Malware that infects the boot process and survives OS reinstallation","A set of startup scripts","Boot configuration tools"],ans:1,exp:"A bootkit is malware that hides in the boot sector or bootloader. It loads before the OS, making it invisible to antivirus and surviving OS reinstallation — extremely dangerous."}
+    ]
+  },
+  {
+    id: 8, title: "Applications & Services", icon: "🛠️",
+    desc: "Understand how software apps and background services work together in an OS.",
+    xp: 110, badge: "Service Tracker",
+    content: {
+      intro: {
+        title: "Apps and Services: What's Running?",
+        body: `<p>Your computer runs two types of software: <strong>applications</strong> (programs you interact with — browser, games, editor) and <strong>services/daemons</strong> (background programs you don't see — print spooler, update checker, antivirus).</p>
+               <p>On Windows, background processes are called <strong>Services</strong>. On Linux/macOS, they're called <strong>Daemons</strong>.</p>`
+      },
+      why: {
+        title: "Security: Know What's Running",
+        body: `<p>Attackers love to hide malware as <strong>fake services</strong> — they run in the background, invisible to users, often with high privileges. Learning to identify legitimate vs malicious services is a core skill in <strong>threat hunting and incident response</strong>.</p>`
+      },
+      analogy: {
+        title: "A Company's Workforce 🏢",
+        body: `<p>👨‍💼 <strong>Foreground Apps</strong> = Customer-facing staff (visible, you interact with them)</p>
+               <p>👷 <strong>Background Services</strong> = Infrastructure staff (maintenance, security, IT) — you never see them but they keep everything running</p>
+               <p>🔐 <strong>Services with SYSTEM privileges</strong> = Managers with master keys — if compromised, full control is lost</p>`
+      },
+      fact: "💡 Fun Fact: A fresh Windows installation runs 60-80 background services automatically. Over time with more software installed, this can grow to hundreds — each one is a potential attack surface!",
+      takeaways: ["Applications are user-facing programs; services run in the background","Services often run with higher privileges than normal user apps","Daemons (Linux) and Services (Windows) perform system maintenance tasks","Attackers hide malware as fake services to persist on systems","Task Manager / `ps aux` / `systemctl` let you see all running processes"]
+    },
+    quiz: [
+      {q:"What is the difference between an application and a service?",opts:["Applications are faster","Applications are user-facing; services run in the background","Services need more disk space","Applications run with more privileges"],ans:1,exp:"Applications are programs users interact with directly (browsers, games). Services/daemons run silently in the background performing system tasks (updates, logging, networking)."},
+      {q:"On Linux, background services are called:",opts:["Services","Applications","Daemons","Agents"],ans:2,exp:"Linux and Unix background processes are called 'daemons'. They typically start with 'd' (sshd, httpd, systemd) and run without user interaction."},
+      {q:"Why do services often run with high privileges?",opts:["To run faster","Because users configured them to","To perform system-level tasks that require hardware access","To use less memory"],ans:2,exp:"Services that manage hardware, networking, or system resources need elevated privileges to function. This also makes them high-value targets — a compromised privileged service gives attackers powerful access."},
+      {q:"How can you identify all running processes on a Windows system?",opts:["Open File Explorer","Check Control Panel","Use Task Manager or 'tasklist' command","Look in the Start menu"],ans:2,exp:"Task Manager (Ctrl+Shift+Esc) shows all running processes and services with CPU/memory usage. The command 'tasklist' provides a command-line view. Security pros use these to spot malicious processes."},
+      {q:"What is 'persistence' in cybersecurity terms?",opts:["Fast network connections","A patient attacker","Malware's ability to survive reboots, often by installing as a service","Encrypted communication"],ans:2,exp:"Persistence means malware can survive system reboots. A common persistence technique is installing as a legitimate-looking service — it starts automatically with Windows without the user knowing."}
+    ]
+  },
+  {
+    id: 9, title: "Virtualization Basics", icon: "☁️",
+    desc: "Discover how virtual machines work and why they're fundamental to modern computing.",
+    xp: 150, badge: "Virtualization Ninja",
+    content: {
+      intro: {
+        title: "Computers Inside Computers",
+        body: `<p>Virtualization lets you run <strong>multiple operating systems on one physical machine</strong>. A Virtual Machine (VM) is a software emulation of a complete computer — it has virtual CPU, memory, storage, and network — but all running on shared physical hardware.</p>
+               <p>The magic is made possible by a <strong>Hypervisor</strong> — software that sits between the hardware and the VMs, allocating resources fairly.</p>`
+      },
+      why: {
+        title: "Virtualization Powers Everything",
+        body: `<p>Virtualization is the foundation of <strong>cloud computing</strong> (AWS, Azure, Google Cloud all run your apps in VMs), <strong>malware sandboxing</strong> (run suspicious files safely), <strong>penetration testing labs</strong>, and <strong>server consolidation</strong>. Almost everything in modern IT involves virtualization.</p>`
+      },
+      analogy: {
+        title: "Virtualization is Like Apartment Buildings 🏢",
+        body: `<p>🏗️ <strong>Physical hardware</strong> = Land and building structure</p>
+               <p>👷 <strong>Hypervisor</strong> = Building manager — divides space, ensures fair use</p>
+               <p>🏠 <strong>Virtual Machines</strong> = Individual apartments — each isolated, with own "kitchen" (CPU), "rooms" (memory), "storage"</p>
+               <p>👨‍👩‍👧 <strong>Applications in VMs</strong> = Tenants — live in their apartment without affecting neighbors</p>`
+      },
+      fact: "💡 Fun Fact: Amazon AWS alone manages millions of virtual machines. When you stream Netflix, you're using VMs in AWS data centers that VM-share physical servers with thousands of other customers simultaneously!",
+      takeaways: ["A hypervisor creates and manages virtual machines on physical hardware","Type 1 hypervisors (bare-metal) run directly on hardware — faster","Type 2 hypervisors run as an app on a host OS (VirtualBox, VMware)","VMs provide isolation — malware in a VM can't escape to the host (usually)","Containers (Docker) are lighter-weight than VMs but share the host OS kernel"]
+    },
+    quiz: [
+      {q:"What is a hypervisor?",opts:["A very fast processor","Software that creates and manages virtual machines","A type of storage device","A network router"],ans:1,exp:"A hypervisor (also called VMM - Virtual Machine Monitor) is software that creates, runs, and manages virtual machines, allocating physical hardware resources among them."},
+      {q:"What is the difference between Type 1 and Type 2 hypervisors?",opts:["Type 1 is older","Type 1 runs on bare metal hardware; Type 2 runs on a host OS","Type 2 is faster","They are identical"],ans:1,exp:"Type 1 (bare-metal) hypervisors like VMware ESXi run directly on hardware — faster and used in data centers. Type 2 (hosted) like VirtualBox run as applications on a regular OS — used for development and testing."},
+      {q:"Why are VMs useful for malware analysis?",opts:["They make malware run faster","They are free to use","Malware can be executed in isolation; if it damages the VM, the host is unaffected","They automatically remove malware"],ans:2,exp:"Security researchers run malware inside VMs (sandboxes) to study behavior safely. If the malware destroys the VM, the researcher simply deletes and restores it — the host computer remains unaffected."},
+      {q:"What is 'VM escape'?",opts:["Deleting a virtual machine","When a VM runs out of memory","An attack where malware breaks out of a VM to affect the host","Copying files between VMs"],ans:2,exp:"VM escape is a rare but serious vulnerability where malicious code in a guest VM exploits a hypervisor bug to gain access to the host OS or other VMs — breaking the isolation guarantee."},
+      {q:"How do containers (like Docker) differ from VMs?",opts:["Containers are slower","Containers are heavier","Containers share the host OS kernel, making them lighter but with less isolation than VMs","Containers need their own hypervisor"],ans:2,exp:"Containers share the host OS kernel, so they don't need to boot a full OS — they start in milliseconds and use less memory. The trade-off is less isolation than VMs, since they share the kernel."}
+    ]
+  }
+];
+
+const BADGES = [
+  {name:"Architecture Explorer",icon:"🏗️",module:0},
+  {name:"CPU Master",icon:"🧠",module:1},
+  {name:"Memory Expert",icon:"💾",module:2},
+  {name:"Storage Specialist",icon:"🗄️",module:3},
+  {name:"OS Navigator",icon:"⚙️",module:4},
+  {name:"Process Commander",icon:"⚡",module:5},
+  {name:"File System Detective",icon:"📁",module:6},
+  {name:"Boot Wizard",icon:"🚀",module:7},
+  {name:"Service Tracker",icon:"🛠️",module:8},
+  {name:"Virtualization Ninja",icon:"☁️",module:9}
+];
+
+// ============================================================
+// STATE (localStorage)
+// ============================================================
+let state = {
+  xp: 0, level: 1, completed: [], quizScores: {}, badgesEarned: []
+};
+function loadState() {
+  try {
+    const s = localStorage.getItem('cyberlearn_state');
+    if (s) state = JSON.parse(s);
+  } catch(e) {}
+}
+function saveState() {
+  localStorage.setItem('cyberlearn_state', JSON.stringify(state));
+}
+function addXP(amount) {
+  state.xp += amount;
+  state.level = Math.floor(state.xp / 300) + 1;
+  saveState();
+  updateSidebar();
+  showNotif('xp', '⚡', '+' + amount + ' XP Earned!', 'Keep it up, System Explorer!');
+}
+function earnBadge(moduleId) {
+  const b = BADGES.find(b => b.module === moduleId);
+  if (b && !state.badgesEarned.includes(b.name)) {
+    state.badgesEarned.push(b.name);
+    saveState();
+    updateAchievements();
+    showNotif('badge', b.icon, 'Badge Unlocked!', b.name);
+  }
+}
+function completeModule(moduleId) {
+  if (!state.completed.includes(moduleId)) {
+    state.completed.push(moduleId);
+    saveState();
+    addXP(MODULES[moduleId].xp);
+    earnBadge(moduleId);
+    updateAll();
+  }
+}
+
+// ============================================================
+// UI UPDATES
+// ============================================================
+function updateSidebar() {
+  const pct = Math.min(100, Math.round((state.completed.length / MODULES.length) * 100));
+  document.getElementById('xpBarFill').style.width = pct + '%';
+  document.getElementById('xpPercent').textContent = pct + '%';
+  document.getElementById('totalXP').textContent = state.xp;
+  document.getElementById('userLevel').textContent = state.level;
+  document.getElementById('modCount').textContent = state.completed.length + '/' + MODULES.length;
+  renderNavModules();
+}
+function renderNavModules() {
+  const el = document.getElementById('navModules');
+  el.innerHTML = MODULES.map((m,i) => {
+    const done = state.completed.includes(i);
+    const locked = i > 0 && !state.completed.includes(i-1);
+    return `<div class="nav-item ${done?'completed':''} ${locked?'locked':''}" onclick="${locked?'':('openModule('+i+')')}">
+      <span class="nav-icon">${m.icon}</span>${m.title}
+      ${done?'<span class="nav-check">✓</span>':'<span class="nav-num">'+m.xp+'xp</span>'}
+    </div>`;
+  }).join('');
+}
+function updateRoadmap() {
+  const grid = document.getElementById('roadmapGrid');
+  grid.innerHTML = '<div class="roadmap-line"></div>' + MODULES.map((m,i) => {
+    const done = state.completed.includes(i);
+    const locked = i > 0 && !state.completed.includes(i-1);
+    const active = !done && !locked;
+    return `<div class="roadmap-item ${done?'completed':''} ${active?'active':''}" onclick="${locked?'':('openModule('+i+')')}">
+      <div class="rm-node">${m.icon}</div>
+      <div class="rm-card">
+        <div class="rm-title">${m.title}</div>
+        <div class="rm-desc">${m.desc}</div>
+        <div class="rm-status ${done?'done':active?'active':'locked'}">
+          ${done?'✓ Completed':active?'▶ Start Mission':'🔒 Locked'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function updateModulesGrid() {
+  const grid = document.getElementById('modulesGrid');
+  grid.innerHTML = MODULES.map((m,i) => {
+    const done = state.completed.includes(i);
+    const locked = i > 0 && !state.completed.includes(i-1);
+    return `<div class="module-card ${done?'completed':''} ${locked?'locked':''}" onclick="${locked?'':('openModule('+i+')')}">
+      <div class="mc-icon">${m.icon}</div>
+      <div class="mc-num">Module ${String(i+1).padStart(2,'0')}</div>
+      <div class="mc-title">${m.title}</div>
+      <div class="mc-desc">${m.desc}</div>
+      <div class="mc-footer">
+        <div class="mc-xp">⚡ ${m.xp} XP</div>
+        <div class="mc-status ${done?'done':locked?'locked':'available'}">${done?'✓ Done':locked?'🔒 Locked':'▶ Start'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function updateAchievements() {
+  const grid = document.getElementById('achievementsGrid');
+  grid.innerHTML = BADGES.map(b => {
+    const earned = state.badgesEarned.includes(b.name);
+    return `<div class="achievement-card ${earned?'earned':'locked-badge'}">
+      ${earned?'<div class="ach-earned-tag">✓ EARNED</div>':''}
+      <span class="ach-icon">${b.icon}</span>
+      <div class="ach-name">${b.name}</div>
+      <div class="ach-desc">${MODULES[b.module].title}</div>
+    </div>`;
+  }).join('');
+}
+function updateChallenge() {
+  const tasks = document.getElementById('challengeTasks');
+  tasks.innerHTML = MODULES.map((m,i) => {
+    const done = state.completed.includes(i);
+    return `<div class="challenge-task ${done?'done':''}">
+      <div class="task-check">${done?'✓':''}</div>
+      ${m.icon} ${m.title}
+    </div>`;
+  }).join('');
+}
+function updateAll() {
+  updateSidebar();
+  updateRoadmap();
+  updateModulesGrid();
+  updateAchievements();
+  updateChallenge();
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+function showNotif(type, icon, title, msg) {
+  const container = document.getElementById('notifContainer');
+  const notif = document.createElement('div');
+  notif.className = `notif ${type}`;
+  notif.innerHTML = `<div class="notif-icon">${icon}</div><div class="notif-text"><div class="notif-title">${title}</div>${msg}</div>`;
+  container.appendChild(notif);
+  setTimeout(() => { notif.style.opacity='0'; notif.style.transform='translateX(100%)'; notif.style.transition='0.4s'; setTimeout(()=>notif.remove(),400); }, 3000);
+}
+
+// ============================================================
+// MODULE VIEWER
+// ============================================================
+let currentModule = null, currentStep = 0;
+const STEP_LABELS = ['📖 Intro','🎯 Why It Matters','🤔 Analogy','👁️ Visual','🎮 Activity','💡 Fun Fact','📋 Takeaways','📝 Quiz'];
+
+function openModule(id) {
+  currentModule = id;
+  currentStep = 0;
+  const m = MODULES[id];
+  document.getElementById('mvTitle').textContent = m.icon + ' ' + m.title;
+  renderMVSteps();
+  renderStep();
+  document.getElementById('moduleViewer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+function closeModule() {
+  document.getElementById('moduleViewer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function renderMVSteps() {
+  const steps = document.getElementById('mvSteps');
+  steps.innerHTML = STEP_LABELS.map((l,i) =>
+    `<div class="mv-step ${i===currentStep?'active':i<currentStep?'done':''}" title="${l}"></div>`
+  ).join('');
+}
+function renderStep() {
+  const m = MODULES[currentModule];
+  const inner = document.getElementById('mvInner');
+  renderMVSteps();
+  const stepKey = ['intro','why','analogy','visual','activity','fact','takeaways','quiz'][currentStep];
+  let html = '';
+  const navBtns = `<div class="step-nav">
+    ${currentStep > 0 ? '<button class="btn-step prev" onclick="goStep(-1)">← Back</button>' : ''}
+    ${currentStep < 7 ? '<button class="btn-step next" onclick="goStep(1)">Next →</button>' : ''}
+  </div>`;
+  switch(currentStep) {
+    case 0: // Intro
+      html = `<div class="step-panel active">
+        <div class="step-tag">📖 Introduction</div>
+        <h2 class="step-title">${m.content.intro.title}</h2>
+        <div class="step-content">${m.content.intro.body}</div>
+        ${navBtns}
+      </div>`; break;
+    case 1: // Why
+      html = `<div class="step-panel active">
+        <div class="step-tag">🎯 Why It Matters</div>
+        <h2 class="step-title">${m.content.why.title}</h2>
+        <div class="step-content">${m.content.why.body}</div>
+        <div class="info-card"><h4>🔐 Cybersecurity Connection</h4><p>This topic is directly relevant to security professionals. Understanding fundamentals helps you both defend systems and identify attack vectors.</p></div>
+        ${navBtns}
+      </div>`; break;
+    case 2: // Analogy
+      html = `<div class="step-panel active">
+        <div class="step-tag">🤔 Real-Life Analogy</div>
+        <h2 class="step-title">${m.content.analogy.title}</h2>
+        <div class="info-card analogy">
+          <h4>💬 Think of it this way...</h4>
+          <div style="line-height:2">${m.content.analogy.body}</div>
+        </div>
+        ${navBtns}
+      </div>`; break;
+    case 3: // Visual
+      html = `<div class="step-panel active">
+        <div class="step-tag">👁️ Interactive Visualization</div>
+        <h2 class="step-title">Click to Explore</h2>
+        ${buildVisualization(currentModule)}
+        ${navBtns}
+      </div>`; break;
+    case 4: // Activity
+      html = `<div class="step-panel active">
+        <div class="step-tag">🎮 Mini Activity</div>
+        <h2 class="step-title">Hands-On Challenge</h2>
+        ${buildActivity(currentModule)}
+        ${navBtns}
+      </div>`; break;
+    case 5: // Fun Fact
+      html = `<div class="step-panel active">
+        <div class="step-tag">💡 Fun Fact</div>
+        <h2 class="step-title">Did You Know?</h2>
+        <div class="info-card fun" style="font-size:1rem;line-height:1.8">
+          <p>${m.content.fact}</p>
+        </div>
+        ${navBtns}
+      </div>`; break;
+    case 6: // Takeaways
+      html = `<div class="step-panel active">
+        <div class="step-tag">📋 Key Takeaways</div>
+        <h2 class="step-title">What You Learned</h2>
+        <div class="takeaways">
+          <h4>✅ Essential Points</h4>
+          ${m.content.takeaways.map(t=>`<div class="takeaway-item"><span class="takeaway-bullet">▶</span>${t}</div>`).join('')}
+        </div>
+        ${navBtns}
+      </div>`; break;
+    case 7: // Quiz
+      html = `<div class="step-panel active">
+        <div class="step-tag">📝 Module Quiz</div>
+        <h2 class="step-title">Test Your Knowledge</h2>
+        ${buildQuiz(currentModule)}
+      </div>`; break;
+  }
+  inner.innerHTML = html;
+  inner.scrollTop = 0;
+}
+function goStep(dir) {
+  currentStep = Math.max(0, Math.min(7, currentStep + dir));
+  renderStep();
+}
+
+// ============================================================
+// VISUALIZATIONS
+// ============================================================
+function buildVisualization(id) {
+  const vizData = [
+    // 0: Computer Architecture
+    `<div class="viz-box"><div class="viz-title">Computer Architecture — Click each component</div>
+    <div class="cpu-diagram">
+      ${[['🧠','CPU','Processes all instructions'],['💾','RAM','Temporary memory'],['🗄️','Storage','Permanent data'],['🖥️','Output','Monitor/Speaker'],['⌨️','Input','Keyboard/Mouse'],['⚡','Power','Energy source']].map(([icon,label,tip])=>`
+      <div class="cpu-box" onclick="showVizTip('${label}','${tip}')">
+        <div class="cpu-box-icon">${icon}</div>
+        <div class="cpu-box-label">${label}</div>
+      </div>`).join('<div class="cpu-arrow">↔</div>')}
+    </div>
+    <div id="vizTip" style="margin-top:16px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-size:.85rem;color:var(--text2);display:none"></div>
+    </div>`,
+    // 1: CPU Fundamentals
+    `<div class="viz-box"><div class="viz-title">CPU Instruction Cycle — Click each step</div>
+    <div class="cpu-diagram">
+      ${[['📥','Fetch','CPU gets the next instruction from memory'],['🔍','Decode','CPU figures out what operation to do'],['⚙️','Execute','CPU performs the calculation or operation'],['📤','Store','Result is written back to memory']].map(([icon,label,tip])=>`
+      <div class="cpu-box" onclick="showVizTip('${label}','${tip}')">
+        <div class="cpu-box-icon">${icon}</div>
+        <div class="cpu-box-label">${label}</div>
+      </div><div class="cpu-arrow">→</div>`).join('')}
+    </div>
+    <div id="vizTip" style="margin-top:16px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-size:.85rem;color:var(--text2);display:none"></div>
+    </div>`,
+    // 2: Memory Hierarchy
+    `<div class="viz-box"><div class="viz-title">Memory Hierarchy — Click each layer</div>
+    <div class="layer-diagram">
+      ${[['Registers','#00D9FF','Fastest | Tiny | Inside CPU'],['L1/L2/L3 Cache','#00b4ff','Very Fast | Small | Inside CPU'],['RAM','#7C4DFF','Fast | Medium | 8-64GB'],['SSD/HDD','#5533cc','Medium | Large | 256GB-4TB'],['Network/Cloud','#3322aa','Slow | Massive | Unlimited']].map(([n,c,d])=>`
+      <div class="layer" style="background:${c}22;border-color:${c}44;color:${c}" onclick="showVizTip('${n}','${d}')">
+        ${n} — ${d}
+      </div>`).join('')}
+    </div>
+    <div id="vizTip" style="margin-top:16px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-size:.85rem;color:var(--text2);display:none"></div>
+    </div>`,
+    // 3: Storage comparison
+    `<div class="viz-box"><div class="viz-title">Storage Speed Comparison — Click to reveal</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${[['💿 HDD (Hard Disk)','150 MB/s','~10ms','#ff6b35',15],['⚡ SATA SSD','550 MB/s','~0.1ms','#7C4DFF',55],['🚀 NVMe SSD','7,000 MB/s','~0.01ms','#00D9FF',100]].map(([n,speed,lat,c,w])=>`
+      <div style="background:var(--card);border-radius:10px;padding:16px;border:1px solid var(--border);cursor:pointer" onclick="this.querySelector('.st').style.display='block'">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <strong>${n}</strong><span style="font-family:monospace;font-size:.8rem;color:${c}">${speed}</span>
+        </div>
+        <div style="background:var(--bg);border-radius:4px;height:8px;overflow:hidden">
+          <div style="width:${w}%;height:100%;background:${c};border-radius:4px;transition:width 1s ease"></div>
+        </div>
+        <div class="st" style="display:none;margin-top:8px;font-size:.8rem;color:var(--text2)">Latency: ${lat} | Click reveals details</div>
+      </div>`).join('')}
+    </div></div>`,
+    // 4: OS Layers
+    `<div class="viz-box"><div class="viz-title">OS Layer Model — Click each layer</div>
+    <div class="layer-diagram">
+      ${[['User Applications','#00FFB3','Apps you run: browser, games, editor'],['System Libraries','#00D9FF','Shared code: libc, APIs, frameworks'],['Shell / GUI','#7C4DFF','Command line or graphical interface'],['OS Kernel','#ff6b35','Core: process, memory, driver management'],['Hardware','#888','Physical: CPU, RAM, disk, network']].map(([n,c,d])=>`
+      <div class="layer" style="background:${c}22;border-color:${c}44;color:${c}" onclick="showVizTip('${n}','${d}')">
+        ${n}
+      </div>`).join('')}
+    </div>
+    <div id="vizTip" style="margin-top:16px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-size:.85rem;color:var(--text2);display:none"></div>
+    </div>`,
+    // 5: Process vs Thread
+    `<div class="viz-box"><div class="viz-title">Process & Thread Diagram — Explore the pizza shop!</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px;background:var(--card);border:2px solid #7C4DFF;border-radius:12px;padding:20px">
+        <div style="font-family:Syne,sans-serif;font-weight:700;color:#7C4DFF;margin-bottom:12px">🍕 Pizza Shop (Process)</div>
+        <div style="color:var(--text2);font-size:.82rem;margin-bottom:12px">Has its own: Memory, Files, Resources</div>
+        ${[['👨‍🍳','Thread 1: Cook','Makes pizzas'],['📦','Thread 2: Packer','Boxes orders'],['💰','Thread 3: Cashier','Handles payments']].map(([icon,name,job])=>`
+        <div style="background:var(--bg);border-radius:8px;padding:10px;margin-bottom:8px;display:flex;gap:8px;align-items:center;font-size:.82rem;cursor:pointer" onmouseover="this.style.borderColor='#7C4DFF'" onmouseout="this.style.borderColor=''" style="border:1px solid var(--border);transition:all .2s">
+          <span>${icon}</span><span>${name}: ${job}</span>
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--text2)">+</div>
+      <div style="flex:1;min-width:180px;background:var(--card);border:2px solid #00D9FF44;border-radius:12px;padding:20px;opacity:.6">
+        <div style="font-family:Syne,sans-serif;font-weight:700;color:#00D9FF;margin-bottom:12px">🍕 Another Shop (Process 2)</div>
+        <div style="color:var(--text2);font-size:.82rem">Completely independent — own memory, resources, threads</div>
+      </div>
+    </div></div>`,
+    // 6: File System
+    `<div class="viz-box"><div class="viz-title">File System Tree — Click folders to expand</div>
+    <div id="fsTree" style="font-family:JetBrains Mono,monospace;font-size:.82rem;line-height:2">
+      <div style="cursor:pointer;color:var(--primary)" onclick="toggleFS('home')">📁 /home/
+        <div id="fs-home" style="display:none;padding-left:20px">
+          <div style="cursor:pointer;color:var(--accent)" onclick="event.stopPropagation();toggleFS('user')">📁 user/
+            <div id="fs-user" style="display:none;padding-left:20px">
+              <div style="cursor:pointer" onclick="event.stopPropagation();toggleFS('docs')">📁 Documents/
+                <div id="fs-docs" style="display:none;padding-left:20px">
+                  <div style="color:var(--text2)">📄 resume.pdf</div>
+                  <div style="color:var(--warn);font-weight:bold;cursor:pointer" onclick="event.stopPropagation();showVizTip('🎉 Found it!','You navigated the file system like a pro! In Linux this path is /home/user/Documents/secret.txt')">🔐 secret.txt ← FIND ME!</div>
+                </div>
+              </div>
+              <div style="color:var(--text2)">📁 Downloads/</div>
+              <div style="color:var(--text2)">📁 Pictures/</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="color:var(--text2)">📁 /etc/ (system config)</div>
+      <div style="color:var(--text2)">📁 /var/ (variable data)</div>
+      <div style="color:var(--text2)">📁 /tmp/ (temporary files)</div>
+    </div>
+    <div id="vizTip" style="margin-top:12px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-size:.85rem;color:var(--text2);display:none"></div>
+    </div>`,
+    // 7: Boot sequence
+    `<div class="viz-box"><div class="viz-title">System Boot Sequence — Click each stage</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      ${[['🔌','Power On','Electricity flows to all components. Power supply converts AC to DC.','#888'],
+         ['🔍','POST (Test)','BIOS runs Power-On Self Test — checks CPU, RAM, keyboard, storage.','#ff6b35'],
+         ['⚙️','BIOS/UEFI','Firmware configures hardware and searches for bootable device.','#7C4DFF'],
+         ['🚀','Bootloader','GRUB or Windows Boot Manager loads OS kernel into RAM.','#00D9FF'],
+         ['🐧','Kernel','OS kernel initializes drivers, mounts root filesystem, starts first process.','#00b4ff'],
+         ['🖥️','Desktop','Login screen appears. System ready for user interaction!','#00FFB3']].map(([icon,name,detail,c],i)=>`
+      <div style="display:flex;gap:0;align-items:stretch">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div style="width:40px;height:40px;border-radius:50%;background:${c}22;border:2px solid ${c};display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;flex-shrink:0" onclick="showVizTip('${name}','${detail}')">${icon}</div>
+          ${i<5?`<div style="width:2px;flex:1;background:${c}44;min-height:20px"></div>`:''}
+        </div>
+        <div style="padding:0 16px 20px;font-size:.85rem;cursor:pointer" onclick="showVizTip('${name}','${detail}')">
+          <strong style="color:${c}">${name}</strong>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div id="vizTip" style="margin-top:12px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-size:.85rem;color:var(--text2);display:none"></div>
+    </div>`,
+    // 8: Services
+    `<div class="viz-box"><div class="viz-title">Foreground Apps vs Background Services</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-family:Syne,sans-serif;font-weight:700;color:var(--primary);margin-bottom:12px">👁️ Foreground Apps</div>
+        ${['🌐 Web Browser','🎮 Game','📝 Text Editor','🎵 Music Player','📧 Email Client'].map(a=>`
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;gap:8px">${a}</div>`).join('')}
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-family:Syne,sans-serif;font-weight:700;color:var(--secondary);margin-bottom:12px">👤 Background Services</div>
+        ${['🔄 Windows Update','🛡️ Antivirus Scanner','🖨️ Print Spooler','🌐 DNS Client','⏰ Task Scheduler'].map(s=>`
+        <div style="background:var(--card);border:1px solid rgba(124,77,255,0.2);border-radius:8px;padding:10px;margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;gap:8px">${s}</div>`).join('')}
+      </div>
+    </div></div>`,
+    // 9: VM Stack
+    `<div class="viz-box"><div class="viz-title">Virtualization Stack — Click each layer</div>
+    <div class="layer-diagram">
+      ${[['Guest Applications','#00FFB3','Programs running inside the VM'],['Guest OS (Ubuntu/Windows)','#00D9FF','Full OS running inside virtual machine'],['Hypervisor (VMware/KVM)','#7C4DFF','Creates and manages virtual machines'],['Host OS (optional)','#ff6b35','Base OS (Type 2) or absent (Type 1)'],['Physical Hardware','#888','Real CPU, RAM, storage, network']].map(([n,c,d])=>`
+      <div class="layer" style="background:${c}22;border-color:${c}44;color:${c}" onclick="showVizTip('${n}','${d}')">
+        ${n}
+      </div>`).join('')}
+    </div>
+    <div id="vizTip" style="margin-top:16px;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-size:.85rem;color:var(--text2);display:none"></div>
+    </div>`
+  ];
+  return vizData[id] || '<p>Visualization coming soon!</p>';
+}
+function showVizTip(label, tip) {
+  const el = document.getElementById('vizTip');
+  if (el) { el.style.display='block'; el.innerHTML=`<strong style="color:var(--primary)">${label}</strong>: ${tip}`; }
+}
+function toggleFS(id) {
+  const el = document.getElementById('fs-' + id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ============================================================
+// ACTIVITIES
+// ============================================================
+function buildActivity(id) {
+  const activities = [
+    // 0: Computer Architecture - drag & drop build a computer
+    `<div class="activity-box">
+      <div class="activity-title">🏗️ Build a Computer</div>
+      <div class="activity-desc">Drag each component to its correct slot below to build a working computer!</div>
+      <div class="activity-desc" style="font-size:.78rem;color:var(--primary)">Drag items from the parts bin to the correct slot</div>
+      <div class="drag-area" id="partsBin">
+        <div class="drag-item" draggable="true" data-part="CPU" ondragstart="dragStart(event)">🧠 CPU</div>
+        <div class="drag-item" draggable="true" data-part="RAM" ondragstart="dragStart(event)">💾 RAM</div>
+        <div class="drag-item" draggable="true" data-part="SSD" ondragstart="dragStart(event)">🗄️ SSD</div>
+        <div class="drag-item" draggable="true" data-part="Keyboard" ondragstart="dragStart(event)">⌨️ Keyboard</div>
+        <div class="drag-item" draggable="true" data-part="Monitor" ondragstart="dragStart(event)">🖥️ Monitor</div>
+      </div>
+      <div class="drop-slots">
+        <div class="drop-slot" data-expects="CPU" ondragover="dragOver(event)" ondrop="dropItem(event)">Drop Processor here</div>
+        <div class="drop-slot" data-expects="RAM" ondragover="dragOver(event)" ondrop="dropItem(event)">Drop Working Memory here</div>
+        <div class="drop-slot" data-expects="SSD" ondragover="dragOver(event)" ondrop="dropItem(event)">Drop Storage here</div>
+        <div class="drop-slot" data-expects="Keyboard" ondragover="dragOver(event)" ondrop="dropItem(event)">Drop Input Device here</div>
+        <div class="drop-slot" data-expects="Monitor" ondragover="dragOver(event)" ondrop="dropItem(event)">Drop Output Device here</div>
+      </div>
+      <button class="btn-check" onclick="checkDrop0()">✓ Check</button>
+      <button class="btn-reset" onclick="resetActivity0()">↺ Reset</button>
+      <div class="activity-result" id="actResult0"></div>
+    </div>`,
+    // 1: CPU cycle - sequence puzzle
+    `<div class="activity-box">
+      <div class="activity-title">🧩 CPU Cycle Puzzle</div>
+      <div class="activity-desc">Arrange the steps of the CPU instruction cycle in the correct order by clicking them in sequence!</div>
+      <div class="sequence-pool" id="seqPool1">
+        ${shuffle(['Fetch','Decode','Execute','Store']).map(s=>`<div class="sequence-item" onclick="seqClick(this,'1')" data-val="${s}"><span class="seq-handle">☰</span>${s}</div>`).join('')}
+      </div>
+      <div style="margin-bottom:8px;font-size:.8rem;color:var(--text2)">Your answer (click steps above in order):</div>
+      <div class="sequence-target" id="seqTarget1">
+        <div class="seq-slot" data-pos="0">Step 1</div>
+        <div class="seq-slot" data-pos="1">Step 2</div>
+        <div class="seq-slot" data-pos="2">Step 3</div>
+        <div class="seq-slot" data-pos="3">Step 4</div>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn-check" onclick="checkSeq1()">✓ Check</button>
+        <button class="btn-reset" onclick="resetSeq1()">↺ Reset</button>
+      </div>
+      <div class="activity-result" id="actResult1"></div>
+    </div>`,
+    // 2: Memory sorting
+    `<div class="activity-box">
+      <div class="activity-title">🔀 RAM vs Storage Sort</div>
+      <div class="activity-desc">Click each item to assign it to RAM or Storage! Think: is this data needed RIGHT NOW, or stored permanently?</div>
+      <div class="sort-items-pool" id="sortPool2">
+        ${shuffle(['Running Browser','Current Game Data','Photos Collection','Movies Library','Open Word Doc','Song being played','Saved Emails','Installed Programs']).map(s=>`<div class="sort-item" onclick="sortClick2(this)" data-item="${s}">${s}</div>`).join('')}
+      </div>
+      <div class="sort-container">
+        <div class="sort-zone">
+          <div class="sort-zone-title">💾 RAM (Temporary, Running)</div>
+          <div class="sort-drop-zone" id="sortZoneRAM"></div>
+        </div>
+        <div class="sort-zone">
+          <div class="sort-zone-title">🗄️ Storage (Permanent)</div>
+          <div class="sort-drop-zone" id="sortZoneStorage"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn-check" onclick="checkSort2()">✓ Check</button>
+        <button class="btn-reset" onclick="resetSort2()">↺ Reset</button>
+      </div>
+      <div class="activity-result" id="actResult2"></div>
+    </div>`,
+    // 3: Storage speed challenge
+    `<div class="activity-box">
+      <div class="activity-title">⚡ Storage Speed Challenge</div>
+      <div class="activity-desc">Rank these storage types from SLOWEST to FASTEST by clicking them in order!</div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Click: 1st click = Slowest ... Last click = Fastest</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap" id="speedPool3">
+        ${shuffle(['HDD (Hard Disk)','SATA SSD','NVMe M.2 SSD']).map(s=>`<div class="sort-item" onclick="speedClick3(this)" data-item="${s}" data-rank="0" style="padding:16px 20px;font-size:.9rem">${s}</div>`).join('')}
+      </div>
+      <div style="margin-top:16px;font-family:JetBrains Mono,monospace;font-size:.8rem;color:var(--text2)" id="speedOrder3">Your ranking: (click items above)</div>
+      <div style="margin-top:12px">
+        <button class="btn-check" onclick="checkSpeed3()">✓ Check</button>
+        <button class="btn-reset" onclick="resetSpeed3()">↺ Reset</button>
+      </div>
+      <div class="activity-result" id="actResult3"></div>
+    </div>`,
+    // 4: OS resource manager simulation
+    `<div class="activity-box">
+      <div class="activity-title">🎛️ Resource Manager Simulation</div>
+      <div class="activity-desc">Click each task to assign it resources! Watch CPU and RAM usage change.</div>
+      <div class="sim-resources">
+        <div class="sim-resource"><div class="sim-resource-name">CPU Usage</div><div class="sim-bar-bg"><div class="sim-bar" id="simCPU" style="width:10%"></div></div><div class="sim-val" id="simCPUval">10%</div></div>
+        <div class="sim-resource"><div class="sim-resource-name">RAM Usage</div><div class="sim-bar-bg"><div class="sim-bar" id="simRAM" style="width:8%"></div></div><div class="sim-val" id="simRAMval">8%</div></div>
+      </div>
+      <div class="sim-box" id="simTasks4">
+        ${[['🎵 Play Music',15,12],['🌐 Open Browser',35,45],['📥 Download File',25,20],['🎮 Launch Game',80,70],['📝 Open Text File',5,8]].map(([task,cpu,ram])=>`
+        <div class="sim-task" onclick="assignTask(this,${cpu},${ram})" data-cpu="${cpu}" data-ram="${ram}">${task}</div>`).join('')}
+      </div>
+      <div style="font-size:.8rem;color:var(--text2);margin-top:8px" id="simMsg4">Click tasks to run them and see resource usage!</div>
+      <div class="activity-result" id="actResult4"></div>
+    </div>`,
+    // 5: Pizza shop thread simulation
+    `<div class="activity-box">
+      <div class="activity-title">🍕 Thread Simulation</div>
+      <div class="activity-desc">Start the pizza shop! Click each thread to activate it and see multitasking in action.</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        ${[['👨‍🍳','Cook Thread','Making 3 pizzas...','600'],['📦','Packer Thread','Boxing 2 orders...','800'],['💰','Cashier Thread','Processing payment...','400']].map(([icon,name,job,dur])=>`
+        <div style="flex:1;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:2rem;margin-bottom:8px">${icon}</div>
+          <div style="font-family:Syne,sans-serif;font-weight:700;font-size:.85rem;margin-bottom:4px">${name}</div>
+          <div style="font-size:.75rem;color:var(--text2);margin-bottom:12px">${job}</div>
+          <div style="height:6px;background:var(--bg);border-radius:3px;margin-bottom:8px;overflow:hidden">
+            <div class="thread-bar" style="height:100%;width:0%;background:var(--primary);border-radius:3px;transition:width ${dur}ms linear"></div>
+          </div>
+          <button class="btn-check" style="width:100%;padding:8px;font-size:.8rem" onclick="startThread(this)">▶ Start</button>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:16px;padding:12px;background:var(--card);border-radius:8px;font-size:.82rem;color:var(--text2)" id="threadMsg5">
+        💡 Notice: All three threads (workers) run SIMULTANEOUSLY, sharing the same shop (process) resources!
+      </div>
+    </div>`,
+    // 6: File system navigation
+    `<div class="activity-box">
+      <div class="activity-title">🗂️ Folder Navigation Challenge</div>
+      <div class="activity-desc">Navigate through the folders to find the hidden file! Click folders to enter them.</div>
+      <div id="fsNav6" style="font-family:JetBrains Mono,monospace;font-size:.85rem">
+        <div style="color:var(--text2);margin-bottom:8px">📍 Current path: <span id="fsPath6" style="color:var(--primary)">/</span></div>
+        <div id="fsContent6"></div>
+      </div>
+      <div class="activity-result" id="actResult6"></div>
+    </div>`,
+    // 7: Boot sequence ordering
+    `<div class="activity-box">
+      <div class="activity-title">🚀 Boot Sequence Puzzle</div>
+      <div class="activity-desc">Click the boot stages in the correct order — from Power On to Desktop!</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px" id="bootPool7">
+        ${shuffle(['Desktop Ready','BIOS/UEFI','Bootloader','Power On','OS Kernel','POST']).map(s=>`<div class="sort-item" onclick="bootClick7(this)" data-item="${s}" style="padding:12px 18px">${s}</div>`).join('')}
+      </div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:8px">Your boot sequence:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;min-height:50px;padding:12px;background:var(--bg);border:2px dashed var(--border);border-radius:10px" id="bootTarget7"></div>
+      <div style="margin-top:12px">
+        <button class="btn-check" onclick="checkBoot7()">✓ Check</button>
+        <button class="btn-reset" onclick="resetBoot7()">↺ Reset</button>
+      </div>
+      <div class="activity-result" id="actResult7"></div>
+    </div>`,
+    // 8: Foreground vs Background
+    `<div class="activity-box">
+      <div class="activity-title">🔀 App vs Service Classifier</div>
+      <div class="activity-desc">Click each item to sort it — is it a foreground app or a background service?</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px" id="sortPool8">
+        ${shuffle(['🌐 Chrome Browser','🔄 Windows Update','🎮 Steam Game','🛡️ Antivirus','📝 Notepad','🖨️ Print Spooler','🎵 Spotify','⏰ Task Scheduler']).map(s=>`<div class="sort-item" onclick="sortClick8(this)" data-item="${s}">${s}</div>`).join('')}
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-family:Syne,sans-serif;font-weight:700;color:var(--primary);margin-bottom:8px">👁️ Foreground Apps</div>
+          <div style="min-height:60px;padding:10px;background:var(--bg);border:2px dashed var(--border);border-radius:10px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start" id="fgZone8"></div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-family:Syne,sans-serif;font-weight:700;color:var(--secondary);margin-bottom:8px">⚙️ Background Services</div>
+          <div style="min-height:60px;padding:10px;background:var(--bg);border:2px dashed var(--border);border-radius:10px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start" id="bgZone8"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn-check" onclick="checkSort8()">✓ Check</button>
+        <button class="btn-reset" onclick="resetSort8()">↺ Reset</button>
+      </div>
+      <div class="activity-result" id="actResult8"></div>
+    </div>`,
+    // 9: VM stack builder
+    `<div class="activity-box">
+      <div class="activity-title">🏗️ Build a Virtual Machine Stack</div>
+      <div class="activity-desc">Click layers in order from BOTTOM to TOP to build the virtualization stack!</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px" id="vmPool9">
+        ${shuffle(['Physical Hardware','Host OS','Hypervisor','Guest OS','Applications']).map(s=>`<div class="sort-item" onclick="vmClick9(this)" data-item="${s}" style="padding:12px 18px">${s}</div>`).join('')}
+      </div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:8px">Your VM Stack (bottom → top):</div>
+      <div style="display:flex;flex-direction:column-reverse;gap:6px;min-height:60px;padding:12px;background:var(--bg);border:2px dashed var(--border);border-radius:10px" id="vmTarget9"></div>
+      <div style="margin-top:12px">
+        <button class="btn-check" onclick="checkVM9()">✓ Check</button>
+        <button class="btn-reset" onclick="resetVM9()">↺ Reset</button>
+      </div>
+      <div class="activity-result" id="actResult9"></div>
+    </div>`
+  ];
+  return activities[id] || '<div class="activity-box"><p style="color:var(--text2)">Activity loading...</p></div>';
+}
+
+// ============================================================
+// ACTIVITY LOGIC
+// ============================================================
+function shuffle(arr) { return [...arr].sort(()=>Math.random()-.5); }
+let draggedItem = null;
+function dragStart(e) { draggedItem = e.target; e.dataTransfer.setData('text',e.target.dataset.part); }
+function dragOver(e) { e.preventDefault(); e.target.classList.add('over'); }
+function dropItem(e) {
+  e.preventDefault(); e.target.classList.remove('over');
+  if (!draggedItem) return;
+  e.target.textContent = draggedItem.textContent;
+  e.target.dataset.filled = draggedItem.dataset.part;
+  e.target.classList.add('filled');
+  draggedItem.style.opacity = '.3';
+  draggedItem.setAttribute('draggable','false');
+}
+function checkDrop0() {
+  const slots = document.querySelectorAll('.drop-slot');
+  let correct = 0;
+  slots.forEach(s => {
+    if (s.dataset.filled === s.dataset.expects) { s.classList.add('correct'); correct++; }
+    else if (s.dataset.filled) s.classList.add('wrong');
+  });
+  const r = document.getElementById('actResult0');
+  if (correct === 5) { r.className='activity-result success'; r.textContent='🎉 Perfect! You built a complete computer system! All components are in the right place.'; }
+  else { r.className='activity-result fail'; r.textContent=`${correct}/5 correct. Check highlighted slots. Remember: CPU=Processor, RAM=Working Memory, SSD=Storage, Keyboard=Input, Monitor=Output`; }
+}
+function resetActivity0() {
+  document.querySelectorAll('.drop-slot').forEach(s=>{s.textContent=s.dataset.expects.includes('CPU')?'Drop Processor here':s.dataset.expects.includes('RAM')?'Drop Working Memory here':s.dataset.expects.includes('SSD')?'Drop Storage here':s.dataset.expects.includes('Keyboard')?'Drop Input Device here':'Drop Output Device here';s.dataset.filled='';s.className='drop-slot';});
+  document.querySelectorAll('#partsBin .drag-item').forEach(d=>{d.style.opacity='1';d.setAttribute('draggable','true');});
+  document.getElementById('actResult0').className='activity-result';
+}
+let seqAnswer1 = [];
+function seqClick(el, id) {
+  if (el.style.opacity==='0.3') return;
+  seqAnswer1.push(el.dataset.val);
+  el.style.opacity='0.3';
+  const slots = document.querySelectorAll(`#seqTarget${id} .seq-slot`);
+  const idx = seqAnswer1.length-1;
+  if (slots[idx]) { slots[idx].textContent = el.dataset.val; slots[idx].classList.add('filled'); }
+}
+function checkSeq1() {
+  const correct = ['Fetch','Decode','Execute','Store'];
+  const slots = document.querySelectorAll('#seqTarget1 .seq-slot');
+  let ok = 0;
+  slots.forEach((s,i)=>{ if(s.textContent===correct[i]){s.classList.add('correct');ok++;}else if(s.classList.contains('filled'))s.classList.add('wrong'); });
+  const r = document.getElementById('actResult1');
+  if(ok===4){r.className='activity-result success';r.textContent='🎉 Correct! Fetch → Decode → Execute → Store is the CPU instruction cycle!';}
+  else{r.className='activity-result fail';r.textContent='Not quite! The correct order is: Fetch → Decode → Execute → Store. Try again!';}
+}
+function resetSeq1() {
+  seqAnswer1=[];
+  document.querySelectorAll('#seqPool1 .sequence-item').forEach(e=>e.style.opacity='1');
+  document.querySelectorAll('#seqTarget1 .seq-slot').forEach((s,i)=>{s.textContent='Step '+(i+1);s.className='seq-slot';});
+  document.getElementById('actResult1').className='activity-result';
+}
+const RAM_ITEMS = ['Running Browser','Current Game Data','Open Word Doc','Song being played'];
+let sort2sel = null;
+function sortClick2(el) {
+  if (el.style.opacity==='0.3') return;
+  sort2sel = el.dataset.item;
+  const isRAM = RAM_ITEMS.includes(sort2sel);
+  const zone = document.getElementById(isRAM?'sortZoneRAM':'sortZoneStorage');
+  const tag = document.createElement('div');
+  tag.className='sort-item'; tag.textContent=sort2sel;
+  tag.style.fontSize='.78rem'; tag.dataset.item=sort2sel;
+  zone.appendChild(tag);
+  el.style.opacity='0.3';
+}
+function checkSort2() {
+  let ok=0,total=0;
+  ['RAM','Storage'].forEach(z=>{
+    document.querySelectorAll(`#sortZone${z} .sort-item`).forEach(s=>{
+      total++;
+      const inRAM = RAM_ITEMS.includes(s.dataset.item);
+      if((z==='RAM'&&inRAM)||(z==='Storage'&&!inRAM)) ok++;
+    });
+  });
+  const r=document.getElementById('actResult2');
+  if(ok===total&&total>0){r.className='activity-result success';r.textContent='🎉 Excellent! You correctly sorted all items. Running data goes to RAM; saved data goes to Storage!';}
+  else{r.className='activity-result fail';r.textContent=`${ok}/${total} correct. Remember: RAM holds currently RUNNING data; Storage holds SAVED/PERMANENT data.`;}
+}
+function resetSort2() {
+  document.getElementById('sortZoneRAM').innerHTML='';
+  document.getElementById('sortZoneStorage').innerHTML='';
+  document.querySelectorAll('#sortPool2 .sort-item').forEach(e=>e.style.opacity='1');
+  document.getElementById('actResult2').className='activity-result';
+}
+let speedRank3=0;
+function speedClick3(el) {
+  if(el.dataset.rank!=='0') return;
+  speedRank3++;
+  el.dataset.rank=speedRank3;
+  el.style.opacity='.5';
+  el.textContent=speedRank3+'. '+el.dataset.item;
+  document.getElementById('speedOrder3').textContent='Your ranking: '+['HDD (Hard Disk)','SATA SSD','NVMe M.2 SSD'].map((n,i)=>{
+    const el2=document.querySelector(`#speedPool3 [data-item="${n}"]`);
+    return el2&&el2.dataset.rank!=='0'?el2.dataset.rank+'.'+n:'?';
+  }).join(' → ');
+}
+function checkSpeed3() {
+  const correct=['HDD (Hard Disk)','SATA SSD','NVMe M.2 SSD'];
+  const items=Array.from(document.querySelectorAll('#speedPool3 .sort-item')).sort((a,b)=>a.dataset.rank-b.dataset.rank).map(e=>e.dataset.item.replace(/^\d+\. /,''));
+  const r=document.getElementById('actResult3');
+  if(JSON.stringify(items)===JSON.stringify(correct)){r.className='activity-result success';r.textContent='🏆 Perfect! HDD (~150MB/s) < SATA SSD (~550MB/s) < NVMe M.2 SSD (~7000MB/s). NVMe is 47x faster than HDD!';}
+  else{r.className='activity-result fail';r.textContent='Not quite! Correct order slowest→fastest: HDD → SATA SSD → NVMe SSD. HDDs have spinning disks; NVMe connects directly to CPU.';}
+}
+function resetSpeed3() {
+  speedRank3=0;
+  document.querySelectorAll('#speedPool3 .sort-item').forEach(e=>{e.dataset.rank='0';e.style.opacity='1';e.textContent=e.dataset.item;});
+  document.getElementById('speedOrder3').textContent='Your ranking: (click items above)';
+  document.getElementById('actResult3').className='activity-result';
+}
+let simCPU=10,simRAM=8;
+function assignTask(el,cpu,ram) {
+  if(el.classList.contains('assigned')) return;
+  el.classList.add('assigned');
+  simCPU=Math.min(100,simCPU+cpu); simRAM=Math.min(100,simRAM+ram);
+  document.getElementById('simCPU').style.width=simCPU+'%';
+  document.getElementById('simRAM').style.width=simRAM+'%';
+  document.getElementById('simCPUval').textContent=simCPU+'%';
+  document.getElementById('simRAMval').textContent=simRAM+'%';
+  const msg=document.getElementById('simMsg4');
+  if(simCPU>90||simRAM>90){msg.textContent='⚠️ System overloaded! CPU or RAM at critical levels — OS may start killing processes!';msg.style.color='var(--warn)';}
+  else{msg.textContent=`Running ${document.querySelectorAll('#simTasks4 .sim-task.assigned').length} task(s). CPU: ${simCPU}%, RAM: ${simRAM}%`;}
+}
+function startThread(btn) {
+  const bar = btn.previousElementSibling;
+  btn.disabled=true; btn.textContent='▶ Running...';
+  bar.style.width='100%';
+  const allBars=document.querySelectorAll('.thread-bar');
+  const allDone=Array.from(allBars).every(b=>b.style.width==='100%');
+  setTimeout(()=>{
+    btn.textContent='✓ Done!';
+    const allDoneNow=Array.from(document.querySelectorAll('.thread-bar')).every(b=>b.style.width==='100%');
+    if(allDoneNow){document.getElementById('threadMsg5').textContent='🎉 All 3 threads completed! The pizza shop successfully handled cooking, packing, and billing simultaneously — that\'s multithreading!';document.getElementById('threadMsg5').style.color='var(--accent)';}
+  },900);
+}
+// File nav
+const fsStructure = {
+  '/':{type:'dir',children:{home:{type:'dir',children:{user:{type:'dir',children:{Documents:{type:'dir',children:{'resume.pdf':{type:'file'},'secret.txt':{type:'file',hidden:true}}},Downloads:{type:'dir',children:{'installer.exe':{type:'file'}}},Pictures:{type:'dir',children:{'photo.jpg':{type:'file'}}}}},guest:{type:'dir',children:{}}}},etc:{type:'dir',children:{'hosts':{type:'file'},'passwd':{type:'file'}}},var:{type:'dir',children:{}},tmp:{type:'dir',children:{}}}}};
+let fsPath=[''];
+function renderFSNav() {
+  let node=fsStructure['/'];
+  for(let i=1;i<fsPath.length;i++){node=node.children[fsPath[i]];}
+  const pathStr='/'+fsPath.slice(1).join('/');
+  document.getElementById('fsPath6').textContent=pathStr||'/';
+  const children=node.children||{};
+  document.getElementById('fsContent6').innerHTML=
+    (fsPath.length>1?`<div style="cursor:pointer;color:var(--primary);padding:4px 0" onclick="fsBack()">📁 .. (go back)</div>`:'') +
+    Object.entries(children).map(([name,info])=>
+      info.type==='dir'?`<div style="cursor:pointer;color:var(--accent);padding:4px 0" onclick="fsEnter('${name}')">📁 ${name}/</div>`:
+      info.hidden?`<div style="cursor:pointer;color:var(--warn);padding:4px 0;font-weight:bold" onclick="fsFoundSecret()">🔐 ${name} ← CLICK ME!</div>`:
+      `<div style="color:var(--text2);padding:4px 0">📄 ${name}</div>`
+    ).join('') || '<div style="color:var(--text2);font-size:.8rem">Empty directory</div>';
+}
+function fsEnter(name){fsPath.push(name);renderFSNav();}
+function fsBack(){if(fsPath.length>1){fsPath.pop();renderFSNav();}}
+function fsFoundSecret(){const r=document.getElementById('actResult6');r.className='activity-result success';r.textContent='🎉 Found it! The hidden file is at /home/user/Documents/secret.txt — you navigated the file system like a pro detective!';}
+// Boot
+let bootOrder7=[];
+function bootClick7(el){if(el.style.opacity==='0.3')return;bootOrder7.push(el.dataset.item);el.style.opacity='0.3';const tgt=document.getElementById('bootTarget7');const tag=document.createElement('div');tag.className='sort-item';tag.textContent=bootOrder7.length+'. '+el.dataset.item;tag.style.fontSize='.78rem';tgt.appendChild(tag);}
+function checkBoot7(){const correct=['Power On','POST','BIOS/UEFI','Bootloader','OS Kernel','Desktop Ready'];const r=document.getElementById('actResult7');if(JSON.stringify(bootOrder7)===JSON.stringify(correct)){r.className='activity-result success';r.textContent='🚀 Perfect boot sequence! Power On → POST → BIOS/UEFI → Bootloader → OS Kernel → Desktop Ready!';}else{r.className='activity-result fail';r.textContent='Not quite! Correct: Power On → POST → BIOS/UEFI → Bootloader → OS Kernel → Desktop Ready. Try again!';}}
+function resetBoot7(){bootOrder7=[];document.getElementById('bootTarget7').innerHTML='';document.querySelectorAll('#bootPool7 .sort-item').forEach(e=>e.style.opacity='1');document.getElementById('actResult7').className='activity-result';}
+// Sort 8
+const FG_ITEMS=['🌐 Chrome Browser','🎮 Steam Game','📝 Notepad','🎵 Spotify'];
+function sortClick8(el){if(el.style.opacity==='0.3')return;const isFG=FG_ITEMS.includes(el.dataset.item);const zone=document.getElementById(isFG?'fgZone8':'bgZone8');const tag=document.createElement('div');tag.className='sort-item';tag.textContent=el.dataset.item;tag.style.fontSize='.75rem';tag.dataset.item=el.dataset.item;zone.appendChild(tag);el.style.opacity='0.3';}
+function checkSort8(){let ok=0,total=0;['fg','bg'].forEach(z=>{document.querySelectorAll(`#${z}Zone8 .sort-item`).forEach(s=>{total++;const isFG=FG_ITEMS.includes(s.dataset.item);if((z==='fg'&&isFG)||(z==='bg'&&!isFG))ok++;});});const r=document.getElementById('actResult8');if(ok===total&&total>0){r.className='activity-result success';r.textContent='🎉 Excellent! You correctly identified foreground apps and background services!';}else{r.className='activity-result fail';r.textContent=`${ok}/${total} correct. Chrome, Steam, Notepad, Spotify are foreground apps. Update, Antivirus, Print Spooler, Task Scheduler are background services.`;}}
+function resetSort8(){document.getElementById('fgZone8').innerHTML='';document.getElementById('bgZone8').innerHTML='';document.querySelectorAll('#sortPool8 .sort-item').forEach(e=>e.style.opacity='1');document.getElementById('actResult8').className='activity-result';}
+// VM 9
+const VM_CORRECT=['Physical Hardware','Host OS','Hypervisor','Guest OS','Applications'];
+let vmOrder9=[];
+function vmClick9(el){if(el.style.opacity==='0.3')return;vmOrder9.push(el.dataset.item);el.style.opacity='0.3';const tgt=document.getElementById('vmTarget9');const tag=document.createElement('div');tag.style.cssText='padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:.82rem;text-align:center;';tag.textContent=el.dataset.item;tgt.appendChild(tag);}
+function checkVM9(){const r=document.getElementById('actResult9');if(JSON.stringify(vmOrder9)===JSON.stringify(VM_CORRECT)){r.className='activity-result success';r.textContent='🏆 Perfect VM stack! Hardware → Host OS → Hypervisor → Guest OS → Applications. You understand virtualization layers!';}else{r.className='activity-result fail';r.textContent='Not quite! Bottom to top: Physical Hardware → Host OS (optional) → Hypervisor → Guest OS → Applications. Try again!';}}
+function resetVM9(){vmOrder9=[];document.getElementById('vmTarget9').innerHTML='';document.querySelectorAll('#vmPool9 .sort-item').forEach(e=>e.style.opacity='1');document.getElementById('actResult9').className='activity-result';}
+
+// ============================================================
+// QUIZ ENGINE
+// ============================================================
+let quizState = { moduleId:0, q:0, score:0, answered:false };
+function buildQuiz(moduleId) {
+  quizState = { moduleId, q:0, score:0, answered:false };
+  return `<div class="quiz-box" id="quizBox">
+    <div id="quizQPanel"></div>
+    <div class="quiz-complete" id="quizComplete"></div>
+  </div>`;
+}
+function renderQuizQ() {
+  const qs = MODULES[quizState.moduleId].quiz;
+  if (quizState.q >= qs.length) { showQuizComplete(); return; }
+  const q = qs[quizState.q];
+  document.getElementById('quizQPanel').innerHTML = `
+    <div class="quiz-header">
+      <div class="quiz-num">Question ${quizState.q+1} of ${qs.length}</div>
+      <div class="quiz-score-badge">Score: ${quizState.score}/${quizState.q}</div>
+    </div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-options">
+      ${q.opts.map((opt,i)=>`<button class="quiz-opt" onclick="selectOpt(${i})">${String.fromCharCode(65+i)}. ${opt}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="qFeedback"></div>
+    <div class="quiz-nav"><button class="btn-quiz-next" id="qNext" onclick="nextQ()">Next Question →</button></div>
+  `;
+  quizState.answered = false;
+}
+function selectOpt(i) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+  const q = MODULES[quizState.moduleId].quiz[quizState.q];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach((o,idx)=>{
+    if(idx===q.ans) o.classList.add('correct');
+    else if(idx===i) o.classList.add('wrong');
+    o.style.pointerEvents='none';
+  });
+  const fb = document.getElementById('qFeedback');
+  if (i === q.ans) {
+    quizState.score++;
+    fb.className='quiz-feedback correct show';
+    fb.innerHTML='✅ Correct! ' + q.exp;
+  } else {
+    fb.className='quiz-feedback wrong show';
+    fb.innerHTML='❌ Not quite. ' + q.exp;
+  }
+  document.getElementById('qNext').classList.add('show');
+}
+function nextQ() {
+  quizState.q++;
+  if (quizState.q >= MODULES[quizState.moduleId].quiz.length) showQuizComplete();
+  else renderQuizQ();
+}
+function showQuizComplete() {
+  document.getElementById('quizQPanel').innerHTML='';
+  const pct = Math.round((quizState.score/MODULES[quizState.moduleId].quiz.length)*100);
+  const complete = document.getElementById('quizComplete');
+  complete.innerHTML = `
+    <div class="quiz-complete-icon">${pct>=80?'🏆':pct>=60?'🎯':'📚'}</div>
+    <h3>${pct>=80?'Outstanding!':pct>=60?'Good job!':'Keep practicing!'}</h3>
+    <p>You scored ${quizState.score} out of ${MODULES[quizState.moduleId].quiz.length} questions (${pct}%)</p>
+    <div class="xp-reward">⚡ +${Math.round(MODULES[quizState.moduleId].xp * (quizState.score/MODULES[quizState.moduleId].quiz.length))} XP Earned!</div>
+    ${pct>=60?`<div style="margin-bottom:16px;padding:12px;background:rgba(0,255,179,0.1);border-radius:8px;color:var(--accent);font-size:.85rem">
+      🏅 Module complete! Badge "${MODULES[quizState.moduleId].badge}" unlocked!
+    </div>`:''}
+    <button class="btn-primary" onclick="finishModule(${quizState.moduleId})" style="margin-bottom:12px">
+      ${pct>=60?'🎉 Claim Reward & Continue':'📚 Complete Module & Continue'}
+    </button>
+  `;
+  complete.classList.add('show');
+}
+function finishModule(moduleId) {
+  completeModule(moduleId);
+  showNotif('complete','🎉','Module Complete!',MODULES[moduleId].title + ' mastered!');
+  closeModule();
+}
+
+// ============================================================
+// FINAL CHALLENGE
+// ============================================================
+function attemptFinalChallenge() {
+  const count = state.completed.length;
+  if (count < MODULES.length) {
+    showNotif('xp','⚠️','Not yet!',`Complete ${MODULES.length - count} more module(s) to unlock System Recovery.`);
+    return;
+  }
+  document.getElementById('recoveryScreen').classList.add('show');
+  document.getElementById('finalXP').textContent = state.xp;
+  document.getElementById('finalBadges').textContent = state.badgesEarned.length;
+  document.getElementById('finalPct').textContent = '100%';
+  document.getElementById('recoveryScreen').scrollIntoView({behavior:'smooth'});
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
+  if(window.innerWidth<=768) document.getElementById('sidebar').classList.remove('open');
+}
+function startLearning() {
+  const first = MODULES.findIndex(m => !state.completed.includes(m.id));
+  if(first >= 0) openModule(first);
+  else scrollToSection('modules');
+}
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+}
+document.getElementById('menuBtn').onclick = () => {
+  document.getElementById('sidebar').classList.toggle('open');
+};
+
+// ============================================================
+// INIT
+// ============================================================
+loadState();
+updateAll();
+renderFSNav && document.addEventListener('DOMContentLoaded', ()=>{});
+
+// Render quiz when step=7
+const _origRenderStep = renderStep;
+window.addEventListener('load', ()=>{
+  // Auto-render quiz questions after buildQuiz adds the DOM
+  const origGo = goStep;
+});
+// Intercept step render to init quiz
+function renderStepAndInitQuiz() {
+  renderStep();
+  if(currentStep===7) {
+    setTimeout(renderQuizQ, 50);
+  }
+}
+// patch goStep
+function goStep(dir) {
+  currentStep = Math.max(0,Math.min(7,currentStep+dir));
+  renderStep();
+  if(currentStep===7) setTimeout(renderQuizQ,50);
+}
+
+// Intersection Observer for scroll animations
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.style.opacity='1'; });
+},{threshold:0.1});
+document.querySelectorAll('.module-card,.achievement-card,.roadmap-item').forEach(el=>{
+  el.style.opacity='0';el.style.transition='opacity 0.5s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,3059 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Level 3 Security Architecture Hub - Master authentication, privilege boundaries, memory defense, and hardware trust.">
+    <title>SecCore // Security Architecture Hub</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CSS Core Themes & Variables */
+        :root {
+            --bg-darker: #020408;
+            --bg-dark: #070c16;
+            --bg-card: rgba(10, 18, 36, 0.75);
+            --bg-input: rgba(5, 9, 18, 0.9);
+            --border-color: rgba(0, 255, 102, 0.15);
+            --border-glow: rgba(0, 255, 102, 0.4);
+
+            --text-primary: #e6f0fa;
+            --text-secondary: #8da4be;
+            --text-muted: #536b85;
+
+            /* Theme Accent Colors */
+            --sec-green: #00ff66;
+            --sec-green-glow: rgba(0, 255, 102, 0.3);
+            --sec-green-bg: rgba(0, 255, 102, 0.05);
+
+            --sec-amber: #ffaa00;
+            --sec-amber-glow: rgba(255, 170, 0, 0.3);
+
+            --sec-crimson: #ff3366;
+            --sec-crimson-glow: rgba(255, 51, 102, 0.3);
+            --sec-crimson-bg: rgba(255, 51, 102, 0.05);
+
+            --sec-cyan: #00e5ff;
+            --sec-cyan-glow: rgba(0, 229, 255, 0.3);
+
+            --font-sans: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --border-radius: 8px;
+            --transition-speed: 0.25s;
+        }
+
+        /* Base Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-darker);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Particle Overlay Background */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* CRT Scanline styling */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+                    rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.2;
+        }
+
+        /* App Layout Containers */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* App Header Layout */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 2.2rem;
+            color: var(--sec-green);
+            text-shadow: 0 0 10px var(--sec-green-glow);
+            animation: pulse-slow 3s infinite alternate;
+        }
+
+        .brand-text h1 {
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text span {
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            letter-spacing: 4px;
+        }
+
+        /* Telemetry dashboard */
+        .telemetry-bar {
+            display: flex;
+            gap: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.05);
+        }
+
+        .telemetry-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .telemetry-item .lbl {
+            font-size: 0.6rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .telemetry-item .val {
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: var(--sec-green);
+            text-shadow: 0 0 5px var(--sec-green-glow);
+        }
+
+        .telemetry-item .status-active {
+            color: var(--sec-cyan);
+            text-shadow: 0 0 5px var(--sec-cyan-glow);
+        }
+
+        /* Navigation system */
+        .main-nav {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.6rem 1.1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-card);
+            border-color: var(--border-color);
+            color: var(--sec-green);
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.08);
+            text-shadow: 0 0 5px var(--sec-green-glow);
+        }
+
+        .nav-btn.alert-btn {
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            color: var(--sec-crimson);
+        }
+
+        .nav-btn.alert-btn:hover {
+            background: rgba(255, 51, 102, 0.05);
+        }
+
+        .nav-btn.alert-btn.active {
+            background: rgba(255, 51, 102, 0.1);
+            border-color: var(--sec-crimson);
+            color: var(--sec-crimson);
+            box-shadow: 0 0 12px rgba(255, 51, 102, 0.15);
+            text-shadow: 0 0 5px var(--sec-crimson-glow);
+        }
+
+        /* Subview Sidebar Split layout */
+        .section-sidebar-layout {
+            display: flex;
+            gap: 1.5rem;
+            min-height: 72vh;
+        }
+
+        .view-sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .view-sidebar h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            padding-left: 0.5rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            border-left: 2px solid var(--sec-green);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .sidebar-menu li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            padding: 0.7rem 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .sidebar-menu li:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .sidebar-menu li.active {
+            background: rgba(0, 255, 102, 0.05);
+            color: var(--sec-green);
+            font-weight: bold;
+            border-left: 3px solid var(--sec-green);
+            box-shadow: inset 5px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .view-main-content {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Standard View sections */
+        .view-section {
+            display: none;
+            animation: fade-in var(--transition-speed) ease-in-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .subview-panel {
+            display: none;
+            animation: fade-in var(--transition-speed) ease-in;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .subview-panel.active {
+            display: flex;
+        }
+
+        .subview-panel h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .subview-panel .desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 1. DASHBOARD OVERVIEW */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card {
+            background: rgba(7, 12, 22, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+        }
+
+        .rings-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 280px;
+            margin: 1.5rem 0;
+        }
+
+        .ring-node {
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all var(--transition-speed);
+            cursor: pointer;
+            background: rgba(2, 4, 8, 0.85);
+        }
+
+        .ring-node:hover {
+            box-shadow: 0 0 15px var(--border-glow);
+            border-color: var(--sec-green);
+        }
+
+        .ring-node.ring-0 {
+            width: 110px;
+            height: 110px;
+            z-index: 4;
+            border-color: var(--sec-crimson);
+        }
+
+        .ring-node.ring-0:hover {
+            box-shadow: 0 0 15px var(--sec-crimson-glow);
+        }
+
+        .ring-node.ring-1 {
+            width: 180px;
+            height: 180px;
+            z-index: 3;
+            border-color: var(--sec-amber);
+        }
+
+        .ring-node.ring-1:hover {
+            box-shadow: 0 0 15px var(--sec-amber-glow);
+        }
+
+        .ring-node.ring-3 {
+            width: 250px;
+            height: 250px;
+            z-index: 2;
+            border-color: var(--sec-cyan);
+        }
+
+        .ring-node.ring-3:hover {
+            box-shadow: 0 0 15px var(--sec-cyan-glow);
+        }
+
+        .ring-lbl {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            position: absolute;
+            font-weight: bold;
+        }
+
+        .ring-0 .ring-lbl {
+            color: var(--sec-crimson);
+        }
+
+        .ring-1 .ring-lbl {
+            color: var(--sec-amber);
+            top: 12px;
+        }
+
+        .ring-3 .ring-lbl {
+            color: var(--sec-cyan);
+            top: 12px;
+        }
+
+        .dashboard-console-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: rgba(2, 4, 8, 0.8);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-header h4 {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            color: var(--sec-green);
+        }
+
+        .console-body {
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            background: rgba(2, 4, 8, 0.4);
+        }
+
+        .log-line {
+            margin-bottom: 0.4rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+        }
+
+        .log-msg.info {
+            color: var(--text-primary);
+        }
+
+        .log-msg.warn {
+            color: var(--sec-amber);
+        }
+
+        .log-msg.error {
+            color: var(--sec-crimson);
+        }
+
+        .log-msg.success {
+            color: var(--sec-green);
+        }
+
+        /* 2. AUTHENTICATION & HASH CALCULATOR */
+        .auth-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .auth-card {
+            background: rgba(2, 4, 8, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--sec-green);
+            outline: none;
+            box-shadow: 0 0 5px var(--sec-green-glow);
+        }
+
+        .btn-primary {
+            background: var(--sec-green);
+            border: 1px solid var(--sec-green);
+            color: var(--bg-darker);
+            font-family: var(--font-sans);
+            font-weight: bold;
+            padding: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 12px var(--sec-green-glow);
+            transform: translateY(-1px);
+        }
+
+        .hash-output-box {
+            background: rgba(2, 4, 8, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            overflow-x: auto;
+            word-break: break-all;
+            min-height: 80px;
+        }
+
+        .speed-bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .speed-bar-lbl {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .speed-bar-outer {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .speed-bar-inner {
+            height: 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+
+        .speed-bar-inner.fast {
+            background-color: var(--sec-crimson);
+        }
+
+        .speed-bar-inner.slow {
+            background-color: var(--sec-green);
+        }
+
+        /* Vault storage visualizer */
+        .vault-split {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .vault-menu {
+            background: rgba(2, 4, 8, 0.6);
+            border-right: 1px solid var(--border-color);
+            padding: 0.75rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .vault-tab {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all var(--transition-speed);
+        }
+
+        .vault-tab:hover {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+        }
+
+        .vault-tab.selected {
+            background: rgba(0, 255, 102, 0.08);
+            border-left: 3px solid var(--sec-green);
+            color: var(--sec-green);
+        }
+
+        .vault-content {
+            padding: 1.25rem;
+            background: rgba(2, 4, 8, 0.2);
+            overflow-y: auto;
+            max-height: 450px;
+        }
+
+        .vault-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        .vault-table th,
+        .vault-table td {
+            padding: 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .vault-table th {
+            color: var(--text-muted);
+        }
+
+        /* 3. AUTHORIZATION POLICIES & TOKENS */
+        .policy-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .policy-inputs {
+            background: rgba(2, 4, 8, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .policy-evaluator {
+            background: rgba(2, 4, 8, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .eval-trace-box {
+            background: rgba(2, 4, 8, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.5;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 240px;
+            max-height: 300px;
+        }
+
+        .token-editor {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .json-pane {
+            background: rgba(2, 4, 8, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .json-textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--sec-cyan);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            flex: 1;
+            resize: none;
+        }
+
+        .token-serialized {
+            background: rgba(2, 4, 8, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .jwt-encoded-box {
+            background: #020408;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            word-break: break-all;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        .jwt-encoded-box span.hdr {
+            color: #fb0066;
+        }
+
+        .jwt-encoded-box span.pay {
+            color: #d633ff;
+        }
+
+        .jwt-encoded-box span.sig {
+            color: #00ffcc;
+        }
+
+        /* 4. PRIVILEGE & UAC SIMULATION */
+        .uac-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .cmd-panel {
+            background: #0c0f1d;
+            border: 1px solid #1a2333;
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            min-height: 380px;
+        }
+
+        .cmd-header {
+            background: #050811;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid #1a2333;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cmd-screen {
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #d1d5db;
+            flex: 1;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .cmd-line {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .cmd-line input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            outline: none;
+            flex: 1;
+        }
+
+        /* Token Visuals */
+        .token-flow-panel {
+            background: rgba(2, 4, 8, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .token-box {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem;
+            background: rgba(2, 4, 8, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .token-box.standard {
+            border-color: var(--sec-cyan);
+        }
+
+        .token-box.elevated {
+            border-color: var(--sec-amber);
+        }
+
+        .token-box h4 {
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .token-box h4 span.tag {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 3px;
+        }
+
+        .token-box.standard h4 span.tag {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--sec-cyan);
+        }
+
+        .token-box.elevated h4 span.tag {
+            background: rgba(255, 170, 0, 0.1);
+            color: var(--sec-amber);
+        }
+
+        .token-sids {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .token-sids div {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.2rem;
+        }
+
+        /* UAC Visual Mock Overlay */
+        .uac-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .uac-dialog {
+            background: #f0f0f0;
+            color: #000;
+            width: 440px;
+            border-radius: 0px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            border-top: 4px solid #0066cc;
+            display: flex;
+            flex-direction: column;
+            animation: slide-down 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        .uac-header-sec {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            background: #fff;
+        }
+
+        .uac-icon {
+            font-size: 2.2rem;
+            color: #0066cc;
+        }
+
+        .uac-header-text h2 {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #003399;
+        }
+
+        .uac-body-sec {
+            padding: 1.25rem 1.5rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            background: #f0f0f0;
+            border-top: 1px solid #dcdcdc;
+            border-bottom: 1px solid #dcdcdc;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .uac-meta-row {
+            display: grid;
+            grid-template-columns: 90px 1fr;
+        }
+
+        .uac-meta-row label {
+            color: #646464;
+        }
+
+        .uac-meta-row span {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .uac-actions-sec {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            background: #e1e1e1;
+        }
+
+        .uac-btn {
+            padding: 0.4rem 1.5rem;
+            font-size: 0.8rem;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            cursor: pointer;
+            border: 1px solid #7c7c7c;
+            background: #f0f0f0;
+            transition: all 0.1s;
+        }
+
+        .uac-btn:hover {
+            background: #e1e1e1;
+            border-color: #0066cc;
+        }
+
+        .uac-btn.primary-btn {
+            background: #0066cc;
+            color: #fff;
+            border-color: #0066cc;
+            font-weight: bold;
+        }
+
+        .uac-btn.primary-btn:hover {
+            background: #0052a3;
+        }
+
+        /* 5. PROCESS ISOLATION & MEMORY PROTECTION */
+        .memory-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .memory-grid-panel {
+            background: rgba(2, 4, 8, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mem-table-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .mem-cell {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(2, 4, 8, 0.8);
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.2rem;
+            min-height: 52px;
+            transition: all var(--transition-speed);
+        }
+
+        .mem-cell.code {
+            border-color: rgba(0, 229, 255, 0.3);
+            color: var(--sec-cyan);
+        }
+
+        .mem-cell.stack {
+            border-color: rgba(255, 170, 0, 0.3);
+            color: var(--sec-amber);
+        }
+
+        .mem-cell.heap {
+            border-color: rgba(189, 147, 249, 0.3);
+            color: var(--text-secondary);
+        }
+
+        .mem-cell.libs {
+            border-color: rgba(0, 255, 102, 0.3);
+            color: var(--sec-green);
+        }
+
+        .mem-cell.corrupted {
+            background: rgba(255, 51, 102, 0.15) !important;
+            border-color: var(--sec-crimson) !important;
+            color: var(--sec-crimson) !important;
+            animation: blinker 1s infinite;
+        }
+
+        .mem-cell .addr {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .memory-controls {
+            background: rgba(2, 4, 8, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+
+        /* 6. SECURE BOOT & TPM */
+        .hardware-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .boot-chain-panel {
+            background: rgba(2, 4, 8, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .boot-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .boot-steps::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 17px;
+            width: 2px;
+            height: calc(100% - 25px);
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1;
+        }
+
+        .boot-step-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .boot-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--bg-darker);
+            border: 2px solid var(--text-muted);
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .boot-step-row.completed .boot-dot {
+            background: var(--sec-green);
+            border-color: var(--sec-green);
+            box-shadow: 0 0 8px var(--sec-green-glow);
+        }
+
+        .boot-step-row.failed .boot-dot {
+            background: var(--sec-crimson);
+            border-color: var(--sec-crimson);
+            box-shadow: 0 0 8px var(--sec-crimson-glow);
+        }
+
+        .boot-step-row.active .boot-dot {
+            background: var(--sec-amber);
+            border-color: var(--sec-amber);
+            box-shadow: 0 0 8px var(--sec-amber-glow);
+            animation: pulse-slow 1s infinite alternate;
+        }
+
+        .boot-lbl {
+
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+
+        .boot-step-row.completed .boot-lbl {
+            color: var(--text-primary);
+        }
+
+        .boot-step-row.failed .boot-lbl {
+            color: var(--sec-crimson);
+        }
+
+        .boot-step-row.active .boot-lbl {
+            color: var(--sec-amber);
+        }
+
+        .boot-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-left: 2rem;
+            margin-top: 0.2rem;
+        }
+
+        .tpm-panel {
+            background: rgba(2, 4, 8, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .pcr-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+
+        .pcr-row {
+            background: rgba(2, 4, 8, 0.85);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pcr-row span.val {
+            color: var(--sec-green);
+        }
+
+        .pcr-row.tampered span.val {
+            color: var(--sec-crimson);
+        }
+
+        /* Verification Form Layout */
+        .verification-alert {
+            border: 1px solid var(--sec-green);
+            background: var(--sec-green-bg);
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .verification-alert.error-alert {
+            border-color: var(--sec-crimson);
+            background: var(--sec-crimson-bg);
+            color: var(--sec-crimson);
+        }
+
+        /* Generic utilities */
+        .btn-action {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .btn-action:hover {
+            border-color: var(--sec-green);
+            background: var(--sec-green-bg);
+            color: var(--sec-green);
+        }
+
+        .btn-action.danger:hover {
+            border-color: var(--sec-crimson);
+            background: var(--sec-crimson-bg);
+            color: var(--sec-crimson);
+        }
+
+        .desc-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Footer styling */
+        .app-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .footer-sec {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .footer-sec i {
+            font-size: 0.5rem;
+            color: var(--sec-green);
+        }
+
+        /* Animations */
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-slow {
+            0% {
+                transform: scale(1);
+                opacity: 0.9;
+            }
+
+            100% {
+                transform: scale(1.02);
+                opacity: 1;
+            }
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        @keyframes slide-down {
+            from {
+                transform: translateY(-40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Custom Checkbox Toggle */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+
+        .toggle-container input {
+            display: none;
+        }
+
+        .toggle-switch {
+            width: 38px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .toggle-container input:checked+.toggle-switch {
+            background: var(--sec-green-bg);
+            border-color: var(--sec-green);
+        }
+
+        .toggle-container input:checked+.toggle-switch::after {
+            left: 20px;
+            background: var(--sec-green);
+            box-shadow: 0 0 5px var(--sec-green-glow);
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="scanline"></div>
+
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <i class="fa-solid fa-shield-halved logo-icon"></i>
+                <div class="brand-text">
+                    <h1>SECCORE</h1>
+                    <span>SECURITY ARCHITECTURE L3</span>
+                </div>
+            </div>
+
+            <!-- Telemetry Stats -->
+            <div class="telemetry-bar">
+                <div class="telemetry-item">
+                    <span class="lbl">RING PRIVILEGE</span>
+                    <span class="val" id="tel-privilege">RING 3 (USER)</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="lbl">ASLR STATE</span>
+                    <span class="val status-active" id="tel-aslr">RANDOMIZED</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="lbl">DEP POLICIES</span>
+                    <span class="val status-active" id="tel-dep">W^X ACTIVE</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="lbl">TPM STATUS</span>
+                    <span class="val">ACTIVE (PCR 2.0)</span>
+                </div>
+            </div>
+
+            <nav class="main-nav">
+                <button class="nav-btn active" data-target="dashboard"><i class="fa-solid fa-gauge-high"></i>
+                    Dashboard</button>
+                <button class="nav-btn" data-target="auth"><i class="fa-solid fa-key"></i> Auth & Secrets</button>
+                <button class="nav-btn" data-target="tokens"><i class="fa-solid fa-id-card"></i> Tokens & AuthZ</button>
+                <button class="nav-btn" data-target="uac"><i class="fa-solid fa-user-shield"></i> Privilege &
+                    UAC</button>
+                <button class="nav-btn" data-target="memory"><i class="fa-solid fa-memory"></i> Memory Defense</button>
+                <button class="nav-btn alert-btn" data-target="hardware"><i class="fa-solid fa-microchip"></i> Hardware
+                    Trust</button>
+            </nav>
+        </header>
+
+        <!-- MAIN VIEWS -->
+        <main class="view-content">
+
+            <!-- 1. DASHBOARD VIEW -->
+            <section id="dashboard-view" class="view-section active">
+                <div class="hero-section">
+                    <h2>Level 3 Security Architecture Sandbox</h2>
+                    <p>Interact with kernel privileges, cryptography barriers, user isolation rings, and hardware
+                        verification nodes.</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="info-card">
+                        <h3>Operating System CPU Rings</h3>
+                        <p class="desc-text" style="margin-bottom: 1rem;">Operating systems enforce access control
+                            bounds using CPU hardware rings. Hover or click on the architectural rings to view detailed
+                            segment privileges.</p>
+
+                        <div class="rings-container">
+                            <div class="ring-node ring-3" data-ring="3">
+                                <span class="ring-lbl">Ring 3 (User Space)</span>
+                            </div>
+                            <div class="ring-node ring-1" data-ring="1">
+                                <span class="ring-lbl">Ring 1 (Device Drivers)</span>
+                            </div>
+                            <div class="ring-node ring-0" data-ring="0">
+                                <span class="ring-lbl">Ring 0 (Kernel Core)</span>
+                            </div>
+                        </div>
+
+                        <div id="ring-details-display"
+                            style="background:#020408; padding:1rem; border-radius:6px; border:1px solid var(--border-color); font-size:0.85rem; min-height:80px; color:var(--text-secondary);">
+                            <i class="fa-solid fa-info-circle"></i> Click on any processor Ring boundary above to audit
+                            active virtualization and hardware security configurations.
+                        </div>
+                    </div>
+
+                    <!-- Audit Log panel -->
+                    <div class="dashboard-console-panel">
+                        <div class="panel-header">
+                            <h4>SECURITY AUDIT REAL-TIME FEED</h4>
+                        </div>
+                        <div class="console-body" id="sec-audit-logs">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. AUTH & SECRETS VIEW -->
+            <section id="auth-view" class="view-section">
+                <div class="section-sidebar-layout">
+                    <div class="view-sidebar">
+                        <h3>Auth & Secrets</h3>
+                        <ul class="sidebar-menu" id="auth-menu">
+                            <li class="active" data-subview="auth-hasher"><i class="fa-solid fa-calculator"></i> Salt &
+                                Hashing</li>
+                            <li data-subview="auth-vault"><i class="fa-solid fa-vault"></i> Secret Storage</li>
+                        </ul>
+                    </div>
+
+                    <div class="view-main-content">
+                        <!-- Subview: Hasher -->
+                        <div id="auth-hasher" class="subview-panel active">
+                            <h3>Password Salting & Hashing Playground</h3>
+                            <p class="desc">Input variables below. Inspect how salt parameters prevent rainbow table
+                                attacks, and explore why slow work-factors prevent dictionary attacks.</p>
+
+                            <div class="auth-split">
+                                <div class="auth-card">
+                                    <h4>Algorithm Configuration</h4>
+                                    <div class="form-group">
+                                        <label for="hash-pw">Plain Text Password:</label>
+                                        <input type="text" id="hash-pw" value="Password123!">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="hash-salt">Salt String:</label>
+                                        <input type="text" id="hash-salt" value="d6A8k2">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="hash-algo">Hashing Algorithm Model:</label>
+                                        <select id="hash-algo">
+                                            <option value="md5">MD5 (Fast, Vulnerable to collisions/rainbows)</option>
+                                            <option value="sha256">SHA-256 (Fast secure hash, vulnerable to GPU
+                                                dictionary loops)</option>
+                                            <option value="bcrypt">bcrypt (Slow secure hash, work factor = 10)</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn-primary" id="btn-run-hasher">Execute Hash Generation</button>
+                                </div>
+
+                                <div class="auth-card">
+                                    <h4>Hashing Metrics & Output</h4>
+                                    <div class="form-group">
+                                        <label>Computed Hash Result:</label>
+                                        <div class="hash-output-box" id="hash-output">Awaiting generation...</div>
+                                    </div>
+
+                                    <div class="speed-bar-container">
+                                        <div class="speed-bar-lbl">
+                                            <span>Computation Time:</span>
+                                            <strong id="hash-time">0.00 ms</strong>
+                                        </div>
+                                        <div class="speed-bar-outer">
+                                            <div class="speed-bar-inner fast" id="hash-speed-bar"></div>
+                                        </div>
+                                    </div>
+                                    <div class="desc-text" id="hash-complexity-notes"
+                                        style="font-size:0.8rem; border-top:1px dashed var(--border-color); padding-top:0.5rem; margin-top:0.5rem;">
+                                        Select configurations to compare mathematical validation bounds.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subview: Secret Vault -->
+                        <div id="auth-vault" class="subview-panel">
+                            <h3>OS Credential Storage Architectures</h3>
+                            <p class="desc">Dissect how various operating systems safeguard hashed database buffers and
+                                keys.</p>
+
+                            <div class="vault-split">
+                                <div class="vault-menu">
+                                    <div class="vault-tab selected" data-target-vault="win-lsass">Windows LSASS</div>
+                                    <div class="vault-tab" data-target-vault="lin-shadow">Linux /etc/shadow</div>
+                                    <div class="vault-tab" data-target-vault="mac-keychain">macOS Keychain</div>
+                                </div>
+                                <div class="vault-content" id="vault-display-content">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. TOKENS & AUTHZ VIEW -->
+            <section id="tokens-view" class="view-section">
+                <div class="section-sidebar-layout">
+                    <div class="view-sidebar">
+                        <h3>Tokens & AuthZ</h3>
+                        <ul class="sidebar-menu" id="tokens-menu">
+                            <li class="active" data-subview="authz-playground"><i class="fa-solid fa-shield"></i> Policy
+                                Sandbox</li>
+                            <li data-subview="authz-jwt"><i class="fa-solid fa-file-code"></i> Token Inspector</li>
+                        </ul>
+                    </div>
+
+                    <div class="view-main-content">
+                        <!-- Subview: Policy Sandbox -->
+                        <div id="authz-playground" class="subview-panel active">
+                            <h3>Access Control Policy Simulator (DAC / MAC / RBAC / ABAC)</h3>
+                            <p class="desc">Configure a policy constraint, then trigger request variables to trace
+                                decision-making structures.</p>
+
+                            <div class="policy-container">
+                                <div class="policy-inputs">
+                                    <h4>1. Configure Authorization Policies</h4>
+
+                                    <div class="form-group">
+                                        <label for="policy-model">Security Model Rule:</label>
+                                        <select id="policy-model">
+                                            <option value="dac">DAC (Discretionary: Resource owner Bob grants
+                                                permissions)</option>
+                                            <option value="rbac">RBAC (Role-Based: User must belong to 'Admin' or
+                                                'Auditor' role)</option>
+                                            <option value="mac">MAC (Mandatory: User clearance level >= File
+                                                classification level)</option>
+                                            <option value="abac">ABAC (Attribute-Based: Access allowed only from Office
+                                                IP between 09:00 - 17:00)</option>
+                                        </select>
+                                    </div>
+
+                                    <div style="border-top:1px dashed var(--border-color); margin:0.3rem 0;"></div>
+
+                                    <h4>2. Request Parameters</h4>
+                                    <div
+                                        style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.8rem;">
+                                        <div class="form-group">
+                                            <label>User Identity:</label>
+                                            <select id="authz-req-user">
+                                                <option value="Alice">Alice (Role: Auditor, Clearance: Secret)</option>
+                                                <option value="Bob">Bob (Role: User, Clearance: Confid)</option>
+                                                <option value="Mallory">Mallory (Role: User, Clearance: Public)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Client IP Address:</label>
+                                            <select id="authz-req-ip">
+                                                <option value="192.168.1.15">192.168.1.15 (Corporate Office LAN)
+                                                </option>
+                                                <option value="8.8.8.8">8.8.8.8 (External Internet Host)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Request Timeline:</label>
+                                            <select id="authz-req-time">
+                                                <option value="14:00">14:00 (Business Working Hours)</option>
+                                                <option value="23:30">23:30 (Late Night Maintenance)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Target Resource File:</label>
+                                            <select id="authz-req-file">
+                                                <option value="bob_finances.txt">bob_finances.txt (Owner: Bob, Classify:
+                                                    Secret)</option>
+                                                <option value="audit_logs.db">audit_logs.db (Owner: System, Classify:
+                                                    TopSecret)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary" id="btn-eval-policy" style="margin-top:0.5rem;">Evaluate
+                                        Policy Constraints</button>
+                                </div>
+
+                                <div class="policy-evaluator">
+                                    <h4>Trace Debug Logs & Outcome</h4>
+                                    <div class="eval-trace-box" id="policy-trace-output">
+                                        Select policies and request variables, then click evaluate to trace target
+                                        algorithms.
+                                    </div>
+                                    <div id="policy-result-alert" style="display:none;" class="verification-alert">
+                                        <!-- Verification result alert box -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subview: Token Inspector -->
+                        <div id="authz-jwt" class="subview-panel">
+                            <h3>Web Token Claims Inspector (JWT)</h3>
+                            <p class="desc">Edit token JSON payloads on the left. Observe signature modifications and
+                                test for integrity validations on the right.</p>
+
+                            <div class="token-editor">
+                                <div class="json-pane">
+                                    <h4>Token Decoded Payload</h4>
+                                    <div class="form-group" style="flex:1;">
+                                        <textarea class="json-textarea" id="jwt-payload-text">{
+  "sub": "meetb",
+  "name": "Meetb Desktop",
+  "groups": ["Users"],
+  "isAdmin": false,
+  "exp": 1781038400
+}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="jwt-secret">Signature Secret Key:</label>
+                                        <input type="text" id="jwt-secret" value="SecCore_Secret_Key_L3">
+                                    </div>
+                                    <button class="btn-primary" id="btn-jwt-sign">Compute Signature Hash</button>
+                                </div>
+
+                                <div class="token-serialized">
+                                    <h4>Encoded Access Token String</h4>
+                                    <div class="jwt-encoded-box" id="jwt-encoded-box">
+                                        <span class="hdr">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>.<span
+                                            class="pay">eyJzdWIiOiJtZWV0YiIsIm5hbWUiOiJNZWV0YiIsImdyb3VwcyI6WyJVc2VycyJdLCJpc0FkbWluIjpmYWxzZX0</span>.<span
+                                            class="sig">Signature_Signature</span>
+                                    </div>
+
+                                    <div style="border-top:1px dashed var(--border-color); margin:0.3rem 0;"></div>
+
+                                    <h4>Test Authenticator Validation</h4>
+                                    <div class="form-group">
+                                        <label for="jwt-verify-key">Server Verification Key:</label>
+                                        <input type="text" id="jwt-verify-key" value="SecCore_Secret_Key_L3">
+                                    </div>
+                                    <button class="btn-action" id="btn-jwt-verify">Test Token Validation</button>
+
+                                    <div id="jwt-verify-status" class="verification-alert" style="display:none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. PRIVILEGE & UAC VIEW -->
+            <section id="uac-view" class="view-section">
+                <div class="uac-grid">
+                    <div class="cmd-panel">
+                        <div class="cmd-header">
+                            <span>Administrator: Windows Core Terminal Simulation</span>
+                            <i class="fa-solid fa-xmark"></i>
+                        </div>
+                        <div class="cmd-screen" id="uac-cmd-screen">
+                            <p>SecCore Console Workspace v3.0</p>
+                            <p>Command limits restrictions: standard token restricted. Type administrative commands to
+                                test elevation hooks.</p>
+                            <br>
+                            <p>Type "help" for a list of available actions.</p>
+                            <br>
+                            <div class="cmd-line">
+                                <span
+                                    style="color:var(--sec-green); font-family:var(--font-mono); font-size:0.85rem;">C:\Users\meetb&gt;</span>
+                                <input type="text" id="uac-cmd-input" autofocus autocomplete="off"
+                                    placeholder="Try 'reg delete HKLM\\System'...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="token-flow-panel">
+                        <h3>Split-Token Architecture (UAC Model)</h3>
+                        <p class="desc-text">When an administrator user logs on, the OS assigns two access tokens: a
+                            Standard Token for daily tasks and a Privileged Token held in suspended state. Only
+                            authenticated prompts activate Ring 0 token exchanges.</p>
+
+                        <div class="token-box standard">
+                            <h4>Standard Filtered Token <span class="tag">ACTIVE</span></h4>
+                            <div class="token-sids">
+                                <div><span>User Account SID:</span> <span>S-1-5-21-39572... (meetb)</span></div>
+                                <div><span>Group Administrators SID:</span> <span
+                                        style="color:var(--sec-crimson); font-weight:bold;">[DENY / FILTERED]</span>
+                                </div>
+                                <div><span>System Privilege: SeShutdownPrivilege</span> <span
+                                        style="color:var(--sec-green);">ENABLED</span></div>
+                                <div><span>System Privilege: SeBackupPrivilege</span> <span
+                                        style="color:var(--sec-crimson);">DISABLED</span></div>
+                                <div><span>Integrity Classification:</span> <span style="color:var(--sec-cyan);">MEDIUM
+                                        INTEGRITY</span></div>
+                            </div>
+                        </div>
+
+                        <div class="token-box elevated" id="uac-elevated-token-box" style="opacity: 0.5;">
+                            <h4>Full Administrator Token <span class="tag">SUSPENDED</span></h4>
+                            <div class="token-sids">
+                                <div><span>User Account SID:</span> <span>S-1-5-21-39572... (meetb)</span></div>
+                                <div><span>Group Administrators SID:</span> <span style="color:var(--sec-green);">OWNER
+                                        / ENABLED</span></div>
+                                <div><span>System Privilege: SeDebugPrivilege</span> <span
+                                        style="color:var(--sec-green);">ENABLED</span></div>
+                                <div><span>System Privilege: SeBackupPrivilege</span> <span
+                                        style="color:var(--sec-green);">ENABLED</span></div>
+                                <div><span>Integrity Classification:</span> <span style="color:var(--sec-amber);">HIGH
+                                        INTEGRITY</span></div>
+                            </div>
+                        </div>
+
+                        <div class="desc-text" id="uac-token-status"
+                            style="font-size:0.8rem; background:rgba(255, 255, 255, 0.02); padding:0.75rem; border-radius:4px; border:1px solid var(--border-color);">
+                            Status: Spawning administrative operations triggers token evaluation prompts.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. PROCESS ISOLATION & MEMORY PROTECTION -->
+            <section id="memory-view" class="view-section">
+                <div class="memory-layout">
+                    <div class="memory-grid-panel">
+                        <h3>Address Space Allocation Grid</h3>
+                        <p class="desc-text">Visual representation of virtual memory segments. Shuffling locations via
+                            ASLR prevents stack buffer calculations.</p>
+
+                        <div class="mem-table-grid" id="mem-table-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; background:#020408; padding:0.75rem; border-radius:6px; border:1px solid var(--border-color); font-family:var(--font-mono); font-size:0.8rem;">
+                            <span>Active Jump Vector Target: <strong id="mem-jump-target"
+                                    style="color:var(--sec-amber);">0x00401020</strong></span>
+                            <span>Exploit Payload Address: <strong id="mem-payload-addr"
+                                    style="color:var(--sec-cyan);">0x7FFF1010</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="memory-controls">
+                        <h3>Memory Isolation Constraints</h3>
+
+                        <div class="form-group">
+                            <span class="desc-text" style="font-weight:bold; color:var(--text-primary);">Address Space
+                                Layout Randomization (ASLR):</span>
+                            <label class="toggle-container" style="margin-top:0.4rem;">
+                                <input type="checkbox" id="toggle-aslr" checked>
+                                <span class="toggle-switch"></span>
+                                <span id="lbl-aslr-state">ASLR Enabled (Active Location Scramble)</span>
+                            </label>
+                            <span class="desc-text" style="font-size:0.75rem;">Shuffles code, stack, libraries, and heap
+                                base addresses to make memory offset prediction impossible.</span>
+                        </div>
+
+                        <div style="border-top:1px dashed var(--border-color);"></div>
+
+                        <div class="form-group">
+                            <span class="desc-text" style="font-weight:bold; color:var(--text-primary);">Data Execution
+                                Prevention (DEP / NX):</span>
+                            <label class="toggle-container" style="margin-top:0.4rem;">
+                                <input type="checkbox" id="toggle-dep" checked>
+                                <span class="toggle-switch"></span>
+                                <span id="lbl-dep-state">DEP Enabled (Write ^ Execute Mode)</span>
+                            </label>
+                            <span class="desc-text" style="font-size:0.75rem;">Marks stack/heap memory sections
+                                writeable or executable but NEVER both, stopping stack payload launches.</span>
+                        </div>
+
+                        <div style="border-top:1px dashed var(--border-color);"></div>
+
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+                            <button class="btn-primary" id="btn-mem-randomize"><i class="fa-solid fa-shuffle"></i>
+                                Randomize Memory Map (Trigger ASLR)</button>
+                            <button class="btn-primary" id="btn-mem-exploit"
+                                style="background-color:var(--sec-crimson); border-color:var(--sec-crimson); color:#fff;"><i
+                                    class="fa-solid fa-bomb"></i> Launch Stack Overflow Exploit</button>
+                        </div>
+
+                        <div id="memory-trace-log" class="font-mono"
+                            style="background:#020408; padding:0.75rem; border-radius:4px; font-size:0.75rem; color:var(--text-secondary); min-height:80px; overflow-y:auto; line-height:1.4; border:1px solid var(--border-color);">
+                            Memory audit status: standing by for memory injection commands.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. HARDWARE TRUST (SECURE BOOT & TPM) -->
+            <section id="hardware-view" class="view-section">
+                <div class="hardware-grid">
+                    <div class="boot-chain-panel">
+                        <h3>UEFI Secure Boot Chain</h3>
+                        <p class="desc-text" style="margin-bottom:0.5rem;">Secure Boot enforces a signature verification
+                            chain from power-on to kernel boot to block rootkits.</p>
+
+                        <div class="boot-steps" id="boot-steps">
+                            <div class="boot-step-row" id="boot-step-0">
+                                <span class="boot-dot"></span>
+                                <div>
+                                    <div class="boot-lbl">UEFI ROM Verification</div>
+                                    <div class="boot-desc">Hardware verify of system flash ROM using Platform Key (PK).
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="boot-step-row" id="boot-step-1">
+                                <span class="boot-dot"></span>
+                                <div>
+                                    <div class="boot-lbl">OS Loader Validation (Shim / GRUB)</div>
+                                    <div class="boot-desc">Checks bootloader signatures against db signatures in UEFI
+                                        NVRAM.</div>
+                                </div>
+                            </div>
+                            <div class="boot-step-row" id="boot-step-2">
+                                <span class="boot-dot"></span>
+                                <div>
+                                    <div class="boot-lbl">Kernel Image Signature check</div>
+                                    <div class="boot-desc">Validates kernel binary signature before executing.</div>
+                                </div>
+                            </div>
+                            <div class="boot-step-row" id="boot-step-3">
+                                <span class="boot-dot"></span>
+                                <div>
+                                    <div class="boot-lbl">Third-party Driver validation</div>
+                                    <div class="boot-desc">Validates kernel space drivers signatures before
+                                        initialization.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="border-top:1px dashed var(--border-color); margin:0.3rem 0;"></div>
+
+                        <div style="display:flex; flex-direction:column; gap:0.55rem;">
+                            <label class="toggle-container">
+                                <input type="checkbox" id="toggle-secure-boot" checked>
+                                <span class="toggle-switch"></span>
+                                <span>Enable UEFI Secure Boot</span>
+                            </label>
+                            <label class="toggle-container">
+                                <input type="checkbox" id="toggle-tamper-kernel">
+                                <span class="toggle-switch"></span>
+                                <span>Inject Malicious Rootkit into Kernel Image</span>
+                            </label>
+                            <button class="btn-primary" id="btn-initiate-boot" style="margin-top:0.3rem;"><i
+                                    class="fa-solid fa-power-off"></i> Initiate Boot Verification Sequence</button>
+                        </div>
+                    </div>
+
+                    <div class="tpm-panel">
+                        <h3>TPM PCR Key Sealing Sandbox</h3>
+                        <p class="desc-text">Trusted Platform Modules use Platform Configuration Registers (PCRs) to
+                            measure system state hashes. Changing the boot environment changes PCR hashes, blocking disk
+                            unsealing keys.</p>
+
+                        <div class="pcr-grid">
+                            <div class="pcr-row" id="pcr-row-0">
+                                <span>PCR 0 (SRTM / BIOS Firmware Hash)</span>
+                                <span class="val" id="pcr-val-0">F1B9C... (Matched)</span>
+                            </div>
+                            <div class="pcr-row" id="pcr-row-4">
+                                <span>PCR 4 (OS Bootloader Hash)</span>
+                                <span class="val" id="pcr-val-4">9A2D7... (Matched)</span>
+                            </div>
+                            <div class="pcr-row" id="pcr-row-11">
+                                <span>PCR 11 (Secure Boot configuration State)</span>
+                                <span class="val" id="pcr-val-11">C83A2... (Matched)</span>
+                            </div>
+                        </div>
+
+                        <div style="border-top:1px dashed var(--border-color); margin:0.3rem 0;"></div>
+
+                        <div class="form-group">
+                            <label for="tpm-sealed-key">Disk Encryption Key (Sealed to PCR 4 & 11):</label>
+                            <input type="text" id="tpm-sealed-key" value="SuperSecretDiskDecryptionKey_2026" readonly>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.55rem;">
+                            <button class="btn-action" id="btn-tpm-seal">Seal Key to Current PCR Config</button>
+                            <button class="btn-action" id="btn-tpm-unseal">Unseal Disk Key via TPM</button>
+                        </div>
+
+                        <div id="tpm-feedback-log" class="font-mono"
+                            style="background:#020408; padding:0.75rem; border-radius:4px; font-size:0.75rem; color:var(--text-secondary); min-height:60px; line-height:1.4; border:1px solid var(--border-color);">
+                            TPM status: Key sealed. Standby for unseal queries.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="app-footer">
+            <span class="footer-sec"><i class="fa-solid fa-circle"></i> NODE: ENFORCING MODE</span>
+            <span class="footer-sec"><i class="fa-solid fa-key"></i> CRYPTO CHIPS: SYMMETRIC/ASYMMETRIC
+                PROVISIONED</span>
+            <span class="footer-sec font-mono" id="status-console-msg">SYSTEM LOG: ENGINE STANDBY</span>
+        </footer>
+    </div>
+
+    <!-- WINDOWS UAC OVERLAY DIALOG -->
+    <div class="uac-overlay" id="uac-prompt-overlay">
+        <div class="uac-dialog">
+            <div class="uac-header-sec">
+                <i class="fa-solid fa-user-shield uac-icon"></i>
+                <div class="uac-header-text">
+                    <h2>User Account Control</h2>
+                    <p style="font-size:0.8rem; color:#646464;">Do you want to allow this app to make changes to your
+                        device?</p>
+                </div>
+            </div>
+            <div class="uac-body-sec">
+                <div class="uac-meta-row">
+                    <label>App name:</label>
+                    <span id="uac-target-app">Registry Modifier Daemon</span>
+                </div>
+                <div class="uac-meta-row">
+                    <label>Publisher:</label>
+                    <span style="color:#646464;">Unknown Publisher</span>
+                </div>
+                <div class="uac-meta-row">
+                    <label>File origin:</label>
+                    <span>Hard drive on this computer</span>
+                </div>
+            </div>
+            <div class="uac-actions-sec">
+                <button class="uac-btn primary-btn" id="uac-btn-yes">Yes</button>
+                <button class="uac-btn" id="uac-btn-no">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Application Logic Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initParticles();
+            initRouting();
+            initTelemetry();
+            initDashboardRings();
+            initAuthModule();
+            initAuthzModule();
+            initUacModule();
+            initMemoryModule();
+            initHardwareModule();
+        });
+
+        /* ==========================================
+           1. PARTICLES BACKGROUND
+           ========================================== */
+        function initParticles() {
+            const canvas = document.getElementById('bg-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let particles = [];
+            const particleCount = 45;
+            const maxDistance = 150;
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.4;
+                    this.vy = (Math.random() - 0.5) * 0.4;
+                    this.radius = Math.random() * 1.5 + 1;
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0, 255, 102, 0.15)';
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+
+                ctx.strokeStyle = 'rgba(0, 255, 102, 0.04)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < maxDistance) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        /* ==========================================
+           2. NAVIGATION & ROUTING
+           ========================================== */
+        function initRouting() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('.view-section');
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-target');
+
+                    navButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    sections.forEach(s => {
+                        if (s.id === `${target}-view`) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+
+                    addGlobalLog(`View scope routed: /${target}`, 'info');
+                });
+            });
+
+            // Initialize sidebar controls
+            setupSidebarMenu('auth-menu', 'auth-view');
+            setupSidebarMenu('tokens-menu', 'tokens-view');
+        }
+
+        function setupSidebarMenu(menuId, parentContainerId) {
+            const menu = document.getElementById(menuId);
+            if (!menu) return;
+            const items = menu.querySelectorAll('li');
+            const parent = document.getElementById(parentContainerId);
+            const panels = parent.querySelectorAll('.subview-panel');
+
+            items.forEach(item => {
+                item.addEventListener('click', () => {
+                    items.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+
+                    const subview = item.getAttribute('data-subview');
+                    panels.forEach(p => {
+                        if (p.id === subview) {
+                            p.classList.add('active');
+                        } else {
+                            p.classList.remove('active');
+                        }
+                    });
+                    addGlobalLog(`Context loaded: [${subview}]`, 'info');
+                });
+            });
+        }
+
+        /* ==========================================
+           3. TELEMETRY & FEED LOGGER
+           ========================================== */
+        function initTelemetry() {
+            const auditBody = document.getElementById('sec-audit-logs');
+            if (!auditBody) return;
+
+            const seedLogs = [
+                { msg: "Kernel initialization completed. Secure Boot chain validated PK/db registries.", type: "success" },
+                { msg: "LSASS initialized system credentials protection. CredGuard isolation active.", type: "info" },
+                { msg: "Memory Protection: DEP (NX) policies successfully loaded on paging rings.", type: "info" },
+                { msg: "Secure Kernel: Hypervisor-Protected Code Integrity (HVCI) active.", type: "success" }
+            ];
+
+            seedLogs.forEach(l => addGlobalLog(l.msg, l.type));
+
+            // Random Security events simulator
+            const events = [
+                { msg: "LSASS: Blocked handle request from unverified user binary (PID: 8140).", type: "warn" },
+                { msg: "AppLocker: Verified execution signature for svchost.exe.", type: "success" },
+                { msg: "UAC Daemon: Standard token filtered privilege request.", type: "info" },
+                { msg: "DEP Enforcer: Evaluated page table attributes for execution safety.", type: "info" },
+                { msg: "Kernel ASLR: Virtual address mapping offset randomized successfully.", type: "success" },
+                { msg: "TPM Chip: PCR measurement register 4 verification completed successfully.", type: "success" }
+            ];
+
+            setInterval(() => {
+                const idx = Math.floor(Math.random() * events.length);
+                const ev = events[idx];
+                addGlobalLog(ev.msg, ev.type);
+            }, 7000);
+        }
+
+        function addGlobalLog(msg, type = "info") {
+            const container = document.getElementById('sec-audit-logs');
+            if (!container) return;
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerHTML = `
+                <span class="log-time">[${timeStr}]</span>
+                <span class="log-msg ${type}">&gt; ${msg}</span>
+            `;
+            container.appendChild(line);
+            container.scrollTop = container.scrollHeight;
+
+            if (container.children.length > 25) {
+                container.removeChild(container.firstChild);
+            }
+
+            // Sync to status footer
+            const statusEl = document.getElementById('status-console-msg');
+            if (statusEl) {
+                statusEl.textContent = `SYSTEM AUDIT: ${msg.toUpperCase()}`;
+            }
+        }
+
+        /* ==========================================
+           4. CPU SECURITY RINGS INTERACTION
+           ========================================== */
+        const ringNotes = {
+            "0": {
+                title: "Ring 0 - Supervisor Mode (Kernel Core)",
+                desc: "Highest CPU execution privileges. Here resides OS Kernel code, system calls dispatching systems, paging structures, virtual file system mapping tables, and scheduler modules. Code running in Ring 0 has direct access to CPU register instructions, system RAM pools, and peripheral bus lines.",
+                impact: "CRITICAL: Any crash, overflow, or failure here results in a Blue Screen (BSOD) or a Kernel Panic. Exploiting Ring 0 grants attacker ultimate control over the hardware, bypassing all security abstractions."
+            },
+            "1": {
+                title: "Ring 1 / 2 - Device Drivers & Virtualization hypervisors",
+                desc: "Intermediate security boundaries. Primarily hosts device drivers (graphics drivers, storage controllers) or host hypervisors. Ring 1 code is restricted from direct control of CPU paging trees, but possesses higher execution parameters than user software applications.",
+                impact: "WARNING: A driver failure in Ring 1 can still compromise system state stability. Most microkernel designs isolate driver modules to separate nodes to limit potential damages."
+            },
+            "3": {
+                title: "Ring 3 - User Mode (Application Space)",
+                desc: "Lowest CPU execution privilege. All standard user binaries (browsers, database managers, shell terminals, and utilities) execute inside Ring 3. Code running here cannot execute sensitive processor assembly instructions (like `cli`, `lgdt`, `sysret`).",
+                impact: "RESTRICTED: Ring 3 programs are isolated from physical RAM structures via virtual memory page allocations. A crash in user mode only halts the process and does not compromise system integrity."
+            }
+        };
+
+        function initDashboardRings() {
+            const rings = document.querySelectorAll('.ring-node');
+            const display = document.getElementById('ring-details-display');
+            if (!display) return;
+
+            rings.forEach(ring => {
+                ring.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const num = ring.getAttribute('data-ring');
+                    const info = ringNotes[num];
+
+                    display.innerHTML = `
+                        <div style="border-left: 3px solid ${num === '0' ? 'var(--sec-crimson)' : num === '1' ? 'var(--sec-amber)' : 'var(--sec-cyan)'}; padding-left: 0.75rem;">
+                            <h4 style="color:${num === '0' ? 'var(--sec-crimson)' : num === '1' ? 'var(--sec-amber)' : 'var(--sec-cyan)'}; margin-bottom: 0.3rem;">${info.title}</h4>
+                            <p style="margin-bottom:0.5rem; font-size:0.8rem; line-height:1.4;">${info.desc}</p>
+                            <p style="font-size:0.75rem; font-family:var(--font-mono); line-height:1.4;">${info.impact}</p>
+                        </div>
+                    `;
+                    addGlobalLog(`Inspected Ring level: ${num}`, 'info');
+                });
+            });
+        }
+
+        /* ==========================================
+           5. AUTHENTICATION MODULE (HASHING & SECRETS)
+           ========================================== */
+        const vaultDatabases = {
+            "win-lsass": `
+                <h4>Windows LSASS (SAM Registry Hive & LSA Database)</h4>
+                <p class="desc-text" style="margin-bottom:0.8rem;">Windows caches user passwords and domain keys in lsass.exe process memory, writing persistent hashes into registry SAM configurations protected by BootKey crypto wrappers.</p>
+                <table class="vault-table">
+                    <thead>
+                        <tr><th>User Account ID</th><th>Crypt Class</th><th>NTLM Hash Value</th><th>LSA Isolation Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Administrator [SID-500]</td><td>NTLM Hash</td><td>aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0</td><td>LSA Guard Active</td></tr>
+                        <tr><td>meetb [SID-1001]</td><td>NTLM Hash</td><td>aad3b435b51404eeaad3b435b51404ee:f728ea75c40134cd928fa82ea2c15982</td><td>Virtualization Protected</td></tr>
+                    </tbody>
+                </table>
+            `,
+            "lin-shadow": `
+                <h4>Linux /etc/shadow File (Shadow Crypt Hash Map)</h4>
+                <p class="desc-text" style="margin-bottom:0.8rem;">Linux password hashes reside in /etc/shadow, accessible strictly by superuser (root). Standard applications verify inputs via pam (Pluggable Authentication Modules) libraries.</p>
+                <table class="vault-table">
+                    <thead>
+                        <tr><th>User Account</th><th>Crypt Model</th><th>Salt Parameter</th><th>Crypt Hash Buffer</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>root</td><td>SHA-512 ($6$)</td><td>$F19ka8Ld$</td><td>b18a287df1c08ea38de1f0a38beee10ff24a... (Locked)</td></tr>
+                        <tr><td>meetb</td><td>bcrypt ($2y$)</td><td>$10$x8Ka82J...</td><td>48ea92d8f7cfd39572ea982fc34812a5... (Matches)</td></tr>
+                    </tbody>
+                </table>
+            `,
+            "mac-keychain": `
+                <h4>macOS Keychain Services (SQLite Crypto Database)</h4>
+                <p class="desc-text" style="margin-bottom:0.8rem;">macOS secures passwords, credentials, certificates, and API tokens inside encrypted SQLite databases protected by user logins keychain files.</p>
+                <table class="vault-table">
+                    <thead>
+                        <tr><th>Item Label</th><th>Access Class</th><th>Auth Application Permission</th><th>Crypt State</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>ssh-key: id_rsa</td><td>Asymmetric Key</td><td>/usr/bin/ssh (Allowed)</td><td>Secure Enclave Wrapped</td></tr>
+                        <tr><td>safari-gmail-account</td><td>Internet Password</td><td>/Applications/Safari.app (Allowed)</td><td>AES-256 GCM Encrypted</td></tr>
+                    </tbody>
+                </table>
+            `
+        };
+
+        function initAuthModule() {
+            // Hasher setup
+            document.getElementById('btn-run-hasher').addEventListener('click', runPasswordHasher);
+
+            // Vault Tab listeners
+            const tabs = document.querySelectorAll('.vault-tab');
+            const display = document.getElementById('vault-display-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('selected'));
+                    tab.classList.add('selected');
+
+                    const target = tab.getAttribute('data-target-vault');
+                    display.innerHTML = vaultDatabases[target];
+                    addGlobalLog(`Credential Vault database target loaded: ${target}`, 'info');
+                });
+            });
+
+            // Initial load
+            display.innerHTML = vaultDatabases["win-lsass"];
+        }
+
+        // Mock Hashing calculations
+        function runPasswordHasher() {
+            const pw = document.getElementById('hash-pw').value;
+            const salt = document.getElementById('hash-salt').value;
+            const algo = document.getElementById('hash-algo').value;
+            const output = document.getElementById('hash-output');
+            const timeEl = document.getElementById('hash-time');
+            const bar = document.getElementById('hash-speed-bar');
+            const notes = document.getElementById('hash-complexity-notes');
+
+            if (!pw) {
+                alert("Please enter a password string.");
+                return;
+            }
+
+            let computedHash = "";
+            let delayMs = 0;
+
+            if (algo === 'md5') {
+                // MD5 Mock
+                delayMs = 0.05 + Math.random() * 0.04;
+                computedHash = md5Mock(pw + salt);
+
+                bar.style.width = "100%";
+                bar.className = "speed-bar-inner fast";
+                notes.innerHTML = `<span style="color:var(--sec-crimson); font-weight:bold;">VULNERABLE:</span> MD5 is highly susceptible to collision attacks (different texts returning same hash) and instant decryption via rainbow lookup databases due to fast calculation speeds.`;
+            }
+            else if (algo === 'sha256') {
+                // SHA-256 Mock
+                delayMs = 0.12 + Math.random() * 0.1;
+                computedHash = sha256Mock(pw + salt);
+
+                bar.style.width = "75%";
+                bar.className = "speed-bar-inner fast";
+                notes.innerHTML = `<span style="color:var(--sec-amber); font-weight:bold;">FAST SECURE:</span> SHA-256 provides secure collision-free hash buffers. However, because it runs extremely fast on GPU hardware, attackers can check billions of combinations per second during offline dictionary attacks.`;
+            }
+            else if (algo === 'bcrypt') {
+                // bcrypt slow hash mock
+                delayMs = 280 + Math.random() * 150; // Work factor simulation delay
+                computedHash = `$2y$10$${salt.padEnd(22, 'x')}.${sha256Mock(pw + salt).slice(0, 31)}`;
+
+                bar.style.width = "4%";
+                bar.className = "speed-bar-inner slow";
+                notes.innerHTML = `<span style="color:var(--sec-green); font-weight:bold;">SECURE SLOW-HASH:</span> bcrypt incorporates cryptographic work factors that deliberately scale computation time (e.g. 400ms per attempt). This slow calculation speed blocks GPU dictionary cracking loops, keeping records safe.`;
+            }
+
+            // Simulate loader text delay
+            output.textContent = "Computing cryptographic rounds...";
+
+            setTimeout(() => {
+                output.textContent = computedHash;
+                timeEl.textContent = `${delayMs.toFixed(2)} ms`;
+                addGlobalLog(`Password Hashed: [${algo.toUpperCase()}] Salt: '${salt}'`, 'success');
+            }, Math.min(delayMs, 500));
+        }
+
+        // Simple mock helpers to simulate hashing representations
+        function md5Mock(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash << 5) - hash + str.charCodeAt(i);
+                hash |= 0;
+            }
+            const hex = Math.abs(hash).toString(16).padStart(8, '0');
+            return `${hex}a8e2bc18a4d7d9e18bca4821`;
+        }
+
+        function sha256Mock(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash << 7) - hash + str.charCodeAt(i);
+                hash |= 0;
+            }
+            const hex = Math.abs(hash).toString(16).padStart(8, '0');
+            return `${hex}e4bf821d3f9e8a8b23412d8a4d9ef67311bca09a90df1a01`;
+        }
+
+        /* ==========================================
+           6. AUTHORIZATION SIMULATOR (DAC, MAC, RBAC, ABAC)
+           ========================================== */
+        function initAuthzModule() {
+            document.getElementById('btn-eval-policy').addEventListener('click', runPolicyEvaluation);
+            document.getElementById('btn-jwt-sign').addEventListener('click', signMockJwt);
+            document.getElementById('btn-jwt-verify').addEventListener('click', verifyMockJwt);
+
+            signMockJwt(); // Initial JWT render
+        }
+
+        function runPolicyEvaluation() {
+            const model = document.getElementById('policy-model').value;
+            const user = document.getElementById('authz-req-user').value;
+            const ip = document.getElementById('authz-req-ip').value;
+            const time = document.getElementById('authz-req-time').value;
+            const file = document.getElementById('authz-req-file').value;
+
+            const logEl = document.getElementById('policy-trace-output');
+            const alertEl = document.getElementById('policy-result-alert');
+
+            let trace = [];
+            let allowed = false;
+
+            trace.push(`[EVENT] Access Request: User: [${user}] -> File: [${file}]`);
+            trace.push(`[ATTR] Client Context: IP=${ip}, Time=${time}`);
+
+            if (model === 'dac') {
+                trace.push("[EVAL] Model rule: Discretionary Access Control (DAC).");
+                trace.push("[EVAL] Checking DAC resource database mapping...");
+
+                if (file === 'bob_finances.txt') {
+                    trace.push("[EVAL] Resource owner: Bob.");
+                    if (user === 'Bob') {
+                        trace.push("[EVAL] Match: Accessing own resource file.");
+                        allowed = true;
+                    } else {
+                        trace.push("[EVAL] Mismatch: Resource owner Bob has not granted access permission handle to user.");
+                        allowed = false;
+                    }
+                } else if (file === 'audit_logs.db') {
+                    trace.push("[EVAL] Resource owner: System Authority.");
+                    trace.push("[EVAL] Mismatch: Owner restricts access. Standard users blocked.");
+                    allowed = false;
+                }
+            }
+            else if (model === 'rbac') {
+                trace.push("[EVAL] Model rule: Role-Based Access Control (RBAC).");
+                trace.push("[EVAL] Target Resource Rule: requires role 'Admin' or 'Auditor'.");
+
+                let userRole = "User";
+                if (user === 'Alice') userRole = "Auditor";
+
+                trace.push(`[EVAL] Evaluating user role attributes: Role=[${userRole}]`);
+
+                if (userRole === 'Auditor') {
+                    trace.push("[EVAL] Match: role matches 'Auditor' access authorization constraint.");
+                    allowed = true;
+                } else {
+                    trace.push("[EVAL] Mismatch: User role lacks required access privileges.");
+                    allowed = false;
+                }
+            }
+            else if (model === 'mac') {
+                trace.push("[EVAL] Model rule: Mandatory Access Control (MAC).");
+                trace.push("[EVAL] Policy check: Bell-LaPadula simple security rule (No Read Up).");
+
+                // Clearance mappings
+                const clearanceMap = { "Alice": 3, "Bob": 2, "Mallory": 1 }; // Secret(3), Confidential(2), Public(1)
+                const classifyMap = { "bob_finances.txt": 2, "audit_logs.db": 3 }; // Secret(2), TopSecret(3)
+
+                const userClearance = clearanceMap[user];
+                const fileClassification = classifyMap[file];
+
+                trace.push(`[EVAL] User Clearance value: Level ${userClearance}.`);
+                trace.push(`[EVAL] Target Classification value: Level ${fileClassification}.`);
+
+                if (userClearance >= fileClassification) {
+                    trace.push("[EVAL] Match: User clearance level meets or exceeds file classification boundary.");
+                    allowed = true;
+                } else {
+                    trace.push("[EVAL] Mismatch: Security classification clearance denied (No Read Up enforced).");
+                    allowed = false;
+                }
+            }
+            else if (model === 'abac') {
+                trace.push("[EVAL] Model rule: Attribute-Based Access Control (ABAC).");
+                trace.push("[EVAL] Evaluating complex environmental attributes...");
+
+                const isWorkHours = time === '14:00';
+                const isCorporateIp = ip === '192.168.1.15';
+
+                trace.push(`[EVAL] Attribute check: Is Office IP? -> [${isCorporateIp ? 'YES' : 'NO'}]`);
+                trace.push(`[EVAL] Attribute check: Is Working Hours? -> [${isWorkHours ? 'YES' : 'NO'}]`);
+
+                if (isWorkHours && isCorporateIp) {
+                    trace.push("[EVAL] Match: all environmental attributes conform to policy parameters.");
+                    allowed = true;
+                } else {
+                    trace.push("[EVAL] Mismatch: Access denied due to environmental attribute restrictions.");
+                    allowed = false;
+                }
+            }
+
+            // Print Trace
+            logEl.innerHTML = trace.map(line => `<div>&gt; ${line}</div>`).join('');
+
+            // Update Alert box
+            alertEl.style.display = 'flex';
+            if (allowed) {
+                alertEl.className = "verification-alert";
+                alertEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ACCESS GRANTED - Request authorized under active security rules.`;
+                addGlobalLog(`Policy Evaluation: [${user}] access to [${file}] ALLOWED`, 'success');
+            } else {
+                alertEl.className = "verification-alert error-alert";
+                alertEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ACCESS DENIED - Security constraint violation.`;
+                addGlobalLog(`Policy Evaluation: [${user}] access to [${file}] BLOCKED`, 'error');
+            }
+        }
+
+        // JWT mock generator
+        function signMockJwt() {
+            const payload = document.getElementById('jwt-payload-text').value;
+            const secret = document.getElementById('jwt-secret').value;
+            const box = document.getElementById('jwt-encoded-box');
+
+            try {
+                // Basic check for valid JSON
+                JSON.parse(payload);
+            } catch (err) {
+                alert("Invalid JSON format in Decoded Payload field.");
+                return;
+            }
+
+            const headerStr = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" })).replace(/=/g, '');
+            const payloadStr = btoa(payload).replace(/=/g, '');
+            const signatureStr = sha256Mock(headerStr + "." + payloadStr + secret).slice(0, 24).replace(/=/g, '');
+
+            box.innerHTML = `
+                <span class="hdr">${headerStr}</span>.<span class="pay">${payloadStr}</span>.<span class="sig">${signatureStr}</span>
+            `;
+            addGlobalLog("JWT Signature: computed HS256 JWT string", "success");
+        }
+
+        function verifyMockJwt() {
+            const box = document.getElementById('jwt-encoded-box');
+            const signature = box.querySelector('.sig').textContent;
+            const header = box.querySelector('.hdr').textContent;
+            const payloadBase = box.querySelector('.pay').textContent;
+
+            const verifyKey = document.getElementById('jwt-verify-key').value;
+            const statusEl = document.getElementById('jwt-verify-status');
+
+            // Compute check signature
+            const checkSig = sha256Mock(header + "." + payloadBase + verifyKey).slice(0, 24).replace(/=/g, '');
+
+            statusEl.style.display = 'flex';
+
+            if (checkSig === signature) {
+                statusEl.className = "verification-alert";
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> TOKEN IS VALID - Signature matched. Integrity verified.`;
+
+                // Parse claims to display status
+                try {
+                    const decodedPayload = JSON.parse(atob(payloadBase));
+                    if (decodedPayload.isAdmin === true) {
+                        statusEl.innerHTML += `<br><strong>Admin Claims detected: Process granted full token permissions scope.</strong>`;
+                        addGlobalLog("JWT Verifier: validated admin token payload", "success");
+                    }
+                } catch (e) { }
+            } else {
+                statusEl.className = "verification-alert error-alert";
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> INVALID SIGNATURE - Token has been tampered with or verification key mismatch. Access Denied.`;
+                addGlobalLog("JWT Verifier: Token signature verification failed", "error");
+            }
+        }
+
+        /* ==========================================
+           7. UAC MODULE (SPLIT TOKENS)
+           ========================================== */
+        let isUacElevated = false;
+
+        function initUacModule() {
+            const uacInput = document.getElementById('uac-cmd-input');
+            const uacScreen = document.getElementById('uac-cmd-screen');
+
+            if (!uacInput || !uacScreen) return;
+
+            uacInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const cmd = uacInput.value.trim();
+                    uacInput.value = '';
+
+                    if (cmd) {
+                        runUacCommand(cmd, uacScreen);
+                    }
+                }
+            });
+
+            // UAC prompt button triggers
+            document.getElementById('uac-btn-yes').addEventListener('click', approveUacPrompt);
+            document.getElementById('uac-btn-no').addEventListener('click', denyUacPrompt);
+        }
+
+        function runUacCommand(cmdString, screenEl) {
+            const lines = screenEl.querySelectorAll('.cmd-line');
+            const lastLine = lines[lines.length - 1];
+
+            const promptStr = isUacElevated ? "C:\\Windows\\system32&gt;" : "C:\\Users\\meetb&gt;";
+
+            const echoLine = document.createElement('div');
+            echoLine.className = 'cmd-line';
+            echoLine.innerHTML = `<span style="color:var(--sec-green); font-family:var(--font-mono); font-size:0.85rem;">${promptStr}</span> <span>${escapeHtml(cmdString)}</span>`;
+            screenEl.insertBefore(echoLine, lastLine);
+
+            const output = document.createElement('div');
+            output.className = 'ps-result';
+
+            const tokens = cmdString.split(/\s+/);
+            const baseCmd = tokens[0].toLowerCase();
+
+            if (baseCmd === 'help') {
+                output.innerHTML = `Available commands:
+  help       - Display console options.
+  clear      - Clear terminal logs.
+  whoami     - Check current user context.
+  reg delete HKLM\\System - [Admin Command] Attempt modification of protected system keys.
+  runas /user:admin cmd.exe - Execute administrative terminal prompt.
+`;
+            }
+            else if (baseCmd === 'clear' || baseCmd === 'cls') {
+                screenEl.innerHTML = '';
+                screenEl.appendChild(lastLine);
+                return;
+            }
+            else if (baseCmd === 'whoami') {
+                if (isUacElevated) {
+                    output.innerHTML = `seccore\\meetb [Administrator - elevated integrity privilege token]`;
+                } else {
+                    output.innerHTML = `seccore\\meetb [Standard restricted integrity user token]`;
+                }
+            }
+            else if (cmdString.toLowerCase() === 'reg delete hklm\\system') {
+                if (isUacElevated) {
+                    output.innerHTML = `<span style="color:var(--sec-green);">SUCCESS: Registry path HKLM\\System key successfully deleted under elevated administrative session token.</span>`;
+                    addGlobalLog("UAC Admin: Executed protected registry delete query", "success");
+                } else {
+                    output.innerHTML = `<span style="color:var(--sec-crimson);">ERROR: Access Denied. Insufficient privilege token. Operation requires administrative elevation.</span>`;
+                    addGlobalLog("UAC Guard: Blocked standard token registry write attempt", "error");
+
+                    // Automatically trigger UAC prompt warning after a small delay
+                    setTimeout(() => {
+                        triggerUacOverlay("Registry Editor Console", "reg.exe delete HKLM\\System");
+                    }, 800);
+                }
+            }
+            else if (cmdString.toLowerCase() === 'runas /user:admin cmd.exe') {
+                triggerUacOverlay("Windows Command Processor", "cmd.exe (Elevated Command Prompt)");
+            }
+            else {
+                output.innerHTML = `The term '${escapeHtml(baseCmd)}' is not recognized. Type "help" for a list of available command strings.`;
+            }
+
+            screenEl.insertBefore(output, lastLine);
+            screenEl.scrollTop = screenEl.scrollHeight;
+        }
+
+        function triggerUacOverlay(appName, command) {
+            document.getElementById('uac-target-app').textContent = appName;
+            document.getElementById('uac-prompt-overlay').style.display = 'flex';
+            addGlobalLog("UAC system: requested privilege elevation authorization token", "warn");
+        }
+
+        function approveUacPrompt() {
+            isUacElevated = true;
+            document.getElementById('uac-prompt-overlay').style.display = 'none';
+
+            // UI update
+            document.getElementById('tel-privilege').textContent = "RING 0 (ELEVATED)";
+            document.getElementById('tel-privilege').className = "val status-active";
+
+            // Enable visual box
+            const box = document.getElementById('uac-elevated-token-box');
+            box.style.opacity = '1';
+            box.querySelector('.tag').textContent = "ACTIVE";
+
+            const standardBox = document.getElementById('uac-elevated-token-box').previousElementSibling;
+            standardBox.style.opacity = '0.5';
+            standardBox.querySelector('.tag').textContent = "SUSPENDED";
+
+            document.getElementById('uac-token-status').innerHTML = `<span style="color:var(--sec-green);">Status: Elevated admin token assigned to shell session process.</span>`;
+
+            // Print into screen
+            const screenEl = document.getElementById('uac-cmd-screen');
+            const lines = screenEl.querySelectorAll('.cmd-line');
+            const lastLine = lines[lines.length - 1];
+
+            const logLine = document.createElement('div');
+            logLine.innerHTML = `<span style="color:var(--sec-green);">[UAC] Elevation request approved. Access token elevated to HIGH INTEGRITY. Spawning administrative console session.</span><br>`;
+            screenEl.insertBefore(logLine, lastLine);
+            screenEl.scrollTop = screenEl.scrollHeight;
+
+            addGlobalLog("UAC authorization prompt approved. Token elevated.", "success");
+        }
+
+        function denyUacPrompt() {
+            isUacElevated = false;
+            document.getElementById('uac-prompt-overlay').style.display = 'none';
+
+            // Reset UI
+            document.getElementById('tel-privilege').textContent = "RING 3 (USER)";
+            document.getElementById('tel-privilege').className = "val";
+
+            const elevatedBox = document.getElementById('uac-elevated-token-box');
+            elevatedBox.style.opacity = '0.5';
+            elevatedBox.querySelector('.tag').textContent = "SUSPENDED";
+
+            const standardBox = elevatedBox.previousElementSibling;
+            standardBox.style.opacity = '1';
+            standardBox.querySelector('.tag').textContent = "ACTIVE";
+
+            document.getElementById('uac-token-status').innerHTML = `<span style="color:var(--sec-crimson);">Status: Elevation request denied by user. Process retains standard user permissions.</span>`;
+
+            const screenEl = document.getElementById('uac-cmd-screen');
+            const lines = screenEl.querySelectorAll('.cmd-line');
+            const lastLine = lines[lines.length - 1];
+
+            const logLine = document.createElement('div');
+            logLine.innerHTML = `<span style="color:var(--sec-crimson);">[UAC] Elevation request denied. Process retains standard restricted token.</span><br>`;
+            screenEl.insertBefore(logLine, lastLine);
+            screenEl.scrollTop = screenEl.scrollHeight;
+
+            addGlobalLog("UAC authorization prompt denied. Privilege elevation aborted.", "error");
+        }
+
+        /* ==========================================
+           8. MEMORY PROTECTION (DEP & ASLR)
+           ========================================== */
+        let memoryMap = [];
+        const memAddresses = [
+            "0x7FFF1000", "0x7FFF1010", "0x7FFF1020", "0x7FFF1030",
+            "0x7FFF1040", "0x7FFF1050", "0x7FFF1060", "0x7FFF1070",
+            "0x7FFF1080", "0x7FFF1090", "0x7FFF10A0", "0x7FFF10B0",
+            "0x7FFF10C0", "0x7FFF10D0", "0x7FFF10E0", "0x7FFF10F0",
+            "0x7FFF1100", "0x7FFF1110", "0x7FFF1120", "0x7FFF1130",
+            "0x7FFF1140", "0x7FFF1150", "0x7FFF1160", "0x7FFF1170"
+        ];
+
+        function initMemoryModule() {
+            document.getElementById('btn-mem-randomize').addEventListener('click', () => {
+                generateMemoryMap();
+                addGlobalLog("ASLR: Re-randomized virtual memory space addresses map", "success");
+            });
+
+            document.getElementById('btn-mem-exploit').addEventListener('click', executeMemoryExploit);
+
+            document.getElementById('toggle-aslr').addEventListener('change', (e) => {
+                const label = document.getElementById('lbl-aslr-state');
+                const tel = document.getElementById('tel-aslr');
+                if (e.target.checked) {
+                    label.textContent = "ASLR Enabled (Active Location Scramble)";
+                    tel.textContent = "RANDOMIZED";
+                    tel.className = "val status-active";
+                    addGlobalLog("ASLR system constraint set to ENABLED", "info");
+                } else {
+                    label.textContent = "ASLR Disabled (Fixed Memory Layout)";
+                    tel.textContent = "STATIC";
+                    tel.className = "val status-disabled";
+                    addGlobalLog("ASLR constraint set to DISABLED. Offsets static.", "warn");
+                }
+                generateMemoryMap();
+            });
+
+            document.getElementById('toggle-dep').addEventListener('change', (e) => {
+                const label = document.getElementById('lbl-dep-state');
+                const tel = document.getElementById('tel-dep');
+                if (e.target.checked) {
+                    label.textContent = "DEP Enabled (Write ^ Execute Mode)";
+                    tel.textContent = "W^X ACTIVE";
+                    tel.className = "val status-active";
+                    addGlobalLog("DEP system memory flag set to ENABLED (W^X active)", "info");
+                } else {
+                    label.textContent = "DEP Disabled (Writable Stack Executable)";
+                    tel.textContent = "INSECURE";
+                    tel.className = "val status-disabled";
+                    addGlobalLog("DEP memory flag set to DISABLED. Stack writable & executable.", "warn");
+                }
+            });
+
+            generateMemoryMap();
+        }
+
+        function generateMemoryMap() {
+            const grid = document.getElementById('mem-table-grid');
+            const aslr = document.getElementById('toggle-aslr').checked;
+
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            // Define static segment mappings or randomized layouts
+            let types = [];
+            if (aslr) {
+                // Shuffle array indexes
+                types = ["code", "code", "libs", "libs", "heap", "heap", "stack", "stack"];
+                types = types.concat(Array(16).fill("free"));
+                types.sort(() => Math.random() - 0.5);
+            } else {
+                // Fixed ordered configuration
+                types = [
+                    "code", "code", "libs", "libs",
+                    "heap", "heap", "stack", "stack",
+                    "free", "free", "free", "free",
+                    "free", "free", "free", "free",
+                    "free", "free", "free", "free",
+                    "free", "free", "free", "free"
+                ];
+            }
+
+            memoryMap = [];
+
+            for (let i = 0; i < 24; i++) {
+                const type = types[i];
+                const addr = memAddresses[i];
+
+                let label = "Free";
+                if (type === 'code') label = "System Code";
+                if (type === 'stack') label = "Stack Buffer";
+                if (type === 'heap') label = "Heap Pool";
+                if (type === 'libs') label = "DLL Core";
+
+                memoryMap.push({ addr: addr, type: type, label: label });
+
+                const cell = document.createElement('div');
+                cell.className = `mem-cell ${type}`;
+                cell.id = `mem-cell-${i}`;
+                cell.innerHTML = `
+                    <span class="addr">${addr}</span>
+                    <strong>${label}</strong>
+                `;
+                grid.appendChild(cell);
+            }
+
+            // Update jump targets UI details
+            const jumpTargetEl = document.getElementById('mem-jump-target');
+            const payloadAddrEl = document.getElementById('mem-payload-addr');
+
+            // Set exploit execution targets
+            if (aslr) {
+                // Exploits target address is hardcoded to static index offset, 
+                // which might mismatch now
+                jumpTargetEl.textContent = "0x7FFF1060"; // Predictable target from non-ASLR stack
+
+                // Find where the stack buffer actually is in memory
+                const firstStack = memoryMap.find(c => c.type === 'stack');
+                payloadAddrEl.textContent = firstStack ? firstStack.addr : "Randomized";
+            } else {
+                // Matches the stack buffer location (indices 6 and 7, 0x7FFF1060)
+                jumpTargetEl.textContent = "0x7FFF1060";
+                payloadAddrEl.textContent = "0x7FFF1060";
+            }
+        }
+
+        function executeMemoryExploit() {
+            const aslr = document.getElementById('toggle-aslr').checked;
+            const dep = document.getElementById('toggle-dep').checked;
+            const logEl = document.getElementById('memory-trace-log');
+
+            let trace = [];
+            let exploitSuccess = false;
+
+            trace.push("Spawning buffer overflow injection vector...");
+            trace.push("Writing 64 bytes past target array size parameters...");
+            trace.push("Injecting assembly payload: [Shellcode code blocks]");
+            trace.push("Hijacking thread instruction pointer (EIP)...");
+
+            // target address checks
+            const targetJumpAddress = "0x7FFF1060";
+            trace.push(`Redirecting execution sequence to target offset address: [${targetJumpAddress}]`);
+
+            // Find what is currently loaded at the target address
+            const targetCellIndex = memAddresses.indexOf(targetJumpAddress);
+            const targetCell = memoryMap[targetCellIndex];
+
+            trace.push(`Segment check at target jump offset: Type=[${targetCell.label}]`);
+
+            if (aslr) {
+                // If ASLR is on, target jump address will likely hit free space or incorrect segments
+                if (targetCell.type !== 'stack') {
+                    trace.push(`<span style="color:var(--sec-crimson);">CRITICAL ACCESS EXCEPTION: Thread attempted execution jump to unmapped segment area.</span>`);
+                    trace.push(`<span style="color:var(--sec-crimson);">[ASLR ENFORCEMENT] Exploit failed due to random memory layout displacement. Process crashed [SEGFAULT].</span>`);
+
+                    // Animate crash cells
+                    const cellEl = document.getElementById(`mem-cell-${targetCellIndex}`);
+                    if (cellEl) cellEl.classList.add('corrupted');
+                    setTimeout(() => cellEl.classList.remove('corrupted'), 2500);
+
+                    exploitSuccess = false;
+                } else {
+                    // Extremely low chance of random alignment success
+                    trace.push("[LUCKY ALIGNMENT] ASLR active, but target address randomized directly into stack block.");
+                    evaluateDepState(dep, targetCellIndex, trace, logEl);
+                    return;
+                }
+            } else {
+                // ASLR is off, offset is guaranteed to hit the stack buffer
+                trace.push("Target alignment confirmed. Jump address matches stack buffer parameters.");
+                evaluateDepState(dep, targetCellIndex, trace, logEl);
+                return;
+            }
+
+            logEl.innerHTML = trace.map(line => `<div>&gt; ${line}</div>`).join('');
+        }
+
+        function evaluateDepState(depActive, stackCellIndex, trace, logEl) {
+            if (depActive) {
+                trace.push("Evaluating sector properties permissions flags: NX/No-Execute active.");
+                trace.push("<span style='color:var(--sec-crimson); font-weight:bold;'>CRITICAL ALARM: DEP intercepted execution request on non-executable segment: [Stack Buffer].</span>");
+                trace.push("<span style='color:var(--sec-crimson);'>[DEP ENFORCEMENT] Blocked buffer overflow launch. Terminated process thread with STATUS_ACCESS_VIOLATION exception.</span>");
+
+                const cellEl = document.getElementById(`mem-cell-${stackCellIndex}`);
+                if (cellEl) {
+                    cellEl.style.borderColor = "var(--sec-crimson)";
+                    setTimeout(() => cellEl.style.borderColor = "", 2000);
+                }
+
+                addGlobalLog("DEP: Intercepted buffer execution attempt on stack segment", "error");
+            } else {
+                trace.push("Evaluating sector properties permissions: Stack is writable and executable (Insecure mode).");
+                trace.push("<span style='color:var(--sec-green); font-weight:bold;'>SUCCESS: Shellcode successfully executed in stack buffer space!</span>");
+                trace.push("<span style='color:var(--sec-green);'>Privilege Escalation Complete: Administrative cmd shell spawned. Host compromised.</span>");
+
+                const cellEl = document.getElementById(`mem-cell-${stackCellIndex}`);
+                if (cellEl) {
+                    cellEl.classList.add('corrupted');
+                    setTimeout(() => cellEl.classList.remove('corrupted'), 3000);
+                }
+
+                addGlobalLog("SECURITY INCIDENT: Stack buffer overflow code execution successful", "error");
+            }
+
+            logEl.innerHTML = trace.map(line => `<div>&gt; ${line}</div>`).join('');
+        }
+
+        /* ==========================================
+           9. HARDWARE TRUST (SECURE BOOT & TPM)
+           ========================================== */
+        let tpmKeySealed = true;
+        let sealedPcr4Hash = "9A2D7B481023CFF4";
+        let sealedPcr11Hash = "C83A2098DDF38A12";
+
+        function initHardwareModule() {
+            document.getElementById('btn-initiate-boot').addEventListener('click', executeSecureBootSequence);
+            document.getElementById('btn-tpm-seal').addEventListener('click', sealDiskKey);
+            document.getElementById('btn-tpm-unseal').addEventListener('click', unsealDiskKey);
+        }
+
+        function executeSecureBootSequence() {
+            const secureBoot = document.getElementById('toggle-secure-boot').checked;
+            const tampered = document.getElementById('toggle-tamper-kernel').checked;
+
+            const step0 = document.getElementById('boot-step-0');
+            const step1 = document.getElementById('boot-step-1');
+            const step2 = document.getElementById('boot-step-2');
+            const step3 = document.getElementById('boot-step-3');
+
+            // Reset state classes
+            [step0, step1, step2, step3].forEach(step => {
+                step.className = "boot-step-row";
+            });
+
+            addGlobalLog("UEFI Boot Sequence initiated...", "warn");
+
+            // Step 0: ROM Check
+            step0.className = "boot-step-row active";
+
+            setTimeout(() => {
+                step0.className = "boot-step-row completed";
+                step1.className = "boot-step-row active";
+                addGlobalLog("Bootloader signature validation verification matching...", "info");
+            }, 1000);
+
+            setTimeout(() => {
+                step1.className = "boot-step-row completed";
+                step2.className = "boot-step-row active";
+                addGlobalLog("Validating OS Kernel image signature...", "info");
+            }, 2000);
+
+            setTimeout(() => {
+                if (secureBoot && tampered) {
+                    // Boot halts at kernel validation check
+                    step2.className = "boot-step-row failed";
+                    addGlobalLog("BOOT CRITICAL HALT: Secure Boot detected invalid or untrusted signature on Kernel image binary!", "error");
+                    alert("UEFI BOOT FAILURE: Secure Boot signature validation failed on OS Kernel file. Rootkit execution blocked. Boot halted.");
+                } else {
+                    step2.className = "boot-step-row completed";
+                    step3.className = "boot-step-row active";
+                    addGlobalLog("Validating critical system driver modules...", "info");
+
+                    setTimeout(() => {
+                        step3.className = "boot-step-row completed";
+                        addGlobalLog("OS kernel fully booted. Operational state reached successfully.", "success");
+
+                        // Update TPM measurements
+                        updateTpmRegisters(tampered);
+                    }, 1000);
+                }
+            }, 3000);
+        }
+
+        function updateTpmRegisters(kernelTampered) {
+            const pcr4Val = document.getElementById('pcr-val-4');
+            const pcrRow4 = document.getElementById('pcr-row-4');
+
+            if (kernelTampered) {
+                pcr4Val.textContent = "E84A2B9904CD091B (Invalid/Tampered)";
+                pcrRow4.classList.add('tampered');
+                addGlobalLog("TPM Alert: PCR 4 bootloader measurement hash registers mismatched!", "warn");
+            } else {
+                pcr4Val.textContent = "9A2D7B481023CFF4 (Matched)";
+                pcrRow4.classList.remove('tampered');
+            }
+        }
+
+        function sealDiskKey() {
+            const pcr4 = document.getElementById('pcr-val-4').textContent.split(' ')[0];
+            const pcr11 = document.getElementById('pcr-val-11').textContent.split(' ')[0];
+            const logEl = document.getElementById('tpm-feedback-log');
+
+            sealedPcr4Hash = pcr4;
+            sealedPcr11Hash = pcr11;
+            tpmKeySealed = true;
+
+            logEl.innerHTML = `<span style="color:var(--sec-green);">SUCCESS: Disk encryption key sealed to configurations PCR 4 [${pcr4}] and PCR 11 [${pcr11}].</span>`;
+            addGlobalLog("TPM Sealer: Sealed cryptographic key payload to active PCR states", "success");
+        }
+
+        function unsealDiskKey() {
+            const currentPcr4 = document.getElementById('pcr-val-4').textContent.split(' ')[0];
+            const currentPcr11 = document.getElementById('pcr-val-11').textContent.split(' ')[0];
+            const logEl = document.getElementById('tpm-feedback-log');
+
+            logEl.innerHTML = "Querying TPM cryptographic unseal sequence...<br>";
+
+            setTimeout(() => {
+                logEl.innerHTML += `Comparing sealed registers measurement states:<br>`;
+                logEl.innerHTML += `PCR 4 Check: Sealed=[${sealedPcr4Hash}] vs Current=[${currentPcr4}]<br>`;
+                logEl.innerHTML += `PCR 11 Check: Sealed=[${sealedPcr11Hash}] vs Current=[${currentPcr11}]<br>`;
+
+                if (currentPcr4 === sealedPcr4Hash && currentPcr11 === sealedPcr11Hash) {
+                    logEl.innerHTML += `<span style="color:var(--sec-green); font-weight:bold;">[PCR MATCH] TPM unsealed Disk Key payload: SuperSecretDiskDecryptionKey_2026</span>`;
+                    addGlobalLog("TPM Unsealer: Verified PCR hashes. BitLocker key unsealed successfully.", "success");
+                } else {
+                    logEl.innerHTML += `<span style="color:var(--sec-crimson); font-weight:bold;">[PCR MISMATCH] TPM blocks unseal query. The bootloader environment has been tampered with or modified. Disk encryption key locked!</span>`;
+                    addGlobalLog("TPM Alert: Blocked decryption key unseal due to PCR changes", "error");
+                }
+            }, 800);
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAM Flow Diagrams</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d14;
+    --surface: #111520;
+    --surface2: #161c2d;
+    --border: #1e2840;
+    --accent: #4f8aff;
+    --accent2: #7c5cff;
+    --accent3: #00e5a0;
+    --warn: #ff8c42;
+    --text: #e2e8f8;
+    --text-muted: #6b7a99;
+    --text-dim: #3d4d6a;
+    --xp-color: #ffd166;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,138,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,138,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,13,20,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .nav-logo span {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-links { display: flex; gap: 0.25rem; flex: 1; }
+
+  .nav-link {
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .nav-link.active { color: var(--accent); }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: auto;
+  }
+
+  .xp-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,209,102,0.1);
+    border: 1px solid rgba(255,209,102,0.2);
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--xp-color);
+  }
+
+  .progress-ring-nav {
+    width: 36px;
+    height: 36px;
+    position: relative;
+  }
+
+  .progress-ring-nav svg { transform: rotate(-90deg); }
+
+  .progress-ring-nav .pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent3);
+  }
+
+  /* TOP MODULE BAR */
+  .module-bar {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 2rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    overflow-x: auto;
+  }
+
+  .mod-tab {
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .mod-tab:hover, .mod-tab.active {
+    background: rgba(79,138,255,0.1);
+    border-color: rgba(79,138,255,0.3);
+    color: var(--accent);
+  }
+
+  /* BACK BUTTON */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .back-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* MAIN */
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 2rem 6rem;
+  }
+
+  /* DIAGRAM SECTION */
+  .diagram-section {
+    margin-bottom: 3rem;
+    scroll-margin-top: 130px;
+  }
+
+  .diagram-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dh-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .dh-meta { flex: 1; }
+
+  .dh-tag-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.35rem;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+  }
+
+  .tag-module { background: rgba(79,138,255,0.15); color: var(--accent); }
+  .tag-type { background: rgba(0,229,160,0.15); color: var(--accent3); }
+
+  .dh-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.2rem;
+  }
+
+  .dh-sub {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+  }
+
+  .dh-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .train-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.25);
+    border-radius: 8px;
+    color: var(--accent3);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+
+  .train-btn:hover {
+    background: rgba(0,229,160,0.2);
+    transform: translateY(-1px);
+  }
+
+  /* FLOW DIAGRAM */
+  .flow-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    overflow-x: auto;
+    margin-bottom: 1.25rem;
+  }
+
+  .flow-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    min-width: 320px;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .flow-node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .fnode {
+    padding: 0.65rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-align: center;
+    min-width: 160px;
+    max-width: 260px;
+    line-height: 1.4;
+    border: 1.5px solid;
+    transition: all 0.3s;
+    cursor: default;
+    position: relative;
+  }
+
+  .fnode:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .fnode.start {
+    background: rgba(79,138,255,0.15);
+    border-color: rgba(79,138,255,0.4);
+    color: #a0bcff;
+    border-radius: 999px;
+  }
+
+  .fnode.end {
+    background: rgba(0,229,160,0.12);
+    border-color: rgba(0,229,160,0.35);
+    color: #6fffd4;
+    border-radius: 999px;
+  }
+
+  .fnode.process {
+    background: var(--surface2);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .fnode.decision {
+    background: rgba(255,209,102,0.1);
+    border-color: rgba(255,209,102,0.3);
+    color: #ffe08a;
+    border-radius: 4px;
+    transform: rotate(0deg);
+  }
+
+  .fnode.error {
+    background: rgba(255,82,82,0.1);
+    border-color: rgba(255,82,82,0.3);
+    color: #ff8a8a;
+  }
+
+  .fnode.success {
+    background: rgba(0,229,160,0.1);
+    border-color: rgba(0,229,160,0.25);
+    color: #6fffd4;
+  }
+
+  .fnode.warning {
+    background: rgba(255,140,66,0.1);
+    border-color: rgba(255,140,66,0.3);
+    color: #ffb585;
+  }
+
+  .fnode.info {
+    background: rgba(124,92,255,0.12);
+    border-color: rgba(124,92,255,0.3);
+    color: #b09cff;
+  }
+
+  /* Connector arrow */
+  .f-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+  }
+
+  .f-arrow-line {
+    width: 2px;
+    height: 24px;
+    background: var(--border);
+  }
+
+  .f-arrow-tip {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--border);
+    margin-top: -1px;
+  }
+
+  .f-arrow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin: 2px 0;
+    letter-spacing: 0.04em;
+  }
+
+  /* Branch row */
+  .f-branch {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    margin: 0.25rem 0;
+  }
+
+  .f-branch-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .f-branch-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    margin-bottom: 6px;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+  }
+
+  .f-branch-label.yes { background: rgba(0,229,160,0.12); color: var(--accent3); }
+  .f-branch-label.no { background: rgba(255,82,82,0.12); color: #ff8a8a; }
+  .f-branch-label.neutral { background: rgba(79,138,255,0.1); color: var(--accent); }
+
+  /* PREV NEXT NAV */
+  .prev-next-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .pn-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+  }
+
+  .pn-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .pn-btn.train {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .pn-btn.train:hover {
+    opacity: 0.9;
+    color: #fff;
+  }
+
+  .pn-center {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+  }
+
+  /* NOTES PANEL */
+  .notes-panel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-top: 1rem;
+  }
+
+  .notes-panel strong {
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    display: block;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2.5rem 0;
+    position: relative;
+  }
+
+  .section-divider::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+    .container { padding: 1rem 1rem 4rem; }
+    .module-bar { padding: 0.75rem 1rem; }
+    .flow-wrap { padding: 1.25rem 1rem; }
+    .dh-actions { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <rect x="2" y="2" width="8" height="8" rx="2" fill="url(#ng2)"/>
+      <rect x="12" y="2" width="8" height="8" rx="2" fill="url(#ng2)" opacity="0.6"/>
+      <rect x="2" y="12" width="8" height="8" rx="2" fill="url(#ng2)" opacity="0.6"/>
+      <rect x="12" y="12" width="8" height="8" rx="2" fill="url(#ng2)"/>
+      <defs>
+        <linearGradient id="ng2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#4f8aff"/>
+          <stop offset="100%" stop-color="#7c5cff"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <span>IAM Academy</span>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="iam-complete-academy.html">🎓 Training</a>
+    <a class="nav-link active" href="iam-diagrams.html">📊 Flow Diagrams</a>
+  </div>
+  <div class="nav-right">
+    <div class="xp-badge">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polygon points="6,1 7.5,4.5 11,5 8.5,7.5 9,11 6,9.5 3,11 3.5,7.5 1,5 4.5,4.5" fill="#ffd166"/></svg>
+      <span id="navXP">0 XP</span>
+    </div>
+    <div class="progress-ring-nav">
+      <svg width="36" height="36" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="14" stroke="#1e2840" stroke-width="3" fill="none"/>
+        <circle id="navRing" cx="18" cy="18" r="14" stroke="#00e5a0" stroke-width="3" fill="none"
+          stroke-dasharray="87.96 87.96" stroke-dashoffset="87.96" stroke-linecap="round"/>
+      </svg>
+      <div class="pct" id="navPct">0%</div>
+    </div>
+  </div>
+</nav>
+
+<!-- MODULE TABS -->
+<div class="module-bar" id="moduleTabs"></div>
+
+<!-- MAIN -->
+<div class="container">
+
+  <!-- AUTHENTICATION -->
+  <section class="diagram-section" id="authentication">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(79,138,255,0.12)">🔑</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 1</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">Authentication Flow</div>
+        <div class="dh-sub">How identity is verified before access is granted</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#authentication">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">User Attempts Login</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">System Prompts for Credentials</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">User Submits Username + Password</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Credentials Valid?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode error">Show Error Message</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode warning">Increment Fail Counter</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode decision">✦ Max Retries?</div>
+            <div class="f-branch">
+              <div class="f-branch-col">
+                <div class="f-branch-label yes">YES</div>
+                <div class="fnode error">Lock Account + Alert</div>
+              </div>
+              <div class="f-branch-col">
+                <div class="f-branch-label no">NO</div>
+                <div class="fnode info">Allow Retry</div>
+              </div>
+            </div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode decision">✦ MFA Enabled?</div>
+            <div class="f-branch">
+              <div class="f-branch-col">
+                <div class="f-branch-label yes">YES</div>
+                <div class="fnode process">Request 2nd Factor</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode decision">✦ 2FA Valid?</div>
+                <div class="f-branch">
+                  <div class="f-branch-col">
+                    <div class="f-branch-label yes">YES</div>
+                    <div class="fnode success">Issue Session Token</div>
+                    <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                    <div class="fnode end">Access Granted ✓</div>
+                  </div>
+                  <div class="f-branch-col">
+                    <div class="f-branch-label no">NO</div>
+                    <div class="fnode error">2FA Failed</div>
+                  </div>
+                </div>
+              </div>
+              <div class="f-branch-col">
+                <div class="f-branch-label no">NO</div>
+                <div class="fnode success">Issue Session Token</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode end">Access Granted ✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      Passwords are hashed server-side using bcrypt/Argon2 before comparison. Session tokens (JWT or opaque) are short-lived and signed. Account lockout thresholds typically trigger after 3–5 failed attempts with exponential backoff.
+    </div>
+    <div class="prev-next-bar">
+      <span style="font-size:0.78rem;color:var(--text-dim)">— First module —</span>
+      <div class="pn-center">1 / 8 · Authentication</div>
+      <a class="pn-btn" href="#authorization">Next: Authorization →</a>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- AUTHORIZATION -->
+  <section class="diagram-section" id="authorization">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(124,92,255,0.12)">🛡️</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 2</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">Authorization Flow</div>
+        <div class="dh-sub">Determining what an authenticated identity is allowed to do</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#authorization">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">Authenticated User Requests Resource</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">Policy Engine Receives Request</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode info">Collect: User Attributes + Resource Metadata + Context</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Explicit Deny Rule?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode error">Access Denied (403)</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode warning">Audit Log: DENY</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode decision">✦ Allow Rule Matches?</div>
+            <div class="f-branch">
+              <div class="f-branch-col">
+                <div class="f-branch-label yes">YES</div>
+                <div class="fnode decision">✦ Resource Available?</div>
+                <div class="f-branch">
+                  <div class="f-branch-col">
+                    <div class="f-branch-label yes">YES</div>
+                    <div class="fnode success">Grant Access</div>
+                    <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                    <div class="fnode warning">Audit Log: ALLOW</div>
+                    <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                    <div class="fnode end">Return Resource ✓</div>
+                  </div>
+                  <div class="f-branch-col">
+                    <div class="f-branch-label no">NO</div>
+                    <div class="fnode error">Resource Error (404/503)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="f-branch-col">
+                <div class="f-branch-label no">NO</div>
+                <div class="fnode error">Default Deny</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode warning">Audit Log: DENY</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      Most IAM systems follow deny-by-default: if no explicit allow rule exists, access is denied. Deny rules always take precedence over allow rules. Every decision should be audit-logged for compliance (SOC2, ISO27001).
+    </div>
+    <div class="prev-next-bar">
+      <a class="pn-btn" href="#authentication">← Prev: Authentication</a>
+      <div class="pn-center">2 / 8 · Authorization</div>
+      <a class="pn-btn" href="#rbac">Next: RBAC →</a>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- RBAC -->
+  <section class="diagram-section" id="rbac">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(0,229,160,0.12)">👥</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 3</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">RBAC Flow</div>
+        <div class="dh-sub">Role-Based Access Control — assigning permissions through roles</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#rbac">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">New Employee Onboarded</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">HR Defines Job Function</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">IAM Admin Assigns Role(s)</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode info">System Resolves Role → Permissions</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Role Has Parent (Hierarchy)?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode process">Inherit Parent Role Permissions</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode info">Merge All Inherited Permissions</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode info">Use Direct Role Permissions</div>
+          </div>
+        </div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ SoD Conflict?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode error">Block Assignment + Alert Admin</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode success">Activate Role for User</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode end">Permissions Active ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      Separation of Duties (SoD) prevents a single user from holding conflicting roles (e.g., "Approve Payment" + "Initiate Payment"). Role mining tools analyse existing access patterns to suggest appropriate roles. Periodic access reviews (recertification) ensure role assignments remain valid.
+    </div>
+    <div class="prev-next-bar">
+      <a class="pn-btn" href="#authorization">← Prev: Authorization</a>
+      <div class="pn-center">3 / 8 · RBAC</div>
+      <a class="pn-btn" href="#mfa">Next: MFA →</a>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- MFA -->
+  <section class="diagram-section" id="mfa">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(255,209,102,0.12)">📱</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 4</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">MFA Flow</div>
+        <div class="dh-sub">Multi-Factor Authentication — layered identity verification</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#mfa">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">Primary Auth (Password) Succeeds</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Risk Score Elevated?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES (Adaptive)</div>
+            <div class="fnode warning">Trigger Step-Up MFA</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label no">Standard Flow</div>
+            <div class="fnode process">Prompt for 2nd Factor</div>
+          </div>
+        </div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Which MFA Method?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label neutral">TOTP</div>
+            <div class="fnode process">User Opens Auth App</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode process">Enter 6-Digit Code</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label neutral">Push</div>
+            <div class="fnode process">Push to Mobile Device</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode process">User Approves / Denies</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label neutral">HW Key</div>
+            <div class="fnode process">Tap / Insert YubiKey</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode process">Verify FIDO2 Assertion</div>
+          </div>
+        </div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ 2nd Factor Valid + Not Expired?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode success">Issue Authenticated Session</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode end">Access Granted ✓</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode error">MFA Failed — Deny</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode warning">Log + Possible Lockout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      TOTP codes are valid for ~30 seconds and generated using HMAC-SHA1 with a shared secret. FIDO2/WebAuthn hardware keys are phishing-resistant — the strongest MFA form. Adaptive MFA evaluates device fingerprint, location, time of day, and behaviour anomalies to determine risk score.
+    </div>
+    <div class="prev-next-bar">
+      <a class="pn-btn" href="#rbac">← Prev: RBAC</a>
+      <div class="pn-center">4 / 8 · MFA</div>
+      <a class="pn-btn" href="#sso">Next: SSO →</a>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- SSO -->
+  <section class="diagram-section" id="sso">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(255,140,66,0.12)">🔐</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 5</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">SSO Flow</div>
+        <div class="dh-sub">Single Sign-On — authenticate once, access everywhere</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#sso">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">User Accesses Service Provider (App)</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Active SSO Session?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode success">SP Issues App Session</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode end">Access Granted (No Re-Login) ✓</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode process">SP Redirects to Identity Provider (IdP)</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode process">IdP Presents Login Page</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode process">User Authenticates at IdP</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode decision">✦ Auth Successful?</div>
+            <div class="f-branch">
+              <div class="f-branch-col">
+                <div class="f-branch-label yes">YES</div>
+                <div class="fnode info">IdP Creates SAML Assertion / JWT</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode process">IdP Redirects Back to SP with Token</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode decision">✦ SP Validates Token?</div>
+                <div class="f-branch">
+                  <div class="f-branch-col">
+                    <div class="f-branch-label yes">YES</div>
+                    <div class="fnode success">SP Creates App Session</div>
+                    <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                    <div class="fnode end">SSO Access Granted ✓</div>
+                  </div>
+                  <div class="f-branch-col">
+                    <div class="f-branch-label no">NO</div>
+                    <div class="fnode error">Token Invalid — Deny</div>
+                  </div>
+                </div>
+              </div>
+              <div class="f-branch-col">
+                <div class="f-branch-label no">NO</div>
+                <div class="fnode error">Auth Failed at IdP</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      SAML 2.0 uses XML-signed assertions and is common in enterprise. OIDC uses JWT tokens over HTTPS and is popular for modern web/mobile apps. The SP never sees the user's IdP password — it only trusts the signed assertion. Single logout (SLO) must also be implemented to terminate sessions across all SPs simultaneously.
+    </div>
+    <div class="prev-next-bar">
+      <a class="pn-btn" href="#mfa">← Prev: MFA</a>
+      <div class="pn-center">5 / 8 · SSO</div>
+      <a class="pn-btn" href="#ldap">Next: LDAP →</a>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- LDAP -->
+  <section class="diagram-section" id="ldap">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(79,138,255,0.12)">📂</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 6</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">LDAP Flow</div>
+        <div class="dh-sub">Directory services — how LDAP lookup and authentication works</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#ldap">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">Application / Client Needs User Data</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">Open TCP Connection to LDAP Server (389 / 636)</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">Bind Request (DN + Password)</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Bind Successful?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode error">LDAP Error: invalidCredentials</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode end">Connection Closed</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode info">Send Search Request (Base DN + Filter)</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode process">Server Traverses Directory Tree</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode decision">✦ Entries Found?</div>
+            <div class="f-branch">
+              <div class="f-branch-col">
+                <div class="f-branch-label yes">YES</div>
+                <div class="fnode success">Return Matching Entries</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode process">Client Processes Attributes</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode end">Unbind + Close ✓</div>
+              </div>
+              <div class="f-branch-col">
+                <div class="f-branch-label no">NO</div>
+                <div class="fnode warning">Return Empty Result Set</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      Always use LDAPS (port 636) or STARTTLS to encrypt credentials in transit. Anonymous binds should be disabled in production. Search filters like <code style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:0.8em">(&(objectClass=user)(uid=jsmith))</code> can be injected if not sanitised — always escape user input. Connection pooling improves performance for high-volume lookups.
+    </div>
+    <div class="prev-next-bar">
+      <a class="pn-btn" href="#sso">← Prev: SSO</a>
+      <div class="pn-center">6 / 8 · LDAP</div>
+      <a class="pn-btn" href="#pam">Next: PAM →</a>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- PAM -->
+  <section class="diagram-section" id="pam">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(255,82,82,0.12)">⚡</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 7</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">PAM Flow</div>
+        <div class="dh-sub">Privileged Access Management — securing high-risk admin access</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#pam">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">Admin Needs Privileged Access</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">Submit Access Request + Justification</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Break-Glass Emergency?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode warning">Immediate Access + Mandatory Audit</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode warning">Alert Security Team Instantly</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode process">Approval Workflow (Manager / SecOps)</div>
+            <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+            <div class="fnode decision">✦ Request Approved?</div>
+            <div class="f-branch">
+              <div class="f-branch-col">
+                <div class="f-branch-label no">NO</div>
+                <div class="fnode error">Deny + Notify Admin</div>
+              </div>
+              <div class="f-branch-col">
+                <div class="f-branch-label yes">YES</div>
+                <div class="fnode info">Vault Checks Out Credential (JIT)</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode process">Admin Connects via PAM Proxy</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode warning">Session Recording Begins</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode process">Admin Performs Work</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode process">Session Ends / Timer Expires</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode info">Vault Rotates Password</div>
+                <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                <div class="fnode end">JIT Access Revoked ✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      Admins should never know the actual privileged password — the PAM vault injects it transparently. Session recordings are immutable audit evidence. Automatic password rotation after each session prevents credential reuse. JIT access windows should be as short as technically feasible (typically 1–4 hours).
+    </div>
+    <div class="prev-next-bar">
+      <a class="pn-btn" href="#ldap">← Prev: LDAP</a>
+      <div class="pn-center">7 / 8 · PAM</div>
+      <a class="pn-btn" href="#zerotrust">Next: Zero Trust →</a>
+    </div>
+  </section>
+  <div class="section-divider"></div>
+
+  <!-- ZERO TRUST -->
+  <section class="diagram-section" id="zerotrust">
+    <div class="diagram-header">
+      <div class="dh-icon" style="background:rgba(124,92,255,0.12)">🌐</div>
+      <div class="dh-meta">
+        <div class="dh-tag-row">
+          <span class="tag tag-module">MODULE 8</span>
+          <span class="tag tag-type">FLOW DIAGRAM</span>
+        </div>
+        <div class="dh-title">Zero Trust Flow</div>
+        <div class="dh-sub">Never trust, always verify — continuous access evaluation</div>
+      </div>
+      <div class="dh-actions">
+        <a class="train-btn" href="iam-complete-academy.html#zerotrust">🎓 Back to Training</a>
+      </div>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-diagram">
+        <div class="fnode start">User + Device Requests Resource</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode process">Zero Trust Policy Engine Intercepts</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode info">Collect: Identity + Device Posture + Location + Behaviour</div>
+        <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+        <div class="fnode decision">✦ Identity Verified (Strong Auth)?</div>
+        <div class="f-branch">
+          <div class="f-branch-col">
+            <div class="f-branch-label no">NO</div>
+            <div class="fnode process">Require Step-Up Authentication</div>
+          </div>
+          <div class="f-branch-col">
+            <div class="f-branch-label yes">YES</div>
+            <div class="fnode decision">✦ Device Compliant?</div>
+            <div class="f-branch">
+              <div class="f-branch-col">
+                <div class="f-branch-label no">NO</div>
+                <div class="fnode error">Deny — Quarantine Device</div>
+              </div>
+              <div class="f-branch-col">
+                <div class="f-branch-label yes">YES</div>
+                <div class="fnode decision">✦ Risk Score Acceptable?</div>
+                <div class="f-branch">
+                  <div class="f-branch-col">
+                    <div class="f-branch-label no">HIGH RISK</div>
+                    <div class="fnode warning">Step-Up MFA + Restrict Scope</div>
+                  </div>
+                  <div class="f-branch-col">
+                    <div class="f-branch-label yes">LOW RISK</div>
+                    <div class="fnode success">Grant Least-Privilege Access</div>
+                    <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                    <div class="fnode warning">Continuous Monitoring Active</div>
+                    <div class="f-arrow"><div class="f-arrow-line"></div><div class="f-arrow-tip"></div></div>
+                    <div class="fnode decision">✦ Anomaly Detected?</div>
+                    <div class="f-branch">
+                      <div class="f-branch-col">
+                        <div class="f-branch-label yes">YES</div>
+                        <div class="fnode error">Revoke Session Immediately</div>
+                      </div>
+                      <div class="f-branch-col">
+                        <div class="f-branch-label no">NO</div>
+                        <div class="fnode end">Session Continues ✓</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes-panel">
+      <strong>Key Notes</strong>
+      Zero Trust is a philosophy, not a product. Microsegmentation limits lateral movement if a breach occurs. Device compliance checks include: OS patch level, antivirus status, disk encryption, MDM enrollment, and certificate validity. Continuous monitoring uses UEBA (User and Entity Behaviour Analytics) to detect anomalies in real time after access is granted.
+    </div>
+    <div class="prev-next-bar">
+      <a class="pn-btn" href="#pam">← Prev: PAM</a>
+      <div class="pn-center">8 / 8 · Zero Trust</div>
+      <span style="font-size:0.78rem;color:var(--text-dim)">— Last module —</span>
+    </div>
+    <div style="margin-top:1.5rem;padding:1.25rem 1.5rem;background:rgba(79,138,255,0.06);border:1px solid rgba(79,138,255,0.15);border-radius:12px;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <div style="font-size:1.2rem">🎉</div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.2rem">You've reviewed all 8 diagrams!</div>
+        <div style="font-size:0.82rem;color:var(--text-muted)">Head back to the Training Academy to complete your modules and earn XP.</div>
+      </div>
+      <a class="pn-btn train" href="iam-complete-academy.html">🎓 Return to Academy</a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const MODULES_META = [
+  { id: 'authentication', icon: '🔑', title: 'Authentication' },
+  { id: 'authorization', icon: '🛡️', title: 'Authorization' },
+  { id: 'rbac', icon: '👥', title: 'RBAC' },
+  { id: 'mfa', icon: '📱', title: 'MFA' },
+  { id: 'sso', icon: '🔐', title: 'SSO' },
+  { id: 'ldap', icon: '📂', title: 'LDAP' },
+  { id: 'pam', icon: '⚡', title: 'PAM' },
+  { id: 'zerotrust', icon: '🌐', title: 'Zero Trust' }
+];
+
+// Build module tabs
+const tabsEl = document.getElementById('moduleTabs');
+MODULES_META.forEach(m => {
+  const tab = document.createElement('a');
+  tab.href = '#' + m.id;
+  tab.className = 'mod-tab';
+  tab.dataset.id = m.id;
+  tab.innerHTML = `${m.icon} ${m.title}`;
+  tab.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById(m.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveTab(m.id);
+  });
+  tabsEl.appendChild(tab);
+});
+
+function setActiveTab(id) {
+  document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+  const active = document.querySelector(`.mod-tab[data-id="${id}"]`);
+  if (active) active.classList.add('active');
+}
+
+// Shared state
+function getXP() { return parseInt(localStorage.getItem('iamTotalXP') || '0'); }
+function getCompleted() {
+  try { return JSON.parse(localStorage.getItem('iamCompleted') || '[]'); }
+  catch(e) { return []; }
+}
+
+function updateNavStats() {
+  const xp = getXP();
+  const completed = getCompleted();
+  const pct = Math.round((completed.length / 8) * 100);
+  document.getElementById('navXP').textContent = xp + ' XP';
+  document.getElementById('navPct').textContent = pct + '%';
+  const circ = 2 * Math.PI * 14;
+  const offset = circ - (pct / 100) * circ;
+  document.getElementById('navRing').setAttribute('stroke-dashoffset', offset);
+}
+
+updateNavStats();
+
+// Hash navigation + active tab
+function applyHash() {
+  const hash = location.hash.slice(1);
+  if (hash) {
+    setActiveTab(hash);
+    setTimeout(() => {
+      document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  } else {
+    setActiveTab('authentication');
+  }
+}
+
+applyHash();
+window.addEventListener('hashchange', applyHash);
+
+// Intersection observer for active tab on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      setActiveTab(entry.target.id);
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+
+MODULES_META.forEach(m => {
+  const el = document.getElementById(m.id);
+  if (el) observer.observe(el);
+});
+</script>
+</body>
+</html>

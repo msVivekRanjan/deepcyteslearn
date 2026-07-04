@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>IAM Academy — Complete Training Platform</title>
+<style>
+:root{
+  --bg:#030b18;--bg2:#060f22;--bg3:#0a1530;
+  --card:rgba(6,15,34,.9);--card2:rgba(10,22,48,.95);
+  --b:rgba(0,212,255,.12);--b2:rgba(124,58,237,.2);
+  --a:#00d4ff;--a2:#7c3aed;--a3:#10b981;--a4:#f59e0b;
+  --red:#ef4444;--pink:#ec4899;
+  --t:#e2e8f0;--t2:#94a3b8;--t3:#4a6080;
+  --r:12px;--nav:62px;--sb:230px;
+  --glow:0 0 24px rgba(0,212,255,.3);--glow2:0 0 24px rgba(124,58,237,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--t);overflow-x:hidden;line-height:1.65}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--a2);border-radius:2px}
+
+/* PARTICLES */
+#pts{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.pt{position:absolute;border-radius:50%;animation:pf linear infinite}
+@keyframes pf{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.5;transform:translateY(85vh) scale(1)}90%{opacity:.15}100%{transform:translateY(-5vh) scale(.5);opacity:0}}
+
+/* LOADING */
+#ldr{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s}
+.ldr-txt{font-family:monospace;font-size:1.6rem;color:var(--a);letter-spacing:4px;animation:blink 1s infinite alternate}
+@keyframes blink{from{opacity:.4}to{opacity:1}}
+.ldr-bar{width:220px;height:3px;background:var(--b);border-radius:2px;overflow:hidden}
+.ldr-fill{height:100%;background:linear-gradient(90deg,var(--a),var(--a2));animation:lfill 2s ease forwards}
+@keyframes lfill{from{width:0}to{width:100%}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;height:var(--nav);z-index:500;background:rgba(3,11,24,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--b);display:flex;align-items:center;padding:0 16px;gap:12px}
+.nbrand{font-family:monospace;font-size:.9rem;font-weight:700;color:var(--a);letter-spacing:2px;white-space:nowrap;text-shadow:0 0 12px rgba(0,212,255,.4)}
+.nbrand span{color:var(--a2)}
+.nsearch{flex:1;max-width:260px;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:7px;padding:5px 11px}
+.nsearch input{background:none;border:none;outline:none;color:var(--t);font-size:.79rem;width:100%}
+.nsearch input::placeholder{color:var(--t3)}
+.nxp{display:flex;align-items:center;gap:7px;background:rgba(0,212,255,.05);border:1px solid var(--b);border-radius:7px;padding:4px 11px;margin-left:auto;flex-shrink:0}
+.nxp span{font-size:.76rem;color:var(--a4);font-weight:700}
+.nlvl{background:linear-gradient(135deg,var(--a2),var(--a));color:#fff;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:4px}
+.thmbtn{background:rgba(255,255,255,.05);border:1px solid var(--b);color:var(--t);width:33px;height:33px;border-radius:7px;cursor:pointer;font-size:.85rem;transition:all .2s;flex-shrink:0}
+.thmbtn:hover{border-color:var(--a);color:var(--a)}
+.hmb{background:none;border:none;color:var(--t);font-size:1.15rem;cursor:pointer;display:none;flex-shrink:0}
+
+/* LAYOUT */
+.layout{display:flex;padding-top:var(--nav);min-height:100vh;position:relative;z-index:1}
+
+/* SIDEBAR */
+#sb{width:var(--sb);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--b);position:fixed;top:var(--nav);left:0;height:calc(100vh - var(--nav));overflow-y:auto;padding:12px 9px;transition:transform .3s}
+#sb::-webkit-scrollbar{width:3px}
+.sbsec{font-size:.57rem;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin:12px 0 5px 8px}
+.sblink{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;color:var(--t2);font-size:.77rem;font-weight:600;cursor:pointer;transition:all .18s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.sblink:hover,.sblink.on{background:rgba(0,212,255,.08);color:var(--a)}
+.sblink .si{width:14px;text-align:center;font-size:.78rem;opacity:.8}
+
+/* MAIN */
+.main{flex:1;margin-left:var(--sb);padding:24px 26px;max-width:960px}
+
+/* TOAST */
+#tc{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.tm{background:rgba(3,11,24,.98);border:1px solid var(--a);border-radius:9px;padding:10px 15px;font-size:.78rem;animation:tin .3s ease,tout .3s ease 2.7s forwards;box-shadow:var(--glow)}
+.tm.b{border-color:var(--a4);box-shadow:0 0 18px rgba(245,158,11,.3)}
+@keyframes tin{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes tout{from{opacity:1}to{opacity:0;transform:translateX(40px)}}
+
+/* VIEWS */
+.view{display:none}.view.on{display:block}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:8000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.modal.hide{display:none}
+.mbox{background:var(--card2);border:2px solid var(--b);border-radius:16px;padding:36px;text-align:center;max-width:380px;width:90%}
+.mbox h2{font-size:1.35rem;margin-bottom:7px}
+.mbox p{color:var(--t2);font-size:.83rem;margin-bottom:18px}
+.mi{width:100%;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--b);color:var(--t);font-size:.9rem;outline:none;margin-bottom:11px;font-family:inherit}
+.mi:focus{border-color:var(--a)}
+
+/* SECTION HEADER */
+.sh{margin-bottom:20px}
+.stag{display:inline-block;font-size:.59rem;letter-spacing:2px;text-transform:uppercase;color:var(--a);background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.18);padding:3px 9px;border-radius:4px;margin-bottom:7px}
+.sh h2{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:10px}
+.sh p{color:var(--t2);font-size:.86rem;margin-top:4px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--b);border-radius:var(--r)}
+.card2{background:var(--card2);border:1px solid var(--b2);border-radius:var(--r)}
+.ibox{background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.13);border-radius:8px;padding:11px 14px;font-size:.8rem;color:var(--t2);margin-bottom:11px}
+.wbox{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:11px 14px;font-size:.8rem;color:var(--t2);margin-bottom:11px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+
+/* BUTTONS */
+.btn{padding:8px 19px;border-radius:8px;font-weight:700;font-size:.81rem;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
+.btnp{background:linear-gradient(135deg,var(--a2),var(--a));color:#fff;box-shadow:0 4px 14px rgba(0,212,255,.2)}
+.btnp:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,212,255,.35)}
+.btns{background:rgba(255,255,255,.05);border:1px solid var(--b);color:var(--t)}
+.btns:hover{border-color:var(--a);color:var(--a)}
+.btnsm{padding:5px 12px;font-size:.72rem}
+.btnr{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--red);font-family:inherit}
+
+/* TAGS */
+.tag{padding:2px 9px;border-radius:4px;font-size:.66rem;font-weight:700;display:inline-flex;align-items:center}
+.tg{background:rgba(16,185,129,.12);color:var(--a3)}
+.tb{background:rgba(0,212,255,.1);color:var(--a)}
+.ty{background:rgba(245,158,11,.1);color:var(--a4)}
+.tr{background:rgba(239,68,68,.1);color:var(--red)}
+.tp{background:rgba(124,58,237,.12);color:#a78bfa}
+
+/* HERO / DASHBOARD */
+.dhero{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.1),rgba(16,185,129,.04));border:1px solid var(--b);border-radius:16px;padding:26px;margin-bottom:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden}
+.dhero::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.1),transparent 70%)}
+.dav{width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,var(--a2),var(--a));display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;box-shadow:var(--glow);border:2px solid rgba(0,212,255,.2)}
+.dinfo{flex:1;min-width:150px}
+.dinfo h2{font-size:1.25rem;font-weight:800}
+.dlvl{color:var(--a);font-size:.76rem;margin-top:2px}
+.xbr{background:rgba(255,255,255,.07);border-radius:3px;height:6px;overflow:hidden;margin-top:4px}
+.xbf{height:100%;background:linear-gradient(90deg,var(--a2),var(--a));border-radius:3px;transition:width .6s;box-shadow:0 0 8px rgba(0,212,255,.4)}
+.dstats{display:flex;gap:16px;flex-wrap:wrap}
+.dst{text-align:center}
+.dstn{font-size:1.35rem;font-weight:800}
+.dstl{font-size:.65rem;color:var(--t3)}
+.cpw{position:relative;width:90px;height:90px;flex-shrink:0}
+.cpsvg{transform:rotate(-90deg)}
+.cpbg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:7}
+.cpf{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .8s}
+.cpt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.cpn{font-size:1.1rem;font-weight:800}
+.cpl{font-size:.58rem;color:var(--t3)}
+.kpig{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
+.kpi{padding:14px;border-radius:var(--r);text-align:center;border:1px solid var(--b);background:var(--card);position:relative;overflow:hidden;transition:transform .2s}
+.kpi:hover{transform:translateY(-3px)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi:nth-child(1)::before{background:var(--a)}.kpi:nth-child(2)::before{background:var(--a2)}.kpi:nth-child(3)::before{background:var(--a3)}.kpi:nth-child(4)::before{background:var(--a4)}
+.kpin{font-size:1.6rem;font-weight:800}.kpil{font-size:.69rem;color:var(--t2);margin-top:3px}.kpico{font-size:1.25rem;margin-bottom:5px}
+.tipcard{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.07));border:1px solid var(--b);border-radius:var(--r);padding:15px;display:flex;gap:12px;margin-bottom:16px}
+.act-item{padding:7px 10px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid rgba(255,255,255,.05);font-size:.73rem;color:var(--t2);margin-bottom:6px}
+
+/* MODULE CARDS */
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.mod-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.mod-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--a2),var(--a))}
+.mod-card:hover{transform:translateY(-3px);border-color:var(--a);box-shadow:var(--glow)}
+.mod-card.done-m{border-color:var(--a3);opacity:.75}
+.mod-ico{font-size:1.8rem;margin-bottom:8px}
+.mod-t{font-size:.82rem;font-weight:700;margin-bottom:4px}
+.mod-d{font-size:.69rem;color:var(--t2)}
+.mod-xp{font-size:.65rem;color:var(--a4);margin-top:6px}
+
+/* ACCORDION */
+.acwrap{display:flex;flex-direction:column;gap:8px}
+.ac{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.ac.open{border-color:var(--a2)}
+.ach{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background .18s}
+.ach:hover{background:var(--card2)}
+.acico{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0}
+.actit{flex:1;font-weight:700;font-size:.88rem}
+.acarr{color:var(--t3);transition:transform .3s;font-size:.78rem}
+.ac.open .acarr{transform:rotate(180deg)}
+.acbody{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.ac.open .acbody{max-height:6000px}
+.acin{padding:0 16px 16px}
+
+/* THEORY BOXES */
+.tdesc{font-size:.88rem;color:var(--t2);margin-bottom:14px;padding:12px 14px;background:var(--bg2);border-radius:8px;border-left:3px solid var(--a)}
+.tbox{background:var(--bg2);border-radius:8px;padding:13px;border:1px solid var(--b)}
+.tbox h4{font-size:.79rem;margin-bottom:7px;color:var(--a)}
+.tbox ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.tbox ul li{font-size:.77rem;color:var(--t2);padding-left:13px;position:relative}
+.tbox ul li::before{content:'▸';position:absolute;left:0;color:var(--a3)}
+.qa-item{background:var(--bg2);border-radius:8px;padding:12px 13px;border:1px solid var(--b);margin-bottom:7px}
+.qa-q{font-size:.8rem;color:var(--a);font-weight:700;margin-bottom:3px}
+.qa-a{font-size:.77rem;color:var(--t2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{padding:3px 9px;border-radius:14px;font-size:.69rem;font-weight:700;border:1px solid}
+.chip-b{color:var(--a);border-color:rgba(0,212,255,.28);background:rgba(0,212,255,.07)}
+.chip-p{color:#a78bfa;border-color:rgba(167,139,250,.28);background:rgba(167,139,250,.07)}
+.chip-g{color:var(--a3);border-color:rgba(16,185,129,.28);background:rgba(16,185,129,.07)}
+.chip-y{color:var(--a4);border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.07)}
+.chip-r{color:var(--red);border-color:rgba(239,68,68,.28);background:rgba(239,68,68,.07)}
+
+/* FLOW DIAGRAMS */
+.flow{display:flex;flex-direction:column;align-items:center;padding:18px;background:var(--card);border:1px solid var(--b);border-radius:var(--r);margin-bottom:14px}
+.fn{background:var(--card2);border:1px solid var(--b);border-radius:7px;padding:9px 18px;font-size:.79rem;font-weight:700;text-align:center;min-width:170px;transition:all .18s}
+.fn:hover{border-color:var(--a);box-shadow:var(--glow);transform:scale(1.02)}
+.fn.s{border-color:var(--a);color:var(--a)}.fn.e{border-color:var(--a3);color:var(--a3)}.fn.f{border-color:var(--red);color:var(--red)}
+.farr{width:2px;height:22px;background:linear-gradient(to bottom,var(--a2),var(--a));position:relative;display:flex;align-items:flex-end;justify-content:center}
+.farr::after{content:'';width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--a);position:absolute;bottom:-1px}
+.fsplit{display:flex;gap:28px;align-items:flex-start}
+.fb{display:flex;flex-direction:column;align-items:center}
+
+/* COMPARISON TABLE */
+.ctbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.ctbl th{background:var(--card2);color:var(--t2);padding:10px 12px;text-align:left;border-bottom:2px solid var(--b);font-weight:700}
+.ctbl th:first-child{color:var(--a)}
+.ctbl td{padding:9px 12px;border-bottom:1px solid var(--b);color:var(--t2);vertical-align:top}
+.ctbl tr:hover td{background:var(--card2)}
+.yes{color:var(--a3);font-weight:700}.no{color:var(--red);font-weight:700}.med{color:var(--a4);font-weight:700}
+
+/* BADGES */
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:11px}
+.bdg{padding:15px;text-align:center;border-radius:var(--r);border:1px solid var(--b);background:var(--card);transition:all .25s}
+.bdg.lk{filter:grayscale(1);opacity:.32}
+.bdg.ul{border-color:var(--a4);box-shadow:0 0 15px rgba(245,158,11,.18)}
+.bdg.ul:hover{transform:translateY(-3px) scale(1.03)}
+.bdgico{font-size:1.85rem;margin-bottom:6px;display:block}
+.bdgn{font-size:.7rem;font-weight:700;margin-bottom:3px}
+.bdgd{font-size:.61rem;color:var(--t3)}
+.bdg.ul .bdgn{color:var(--a4)}
+
+/* MISSIONS */
+.mitem{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:13px 16px;display:flex;align-items:center;gap:13px;margin-bottom:9px;transition:all .2s}
+.mitem.done{border-color:var(--a3);opacity:.7}
+.mitem.avail{border-color:var(--a2)}
+.mico{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.mbody{flex:1}
+.mtit{font-weight:700;font-size:.85rem;margin-bottom:2px}
+.mdesc{font-size:.71rem;color:var(--t2)}
+.mxp{font-size:.68rem;color:var(--a4);margin-top:2px}
+
+/* SKILL TREE */
+.strow{display:flex;gap:11px;justify-content:center;margin:3px 0}
+.stcon{width:2px;height:22px;background:linear-gradient(to bottom,var(--a2),var(--a));margin:0 auto;position:relative}
+.stcon::after{content:'';width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--a);position:absolute;bottom:-2px;left:-3px}
+.stn{background:var(--card2);border:2px solid var(--b);border-radius:10px;padding:10px 14px;text-align:center;min-width:135px;cursor:pointer;transition:all .2s}
+.stn.ul{border-color:var(--a3);box-shadow:0 0 10px rgba(16,185,129,.15)}
+.stn.cur{border-color:var(--a);box-shadow:var(--glow)}
+.stn.lk{opacity:.37;cursor:not-allowed;filter:grayscale(.5)}
+.stn:hover:not(.lk){transform:scale(1.04)}
+.stn h4{font-size:.77rem;font-weight:700;margin-bottom:2px}
+.stn p{font-size:.62rem;color:var(--t3)}
+
+/* QUIZ */
+.qwrap{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:22px}
+.qtbtn{padding:5px 12px;border-radius:6px;border:1px solid var(--b2);background:rgba(124,58,237,.07);color:var(--t2);font-size:.72rem;font-weight:700;cursor:pointer;transition:all .18s;margin:3px;font-family:inherit}
+.qtbtn.on,.qtbtn:hover{background:rgba(124,58,237,.2);color:#a78bfa;border-color:rgba(124,58,237,.45)}
+.qpb{height:5px;background:rgba(255,255,255,.06);border-radius:3px;margin-bottom:14px}
+.qpbf{height:100%;background:linear-gradient(90deg,var(--a2),var(--a));border-radius:3px;transition:width .4s}
+.qtxt{font-size:.97rem;font-weight:700;margin-bottom:14px;line-height:1.5}
+.qopts{display:flex;flex-direction:column;gap:7px}
+.qopt{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:7px;border:1px solid var(--b);background:rgba(255,255,255,.02);cursor:pointer;transition:all .17s;font-size:.83rem}
+.qopt:hover{border-color:var(--a2);background:rgba(124,58,237,.08)}
+.qopt.cor{border-color:var(--a3);background:rgba(16,185,129,.08);color:var(--a3)}
+.qopt.wrg{border-color:var(--red);background:rgba(239,68,68,.08);color:var(--red)}
+.qopt.shc{border-color:var(--a3)}
+.ok{width:22px;height:22px;border-radius:5px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0}
+.qexp{margin-top:11px;padding:10px 12px;border-radius:7px;font-size:.78rem;background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);color:var(--t2);display:none}
+.qexp.on{display:block}
+.scscrn{text-align:center;padding:32px 18px;display:none}.scscrn.on{display:block}
+.sccirc{width:105px;height:105px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;flex-direction:column;border:4px solid var(--a);box-shadow:var(--glow)}
+
+/* LABS */
+.labw{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.labh{padding:12px 16px;background:var(--card2);border-bottom:1px solid var(--b);display:flex;align-items:center;gap:9px}
+.labh h4{font-size:.86rem;font-weight:700}
+.labb{padding:16px}
+.uc{background:var(--bg3);border:1px solid var(--b);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.uav{width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:800;flex-shrink:0}
+.rsel{background:rgba(255,255,255,.05);border:1px solid var(--b);border-radius:6px;padding:5px 9px;color:var(--t);font-size:.76rem;font-family:inherit;cursor:pointer;margin-left:auto}
+.stepw{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:8px;border:1px solid var(--b);background:var(--bg3);transition:all .3s}
+.step.done{border-color:var(--a3);background:rgba(16,185,129,.05)}
+.step.actv{border-color:var(--a);background:rgba(0,212,255,.05)}
+.stepn{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.73rem;font-weight:700;flex-shrink:0;background:rgba(255,255,255,.07);border:1px solid var(--b)}
+.step.done .stepn{background:var(--a3);border-color:var(--a3);color:#fff}
+.step.actv .stepn{background:var(--a);border-color:var(--a);color:#000}
+
+/* CHALLENGES */
+.chcard{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px;margin-bottom:12px;border-left:3px solid var(--a2)}
+.chscen{background:rgba(124,58,237,.06);border:1px solid var(--b2);border-radius:7px;padding:12px;margin:10px 0;font-size:.82rem;color:var(--t2)}
+.chopt{padding:8px 12px;border-radius:7px;border:1px solid var(--b);background:rgba(255,255,255,.02);cursor:pointer;font-size:.8rem;transition:all .17s;width:100%;text-align:left;color:var(--t);font-family:inherit;margin-bottom:6px}
+.chopt:hover{border-color:var(--a2);background:rgba(124,58,237,.08)}
+.chopt.cor{border-color:var(--a3);background:rgba(16,185,129,.08);color:var(--a3)}
+.chopt.wrg{border-color:var(--red);background:rgba(239,68,68,.07);color:var(--red)}
+
+/* ESCAPE */
+.escw{background:linear-gradient(135deg,rgba(3,11,24,.99),rgba(8,20,45,.99));border:2px solid var(--a2);border-radius:16px;padding:24px;text-align:center}
+.esdots{display:flex;gap:5px;justify-content:center;margin-bottom:14px}
+.esdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.09);transition:all .3s}
+.esdot.d{background:var(--a3)}.esdot.c{background:var(--a);box-shadow:0 0 7px rgba(0,212,255,.5)}
+.esscen{background:rgba(0,212,255,.04);border:1px solid var(--b);border-radius:8px;padding:12px;margin:12px 0;font-size:.85rem;color:var(--t2)}
+.esopts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.esopt{padding:10px 13px;border-radius:8px;border:1px solid var(--b2);background:rgba(124,58,237,.05);cursor:pointer;font-size:.79rem;font-weight:700;transition:all .18s;font-family:inherit;color:var(--t)}
+.esopt:hover{border-color:var(--a);background:rgba(0,212,255,.07);color:var(--a)}
+.esopt.cor{border-color:var(--a3);background:rgba(16,185,129,.09);color:var(--a3)}
+.esopt.wrg{border-color:var(--red);background:rgba(239,68,68,.07);color:var(--red)}
+
+/* PASSWORD */
+.pwi{width:100%;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--b);color:var(--t);font-size:.92rem;font-family:monospace;outline:none;margin-bottom:10px}
+.pwi:focus{border-color:var(--a)}
+.pwmtr{height:7px;border-radius:4px;background:var(--b);overflow:hidden;margin:8px 0}
+.pwfil{height:100%;border-radius:4px;transition:all .4s}
+
+/* PHISHING */
+.ecard{background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;margin-bottom:13px}
+.ehdr{background:var(--card2);padding:11px 15px;border-bottom:1px solid var(--b)}
+.ebody{padding:15px;font-size:.82rem;color:var(--t2);line-height:1.7;white-space:pre-line}
+
+/* MFA SIM */
+.mfastep{background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);padding:16px;text-align:center;margin-bottom:11px;transition:all .3s}
+.mfastep.actv{border-color:var(--a);box-shadow:var(--glow)}
+.mfastep.done-s{border-color:var(--a3);opacity:.7}
+.qrbox{width:110px;height:110px;background:white;margin:13px auto;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.otprow{display:flex;gap:7px;justify-content:center;margin:12px 0}
+.otprow input{width:38px;height:44px;text-align:center;background:rgba(255,255,255,.06);border:1px solid var(--b);border-radius:6px;color:var(--t);font-size:1.15rem;font-family:monospace;outline:none}
+.otprow input:focus{border-color:var(--a)}
+
+/* SSO */
+.ssoapps{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px;margin-bottom:14px}
+.ssoapp{background:var(--card2);border:1px solid var(--b);border-radius:var(--r);padding:15px;text-align:center;transition:all .22s;cursor:pointer}
+.ssoapp:hover{border-color:var(--a2);transform:translateY(-2px)}
+.ssoapp.ul{border-color:var(--a3);box-shadow:0 0 12px rgba(16,185,129,.18)}
+.ssoico{font-size:1.85rem;margin-bottom:7px;display:block}
+.ssonm{font-size:.74rem;font-weight:700}
+.ssostat{font-size:.62rem;margin-top:3px}
+
+/* MATURITY */
+.matq{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:15px;margin-bottom:10px}
+.matq h4{font-size:.85rem;margin-bottom:10px}
+.matopts{display:flex;gap:7px;flex-wrap:wrap}
+.matopt{padding:5px 12px;border-radius:6px;border:1px solid var(--b);background:rgba(255,255,255,.03);cursor:pointer;font-size:.74rem;font-family:inherit;color:var(--t);transition:all .17s}
+.matopt:hover{border-color:var(--a2);color:#a78bfa}
+.matopt.sel{background:rgba(124,58,237,.14);border-color:var(--a2);color:#a78bfa}
+
+/* CHATBOT */
+.chatbox{background:var(--bg3);border:1px solid var(--b);border-radius:var(--r);height:320px;overflow-y:auto;padding:13px;margin-bottom:10px}
+.chatbox::-webkit-scrollbar{width:3px}
+.cmsg{margin-bottom:10px;display:flex;gap:8px;align-items:flex-start}
+.cmsg.u{flex-direction:row-reverse}
+.cbb{border-radius:9px;padding:8px 12px;font-size:.78rem;max-width:74%;border:1px solid var(--b)}
+.cmsg.u .cbb{background:rgba(124,58,237,.14);border-color:var(--b2);color:#d4c5ff}
+.cmsg.b .cbb{background:rgba(0,212,255,.06);color:var(--t2)}
+.cava{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0}
+.cinp{display:flex;gap:8px}
+.cinp input{flex:1;padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:8px;color:var(--t);font-size:.8rem;outline:none;font-family:inherit}
+.cinp input:focus{border-color:var(--a)}
+.qqbtns{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.qq{padding:3px 10px;border-radius:13px;border:1px solid var(--b2);background:rgba(124,58,237,.06);color:#a78bfa;font-size:.69rem;cursor:pointer;transition:all .17s;font-family:inherit}
+.qq:hover{background:rgba(124,58,237,.18)}
+
+/* TOOLS */
+.tool-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:18px;transition:all .22s}
+.tool-card:hover{transform:translateY(-3px);border-color:var(--a)}
+
+/* CAREER */
+.path-item{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px;margin-bottom:10px;border-left:3px solid var(--a2);transition:all .2s}
+.path-item:hover{transform:translateX(4px);border-left-color:var(--a)}
+
+/* CERT */
+.certw{background:linear-gradient(135deg,#030b18,#091428,#030b18);border:3px solid var(--a4);border-radius:16px;padding:38px;text-align:center;position:relative;overflow:hidden;max-width:720px;margin:0 auto}
+.certw::before,.certw::after{content:'';position:absolute;width:150px;height:150px;border-radius:50%;opacity:.07}
+.certw::before{background:var(--a);top:-55px;left:-55px}
+.certw::after{background:var(--a2);bottom:-55px;right:-55px}
+.certt{font-size:1.65rem;font-weight:800;color:var(--a4);margin-bottom:5px}
+.certsub{font-size:.82rem;color:var(--t2);margin-bottom:14px}
+.certn{font-size:1.4rem;font-weight:800;color:var(--a);margin-bottom:5px}
+.certmeta{font-size:.72rem;color:var(--t3);margin-top:16px;display:flex;justify-content:center;gap:22px;flex-wrap:wrap}
+
+/* COMPLIANCE */
+.ai{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:13px;margin-bottom:9px;display:flex;align-items:center;gap:12px}
+.ai.fixed{border-color:var(--a3);opacity:.65}
+.aiico{font-size:1.3rem;flex-shrink:0}
+.aibody{flex:1}
+.ait{font-weight:700;font-size:.83rem}
+.aid{font-size:.71rem;color:var(--t2);margin-top:2px}
+
+/* LB */
+.lbtbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.lbtbl th{background:rgba(255,255,255,.04);color:var(--t3);padding:9px 12px;text-align:left;font-size:.7rem;letter-spacing:1px}
+.lbtbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.lbtbl tr:hover td{background:rgba(0,212,255,.03)}
+.lbav{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;margin-right:7px;vertical-align:middle}
+
+/* STORE */
+.sitm{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px;text-align:center;transition:all .22s;cursor:pointer}
+.sitm:hover{transform:translateY(-3px);border-color:var(--a4)}
+.sitm.owned{border-color:var(--a3)}
+
+/* INTERNSHIP */
+.intern-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px;margin-bottom:11px}
+.intern-card h4{font-size:.9rem;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:8px}
+
+/* SEARCH RESULTS */
+#sres{display:none;position:fixed;top:70px;left:252px;width:290px;z-index:480;background:var(--card2);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,.6)}
+.sri{padding:9px 13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8rem;color:var(--t2);transition:background .15s}
+.sri:hover{background:rgba(0,212,255,.07);color:var(--a)}
+
+/* RESPONSIVE */
+@media(max-width:820px){
+  .main{margin-left:0;padding:16px 13px}
+  #sb{transform:translateX(-100%)}
+  #sb.open{transform:none;z-index:400;box-shadow:4px 0 16px rgba(0,0,0,.6)}
+  .hmb{display:flex}
+  .kpig{grid-template-columns:1fr 1fr}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .esopts,.fsplit{flex-direction:column;gap:0;align-items:center}
+  .certw{padding:22px 14px}
+  .dstats{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<div id="pts"></div>
+
+<!-- LOADER -->
+<div id="ldr">
+  <div class="ldr-txt">&#128737; IAM ACADEMY</div>
+  <div class="ldr-bar"><div class="ldr-fill"></div></div>
+  <p style="font-size:.7rem;color:var(--t3);font-family:monospace">Initializing security modules...</p>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div style="font-size:2.6rem;margin-bottom:10px">&#128737;</div>
+    <h2>Welcome to IAM Academy</h2>
+    <p>Enter your name to begin your identity & access management training journey.</p>
+    <input class="mi" id="ni" placeholder="Your name (e.g. Bhumika Patil)" maxlength="28"/>
+    <button class="btn btnp" style="width:100%;justify-content:center" onclick="startJ()">&#128640; Begin Training</button>
+  </div>
+</div>
+
+<div id="tc"></div>
+
+<!-- NAV -->
+<nav>
+  <button class="hmb" onclick="document.getElementById('sb').classList.toggle('open')">&#9776;</button>
+  <div class="nbrand">&#128737; IAM<span>Academy</span></div>
+  <div class="nsearch"><span style="color:var(--t3);font-size:.78rem">&#128269;</span><input id="srch" placeholder="Search topics..." oninput="doSearch(this.value)"/></div>
+  <button class="thmbtn" id="thmbtn" title="Toggle theme">&#9790;</button>
+  <div class="nxp"><span id="nxpv">0 XP</span><span class="nlvl" id="nlvv">Lv.1</span></div>
+</nav>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside id="sb">
+  <div class="sbsec">Learning</div>
+  <button class="sblink on" onclick="sv('dash')"><span class="si">&#128202;</span>Dashboard</button>
+  <button class="sblink" onclick="sv('modules')"><span class="si">&#128218;</span>All Modules</button>
+  <button class="sblink" onclick="sv('missions')"><span class="si">&#9989;</span>Missions</button>
+  <button class="sblink" onclick="sv('skilltree')"><span class="si">&#127890;</span>Skill Tree</button>
+  <button class="sblink" onclick="sv('quiz')"><span class="si">&#10067;</span>Quizzes</button>
+  <div class="sbsec">Labs & Practice</div>
+  <button class="sblink" onclick="sv('labs')"><span class="si">&#129514;</span>Hands-On Labs</button>
+  <button class="sblink" onclick="sv('challenges')"><span class="si">&#128737;</span>Challenges</button>
+  <button class="sblink" onclick="sv('escape')"><span class="si">&#128682;</span>Escape Room</button>
+  <button class="sblink" onclick="sv('password')"><span class="si">&#128274;</span>Password Lab</button>
+  <button class="sblink" onclick="sv('phishing')"><span class="si">&#127907;</span>Phishing Trainer</button>
+  <button class="sblink" onclick="sv('mfasim')"><span class="si">&#128241;</span>MFA Simulator</button>
+  <button class="sblink" onclick="sv('ssodemo')"><span class="si">&#128272;</span>SSO Demo</button>
+  <div class="sbsec">Assessments</div>
+  <button class="sblink" onclick="sv('maturity')"><span class="si">&#128200;</span>Maturity Check</button>
+  <button class="sblink" onclick="sv('compliance')"><span class="si">&#9989;</span>Compliance Audit</button>
+  <button class="sblink" onclick="sv('casestudies')"><span class="si">&#128218;</span>Case Studies</button>
+  <div class="sbsec">Resources</div>
+  <button class="sblink" onclick="sv('tools')"><span class="si">&#128295;</span>IAM Tools</button>
+  <button class="sblink" onclick="sv('internship')"><span class="si">&#128188;</span>Internship Guide</button>
+  <button class="sblink" onclick="sv('career')"><span class="si">&#128640;</span>Career Path</button>
+  <button class="sblink" onclick="sv('ai')"><span class="si">&#129302;</span>AI Assistant</button>
+  <div class="sbsec">Profile</div>
+  <button class="sblink" onclick="sv('badges')"><span class="si">&#127941;</span>Badges</button>
+  <button class="sblink" onclick="sv('leaderboard')"><span class="si">&#127942;</span>Leaderboard</button>
+  <button class="sblink" onclick="sv('store')"><span class="si">&#127978;</span>XP Store</button>
+  <button class="sblink" onclick="sv('cert')"><span class="si">&#127881;</span>Certificate</button>
+</aside>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="view on" id="v-dash">
+  <div class="sh"><div class="stag">HOME BASE</div><h2>&#128202; Training Dashboard</h2><p>Your IAM mastery journey at a glance.</p></div>
+  <div class="tipcard"><div style="font-size:1.65rem;flex-shrink:0">&#128161;</div><div><div style="font-size:.58rem;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Daily Security Tip</div><div id="tiptext" style="font-size:.88rem"></div></div></div>
+  <div class="dhero">
+    <div class="dav">&#128737;</div>
+    <div class="dinfo">
+      <div style="font-size:.65rem;color:var(--t3);letter-spacing:1px;margin-bottom:2px">SECURITY TRAINEE</div>
+      <h2 id="dname">Loading…</h2>
+      <div class="dlvl" id="dlvln">IAM Beginner</div>
+      <div style="margin-top:9px">
+        <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--t2)"><span id="xpcur">0 XP</span><span id="xpnxt">Lv2 at 200 XP</span></div>
+        <div class="xbr"><div class="xbf" id="xpbf" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="dstats">
+      <div class="dst"><div class="dstn" style="color:var(--a)" id="ds1">0</div><div class="dstl">XP</div></div>
+      <div class="dst"><div class="dstn" style="color:var(--a2)" id="ds2">1</div><div class="dstl">Level</div></div>
+      <div class="dst"><div class="dstn" style="color:var(--a3)" id="ds3">0</div><div class="dstl">Badges</div></div>
+      <div class="dst"><div class="dstn" style="color:var(--a4)" id="ds4">0</div><div class="dstl">Missions</div></div>
+    </div>
+    <div class="cpw">
+      <svg class="cpsvg" width="90" height="90" viewBox="0 0 90 90">
+        <circle class="cpbg" cx="45" cy="45" r="38"/>
+        <circle class="cpf" id="cpf" cx="45" cy="45" r="38" stroke="url(#cg)" stroke-dasharray="239" stroke-dashoffset="239"/>
+        <defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#00d4ff"/></linearGradient></defs>
+      </svg>
+      <div class="cpt"><div class="cpn" style="color:var(--a)" id="cppct">0%</div><div class="cpl">Done</div></div>
+    </div>
+  </div>
+  <div class="kpig">
+    <div class="kpi"><div class="kpico">&#9889;</div><div class="kpin" id="kxp">0</div><div class="kpil">XP Earned</div></div>
+    <div class="kpi"><div class="kpico">&#127919;</div><div class="kpin" id="kmis">0/8</div><div class="kpil">Missions</div></div>
+    <div class="kpi"><div class="kpico">&#127941;</div><div class="kpin" id="kbdg">0/10</div><div class="kpil">Badges</div></div>
+    <div class="kpi"><div class="kpico">&#128202;</div><div class="kpin" id="kqz">0/6</div><div class="kpil">Quizzes</div></div>
+  </div>
+  <div class="g2">
+    <div>
+      <h3 style="margin-bottom:10px;font-size:.9rem">&#128293; Recent Activity</h3>
+      <div id="actfeed"></div>
+    </div>
+    <div>
+      <h3 style="margin-bottom:10px;font-size:.9rem">&#127941; Recent Badges</h3>
+      <div id="recbdg" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ALL MODULES -->
+<div class="view" id="v-modules">
+  <div class="sh"><div class="stag">CURRICULUM</div><h2>&#128218; All IAM Modules</h2><p>30 comprehensive modules covering the full IAM domain. Click a module to start learning.</p></div>
+  <div class="mod-grid" id="modgrid"></div>
+</div>
+
+<!-- MODULE DETAIL -->
+<div class="view" id="v-module-detail">
+  <button class="btn btns btnsm" style="margin-bottom:16px" onclick="sv('modules')">&#8592; Back to Modules</button>
+  <div id="moddetail"></div>
+</div>
+
+<!-- MISSIONS -->
+<div class="view" id="v-missions">
+  <div class="sh"><div class="stag">OBJECTIVES</div><h2>&#9989; Learning Missions</h2><p>Complete missions to earn XP, unlock badges, and advance levels.</p></div>
+  <div id="mlist"></div>
+</div>
+
+<!-- SKILL TREE -->
+<div class="view" id="v-skilltree">
+  <div class="sh"><div class="stag">PROGRESSION</div><h2>&#127890; IAM Skill Tree</h2><p>Unlock topics progressively as you level up. Click to learn.</p></div>
+  <div id="sttree" style="padding:18px;overflow-x:auto"></div>
+</div>
+
+<!-- QUIZ -->
+<div class="view" id="v-quiz">
+  <div class="sh"><div class="stag">ASSESSMENT</div><h2>&#10067; Quiz Engine</h2><p>Topic-specific quizzes with instant explanations and XP rewards.</p></div>
+  <div class="qwrap">
+    <div id="qtopics"><p style="color:var(--t2);margin-bottom:10px;font-size:.83rem">Choose a quiz topic:</p><div id="qtbns"></div></div>
+    <div id="qplay" style="display:none">
+      <div style="display:flex;justify-content:space-between;margin-bottom:7px;align-items:center"><span id="qtlbl" style="font-size:.67rem;color:var(--a);letter-spacing:1px"></span><span id="qnum" style="font-size:.72rem;color:var(--t3)"></span></div>
+      <div class="qpb"><div class="qpbf" id="qpbf"></div></div>
+      <div id="qcard"></div>
+      <div class="qexp" id="qexp"></div>
+      <div style="margin-top:12px;text-align:right"><button class="btn btns btnsm" id="qnxt" onclick="nextQ()" style="display:none">Next &#8594;</button></div>
+    </div>
+    <div class="scscrn" id="qsc">
+      <div class="sccirc"><div style="font-size:1.55rem;font-weight:800" id="scn">0</div><div style="font-size:.68rem;color:var(--t3)">/<span id="sct">5</span></div></div>
+      <h3 id="scmsg" style="margin:9px 0 5px"></h3>
+      <p id="scdet" style="color:var(--t2);font-size:.8rem;margin-bottom:14px"></p>
+      <div style="display:flex;gap:9px;justify-content:center"><button class="btn btns btnsm" onclick="resetQ()">&#8634; Retry</button><button class="btn btnp btnsm" onclick="sv('quiz')">All Topics</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- LABS -->
+<div class="view" id="v-labs">
+  <div class="sh"><div class="stag">HANDS-ON LABS</div><h2>&#129514; IAM Labs</h2><p>Practice provisioning, RBAC assignment, access workflows, and more.</p></div>
+  <div class="labw">
+    <div class="labh"><span style="font-size:1.1rem">&#128193;</span><h4>Lab 1: RBAC Role Assignment</h4><span class="tag tb" style="margin-left:auto">+30 XP</span></div>
+    <div class="labb">
+      <p style="font-size:.81rem;color:var(--t2);margin-bottom:12px">Assign the correct role to each user based on their department. Incorrect assignments deduct 5 XP.</p>
+      <div id="rbaclab"></div>
+      <button class="btn btnp btnsm" style="margin-top:11px" onclick="checkRBAC()">&#9989; Submit Assignments</button>
+      <div id="rbacres" style="margin-top:10px;font-size:.8rem"></div>
+    </div>
+  </div>
+  <div class="labw">
+    <div class="labh"><span style="font-size:1.1rem">&#128100;</span><h4>Lab 2: User Provisioning (Joiner)</h4><span class="tag ty" style="margin-left:auto">+25 XP</span></div>
+    <div class="labb">
+      <p style="font-size:.81rem;color:var(--t2);margin-bottom:12px">New employee <b>Priya Sharma</b>, Dept: HR. Complete each step in order.</p>
+      <div id="provsteps" class="stepw"></div>
+      <div id="provres" style="margin-top:10px;font-size:.8rem"></div>
+    </div>
+  </div>
+  <div class="labw">
+    <div class="labh"><span style="font-size:1.1rem">&#128683;</span><h4>Lab 3: User Deprovisioning (Leaver)</h4><span class="tag tr" style="margin-left:auto">+25 XP</span></div>
+    <div class="labb">
+      <p style="font-size:.81rem;color:var(--t2);margin-bottom:12px">Employee <b>Raj Kumar</b> has left the org. Execute all deprovisioning steps to avoid security gaps.</p>
+      <div id="deprovsteps" class="stepw"></div>
+      <div id="deprovres" style="margin-top:10px;font-size:.8rem"></div>
+    </div>
+  </div>
+  <div class="labw">
+    <div class="labh"><span style="font-size:1.1rem">&#128221;</span><h4>Lab 4: Access Request Workflow</h4><span class="tag tp" style="margin-left:auto">+20 XP</span></div>
+    <div class="labb"><div id="accreq"></div></div>
+  </div>
+</div>
+
+<!-- CHALLENGES -->
+<div class="view" id="v-challenges">
+  <div class="sh"><div class="stag">SCENARIO LAB</div><h2>&#128737; IAM Challenges</h2><p>Apply IAM knowledge to real-world scenarios. +25 XP per correct answer.</p></div>
+  <div id="chlist"></div>
+</div>
+
+<!-- ESCAPE ROOM -->
+<div class="view" id="v-escape">
+  <div class="sh"><div class="stag">ESCAPE ROOM</div><h2>&#128682; IAM Escape Room</h2><p>8 sequential security challenges. Answer correctly to advance.</p></div>
+  <div class="escw" id="escwrap"></div>
+</div>
+
+<!-- PASSWORD LAB -->
+<div class="view" id="v-password">
+  <div class="sh"><div class="stag">PASSWORD SECURITY</div><h2>&#128274; Password Security Lab</h2><p>Analyze password strength, visualize hashing, and understand attack types.</p></div>
+  <div class="card" style="padding:18px;margin-bottom:13px">
+    <h4 style="margin-bottom:11px;font-size:.88rem">&#128272; Password Strength Analyzer</h4>
+    <input class="pwi" id="pwinp" placeholder="Type a password to analyze..." oninput="analyzePassword(this.value)"/>
+    <div class="pwmtr"><div class="pwfil" id="pwfil"></div></div>
+    <div id="pwinfo"></div>
+  </div>
+  <div class="card" style="padding:18px;margin-bottom:13px">
+    <h4 style="margin-bottom:11px;font-size:.88rem">&#128200; Hashing Visualizer</h4>
+    <input class="pwi" id="hinp" placeholder="Enter text to hash..." oninput="showHash(this.value)"/>
+    <div id="hout"></div>
+  </div>
+  <div class="card" style="padding:18px">
+    <h4 style="margin-bottom:11px;font-size:.88rem">&#128296; Attack Risk Comparison</h4>
+    <div class="g2" id="atkgrid"></div>
+  </div>
+</div>
+
+<!-- PHISHING TRAINER -->
+<div class="view" id="v-phishing">
+  <div class="sh"><div class="stag">AWARENESS</div><h2>&#127907; Phishing Awareness Trainer</h2><p>Identify real vs phishing emails. Track your detection accuracy.</p></div>
+  <div class="ibox">Score: <strong id="phsc" style="color:var(--a4)">0</strong> / <span id="phto">0</span> &nbsp;|&nbsp; Correct: <strong id="phco" style="color:var(--a3)">0</strong></div>
+  <div id="phemails"></div>
+</div>
+
+<!-- MFA SIMULATOR -->
+<div class="view" id="v-mfasim">
+  <div class="sh"><div class="stag">MFA TRAINING</div><h2>&#128241; MFA Setup Simulator</h2><p>Walk through the complete MFA enrollment process step by step.</p></div>
+  <div id="mfawrap"></div>
+</div>
+
+<!-- SSO DEMO -->
+<div class="view" id="v-ssodemo">
+  <div class="sh"><div class="stag">FEDERATION DEMO</div><h2>&#128272; SSO Demo — Login Once, Access All</h2><p>Authenticate once, then seamlessly access all connected applications.</p></div>
+  <div id="ssowrap"></div>
+</div>
+
+<!-- MATURITY -->
+<div class="view" id="v-maturity">
+  <div class="sh"><div class="stag">SELF ASSESSMENT</div><h2>&#128200; IAM Maturity Assessment</h2><p>Answer 12 questions to determine your organization's IAM maturity level.</p></div>
+  <div id="matwrap"></div>
+</div>
+
+<!-- COMPLIANCE AUDIT -->
+<div class="view" id="v-compliance">
+  <div class="sh"><div class="stag">AUDIT SIMULATOR</div><h2>&#9989; Compliance Audit Simulator</h2><p>Fix IAM policy violations to improve your compliance score. +10 XP each.</p></div>
+  <div class="ibox">Compliance Score: <strong id="compscore" style="color:var(--a4)">40%</strong></div>
+  <div id="auditlist"></div>
+</div>
+
+<!-- CASE STUDIES -->
+<div class="view" id="v-casestudies">
+  <div class="sh"><div class="stag">INDUSTRY CASES</div><h2>&#128218; IAM Case Studies</h2><p>Interactive real-world IAM scenarios. Make decisions, see outcomes, earn XP.</p></div>
+  <div id="caselist"></div>
+</div>
+
+<!-- IAM TOOLS -->
+<div class="view" id="v-tools">
+  <div class="sh"><div class="stag">INDUSTRY TOOLS</div><h2>&#128295; IAM Technology Ecosystem</h2><p>Professional IAM platforms used by Fortune 500 enterprises worldwide.</p></div>
+  <div class="g2" id="toolsgrid"></div>
+</div>
+
+<!-- INTERNSHIP GUIDE -->
+<div class="view" id="v-internship">
+  <div class="sh"><div class="stag">INTERNSHIP</div><h2>&#128188; IAM Internship Guide</h2><p>What IAM interns do, daily tasks, skills needed, and career growth paths.</p></div>
+  <div id="internwrap"></div>
+</div>
+
+<!-- CAREER PATH -->
+<div class="view" id="v-career">
+  <div class="sh"><div class="stag">CAREER</div><h2>&#128640; IAM Career Path</h2><p>From junior analyst to CISO — your roadmap in the IAM domain.</p></div>
+  <div id="careerwrap"></div>
+</div>
+
+<!-- AI ASSISTANT -->
+<div class="view" id="v-ai">
+  <div class="sh"><div class="stag">AI TUTOR</div><h2>&#129302; AI IAM Assistant</h2><p>Ask anything about IAM. Instant educational answers.</p></div>
+  <div class="qqbtns" id="qqbtns"></div>
+  <div class="chatbox" id="chatbox"></div>
+  <div class="cinp"><input id="cinp" placeholder="Ask about RBAC, SAML, MFA, Zero Trust, PAM..." onkeydown="if(event.key==='Enter')sendChat()"/><button class="btn btnp btnsm" onclick="sendChat()">Send</button></div>
+</div>
+
+<!-- BADGES -->
+<div class="view" id="v-badges">
+  <div class="sh"><div class="stag">ACHIEVEMENTS</div><h2>&#127941; Badge Gallery</h2><p>Earn badges by completing modules, quizzes, labs, and challenges.</p></div>
+  <div class="bgrid" id="bgrid"></div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="view" id="v-leaderboard">
+  <div class="sh"><div class="stag">RANKINGS</div><h2>&#127942; Global Leaderboard</h2><p>See how you rank among IAM Academy trainees.</p></div>
+  <div class="card" style="overflow:hidden"><table class="lbtbl" id="lbtbl"></table></div>
+</div>
+
+<!-- STORE -->
+<div class="view" id="v-store">
+  <div class="sh"><div class="stag">REWARDS</div><h2>&#127978; XP Rewards Store</h2><p>Spend your hard-earned XP on premium content and exclusive rewards.</p></div>
+  <div class="ibox">Your XP Balance: <strong id="stxp" style="color:var(--a4)">0</strong></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px" id="sgrid"></div>
+</div>
+
+<!-- CERTIFICATE -->
+<div class="view" id="v-cert">
+  <div class="sh"><div class="stag">COMPLETION</div><h2>&#127881; IAM Certificate</h2><p>Complete all missions and quizzes to unlock your professional certificate.</p></div>
+  <div id="certlk" class="ibox" style="text-align:center;padding:26px"><div style="font-size:1.8rem;margin-bottom:8px">&#128274;</div><p style="color:var(--t3)">Complete 5+ missions and 3+ quizzes to unlock.</p><p style="margin-top:6px;font-size:.73rem;color:var(--t3)">Progress: <span id="certprog">0</span> / 8 requirements</p></div>
+  <div id="certul" style="display:none">
+    <div class="certw" id="certwrap">
+      <div style="font-size:3rem;margin-bottom:11px">&#127942;</div>
+      <div class="certt">CERTIFICATE OF COMPLETION</div>
+      <div class="certsub">This certifies that</div>
+      <div class="certn" id="certnm">Student</div>
+      <div class="certsub">has successfully completed the <strong style="color:var(--a)">IAM Training Academy</strong></div>
+      <div style="font-size:.88rem;color:var(--a);margin:7px 0">Identity & Access Management — Cybersecurity Program</div>
+      <div class="certmeta"><span>&#128197; <strong id="certdt"></strong></span><span>&#9889; <strong id="certxp"></strong></span><span>&#128737; <strong id="certlv"></strong></span><span>&#35; <strong id="certid"></strong></span></div>
+    </div>
+    <div style="text-align:center;margin-top:14px"><button class="btn btnp" onclick="dlCert()">&#128229; Download Certificate</button></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- SEARCH RESULTS -->
+<div id="sres"></div>
+
+<script>
+// ── STATE ──
+var LS={get:function(k){try{return JSON.parse(localStorage.getItem('iam2_'+k));}catch(e){return null;}},set:function(k,v){localStorage.setItem('iam2_'+k,JSON.stringify(v));}};
+var G=LS.get('g')||{name:'',xp:0,level:1,badges:[],missions:[],quizzes:[],challenges:[],escape:false,escStg:0,sims:[],store:[],topics:[],activity:[],phSc:0,phTo:0,phCo:0,compFixed:[],mfaDone:false,ssoDone:false,matDone:false,matScore:0,adObjs:[{t:'ou',n:'HR OU',p:'root'},{t:'ou',n:'IT OU',p:'root'},{t:'ou',n:'Finance OU',p:'root'}],modDone:[]};
+function save(){LS.set('g',G);}
+
+// ── LEVELS ──
+var LVS=[{l:1,n:'IAM Beginner',xp:0,nx:200},{l:2,n:'IAM Learner',xp:200,nx:500},{l:3,n:'IAM Analyst',xp:500,nx:900},{l:4,n:'IAM Specialist',xp:900,nx:1400},{l:5,n:'IAM Engineer',xp:1400,nx:2000},{l:6,n:'IAM Expert',xp:2000,nx:2800},{l:7,n:'IAM Architect',xp:2800,nx:99999}];
+function getLv(xp){var r=LVS[0];for(var i=0;i<LVS.length;i++)if(xp>=LVS[i].xp)r=LVS[i];return r;}
+
+// ── LOADING ──
+window.addEventListener('load',function(){setTimeout(function(){var l=document.getElementById('ldr');l.style.opacity='0';setTimeout(function(){l.style.display='none';},500);},2100);});
+
+// ── XP ──
+function addXP(amt,reason){
+  var prev=getLv(G.xp).l;
+  G.xp+=amt;
+  var nw=getLv(G.xp);
+  if(nw.l>prev){G.level=nw.l;toast('Level Up! You are now '+nw.n,'b');}
+  G.activity.unshift({m:'+'+amt+' XP — '+reason,t:Date.now()});
+  if(G.activity.length>20)G.activity.pop();
+  save();refreshUI();
+  if(amt>0)toast('&#9889; +'+amt+' XP — '+reason);
+}
+function toast(msg,type){
+  var c=document.getElementById('tc');
+  var d=document.createElement('div');d.className='tm'+(type==='b'?' b':'');d.innerHTML=msg;c.appendChild(d);
+  setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},3200);
+}
+
+// ── PARTICLES ──
+(function(){var c=document.getElementById('pts');for(var i=0;i<32;i++){var d=document.createElement('div');d.className='pt';var sz=Math.random()*3+1;d.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;background:'+(Math.random()>.5?'rgba(0,212,255,.4)':'rgba(124,58,237,.35)')+';animation-duration:'+(Math.random()*14+7)+'s;animation-delay:'+(Math.random()*12)+'s';c.appendChild(d);}})();
+
+// ── THEME ──
+var th=LS.get('th')||'dark';
+document.getElementById('thmbtn').textContent=th==='dark'?'☀':'☾';
+if(th==='light'){document.documentElement.style.setProperty('--bg','#f0f4ff');document.documentElement.style.setProperty('--bg2','#e8eeff');document.documentElement.style.setProperty('--bg3','#dde5ff');document.documentElement.style.setProperty('--card','rgba(255,255,255,.9)');document.documentElement.style.setProperty('--t','#1e293b');document.documentElement.style.setProperty('--t2','#475569');document.documentElement.style.setProperty('--b','rgba(0,120,200,.18)');}
+document.getElementById('thmbtn').addEventListener('click',function(){
+  th=th==='dark'?'light':'dark';LS.set('th',th);location.reload();
+});
+
+// ── DAILY TIP ──
+var TIPS=['Enable MFA for all privileged accounts — passwords alone are never enough.','Follow Least Privilege: grant only what is absolutely necessary.','Rotate privileged credentials every 90 days.','Use Argon2 or bcrypt — never MD5 or SHA-1 for passwords.','Review user access quarterly. Revoke stale permissions immediately.','Zero Trust: never trust based on network location alone.','Monitor for MFA fatigue — enable number-matching in authenticator apps.','Separate admin accounts from regular user accounts.','Disable accounts before deleting them to preserve audit logs.','Passwordless FIDO2 auth eliminates an entire class of phishing attacks.','JIT provisioning eliminates standing elevated privileges.','SAML assertions must be signed AND encrypted on the SP side.','Check logins against known-breached password databases.','Micro-segmentation limits lateral movement after a breach.','Service accounts are frequently over-privileged — audit them regularly.'];
+document.getElementById('tiptext').textContent=TIPS[new Date().getDate()%TIPS.length];
+
+// ── VIEWS ──
+var visitedViews={};
+function sv(id){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');});
+  var el=document.getElementById('v-'+id);if(el)el.classList.add('on');
+  document.querySelectorAll('.sblink').forEach(function(b){b.classList.remove('on');});
+  var all=document.querySelectorAll('.sblink');
+  var mp={dash:0,modules:1,missions:2,skilltree:3,quiz:4,labs:6,challenges:7,escape:8,password:9,phishing:10,mfasim:11,ssodemo:12,maturity:14,compliance:15,casestudies:16,tools:18,internship:19,career:20,ai:21,badges:23,leaderboard:24,store:25,cert:26};
+  if(mp[id]!==undefined&&all[mp[id]])all[mp[id]].classList.add('on');
+  if(!visitedViews[id]){visitedViews[id]=true;if(Object.keys(visitedViews).length>=8)unlockBadge('explorer');}
+  var initFns={skilltree:renderST,quiz:renderQTopics,cert:checkCert,leaderboard:renderLB,store:renderStore,labs:initLabs,phishing:renderPhishing,mfasim:renderMFA,ssodemo:renderSSO,maturity:renderMaturity,compliance:renderCompliance,casestudies:renderCases,tools:renderTools,internship:renderInternship,career:renderCareer,ai:initAI,challenges:renderChallenges,modules:renderModules};
+  if(initFns[id])initFns[id]();
+  document.getElementById('sb').classList.remove('open');
+  window.scrollTo(0,0);
+}
+
+// ── REFRESH UI ──
+function refreshUI(){
+  var lv=getLv(G.xp),nx=lv.nx||9999;
+  var pct=Math.min(100,Math.round((G.xp-lv.xp)/(nx-lv.xp)*100));
+  var tot=Math.min(100,Math.round(G.xp/2800*100));
+  document.getElementById('nxpv').textContent=G.xp+' XP';
+  document.getElementById('nlvv').textContent='Lv.'+G.level;
+  document.getElementById('dname').textContent=G.name||'Agent';
+  document.getElementById('dlvln').textContent=lv.n;
+  document.getElementById('xpcur').textContent=G.xp+' XP';
+  document.getElementById('xpnxt').textContent='Lv'+(lv.l+1)+' at '+nx+' XP';
+  document.getElementById('xpbf').style.width=pct+'%';
+  ['ds1','ds2','ds3','ds4'].forEach(function(id,i){document.getElementById(id).textContent=[G.xp,G.level,G.badges.length,G.missions.length][i];});
+  document.getElementById('kxp').textContent=G.xp;
+  document.getElementById('kmis').textContent=G.missions.length+'/8';
+  document.getElementById('kbdg').textContent=G.badges.length+'/10';
+  document.getElementById('kqz').textContent=G.quizzes.length+'/6';
+  document.getElementById('stxp').textContent=G.xp;
+  document.getElementById('cpf').style.strokeDashoffset=239-(239*tot/100);
+  document.getElementById('cppct').textContent=tot+'%';
+  renderActivity();renderRecentBadges();renderMissions();renderBadges();checkAutoUnlocks();
+}
+
+function renderActivity(){
+  var el=document.getElementById('actfeed');if(!el)return;
+  if(!G.activity.length){el.innerHTML='<p style="color:var(--t3);font-size:.75rem">No activity yet. Start a module!</p>';return;}
+  var h='';G.activity.slice(0,8).forEach(function(a){h+='<div class="act-item">&#9889; '+a.m+'</div>';});el.innerHTML=h;
+}
+
+// ── BADGES ──
+var BDGS=[{id:'auth',ico:'&#128273;',n:'Auth Expert',d:'Complete Auth quiz'},{id:'authz',ico:'&#128274;',n:'Authz Expert',d:'Complete Authorization quiz'},{id:'rbac',ico:'&#128193;',n:'RBAC Master',d:'Complete RBAC quiz'},{id:'mfa',ico:'&#128241;',n:'MFA Champion',d:'100% on MFA quiz'},{id:'fed',ico:'&#127758;',n:'Federation Spec',d:'Complete Federation quiz'},{id:'zt',ico:'&#128737;',n:'Zero Trust Champ',d:'Beat the Escape Room'},{id:'explorer',ico:'&#128506;',n:'IAM Explorer',d:'Visit 8+ sections'},{id:'quiz3',ico:'&#127919;',n:'Quiz Ace',d:'Complete 3 quizzes'},{id:'xp500',ico:'&#9889;',n:'XP Hunter',d:'Earn 500+ XP'},{id:'expert',ico:'&#127942;',n:'IAM Expert',d:'Complete the portal'}];
+function unlockBadge(id){
+  if(G.badges.indexOf(id)>=0)return;G.badges.push(id);save();
+  var b=BDGS.find(function(x){return x.id===id;});
+  if(b)toast(b.ico+' Badge Unlocked: '+b.n,'b');
+  addXP(30,'Badge: '+(b?b.n:id));renderBadges();
+}
+function checkAutoUnlocks(){if(G.xp>=500)unlockBadge('xp500');if(G.quizzes.length>=3)unlockBadge('quiz3');if(G.missions.length>=7)unlockBadge('expert');}
+function renderBadges(){
+  var el=document.getElementById('bgrid');if(!el)return;
+  el.innerHTML=BDGS.map(function(b){var have=G.badges.indexOf(b.id)>=0;return '<div class="bdg '+(have?'ul':'lk')+'"><span class="bdgico">'+b.ico+'</span><div class="bdgn">'+b.n+'</div><div class="bdgd">'+b.d+'</div>'+(have?'<div style="margin-top:5px"><span class="tag tg">Unlocked</span></div>':'')+'</div>';}).join('');
+}
+function renderRecentBadges(){
+  var el=document.getElementById('recbdg');if(!el)return;
+  var items=BDGS.filter(function(b){return G.badges.indexOf(b.id)>=0;}).slice(-4);
+  if(!items.length){el.innerHTML='<p style="color:var(--t3);font-size:.75rem">No badges yet.</p>';return;}
+  el.innerHTML=items.map(function(b){return '<div style="text-align:center;padding:8px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);border-radius:8px;min-width:58px"><div style="font-size:1.55rem">'+b.ico+'</div><div style="font-size:.6rem;color:var(--a4);margin-top:3px;font-weight:700">'+b.n+'</div></div>';}).join('');
+}
+renderBadges();
+
+// ── MODULES DATA ──
+var MODS=[
+  {id:'iam-fund',ico:'&#128737;',t:'IAM Fundamentals',d:'Core concepts, why IAM matters, enterprise use.',xp:20,color:'var(--a)',
+   theory:'IAM (Identity and Access Management) ensures the right users get the right access to the right resources at the right time. It is the foundation of enterprise cybersecurity.',
+   example:'When Priya joins a company: HR creates a record → IAM creates account → Email access granted → App permissions assigned → MFA enabled → Access monitored.',
+   questions:[{q:'What does IAM stand for?',o:['Internet Access Management','Identity and Access Management','Integrated Authentication Module','Identity Authorization Model'],a:1,e:'IAM = Identity and Access Management — a framework ensuring right users get right access at the right time.'}],
+   interview:['Q: What is IAM? A: Framework ensuring right users get right access to right resources at the right time using technologies, policies, and processes.','Q: What is PoLP? A: Principle of Least Privilege — grant only minimum permissions needed for job function.']},
+  {id:'iam-arch',ico:'&#127959;',t:'IAM Architecture',d:'Authentication → Authorization → Application flow.',xp:20,color:'var(--a2)',
+   theory:'IAM Architecture defines how identity verification, access control, and audit logging layers work together. User → Authentication → IAM Server → Authorization Engine → Application → Database.',
+   example:'Employee login: Browser sends credentials → Auth server verifies hash → IAM issues session token → Policy engine checks RBAC → Application granted access.',
+   questions:[{q:'In IAM architecture, what comes after Authentication?',o:['Logging','Authorization','Token issuance','Provisioning'],a:1,e:'Authentication verifies identity first. Authorization then determines what the authenticated user can access.'}],
+   interview:['Q: What are the layers of IAM architecture? A: Authentication → Identity Verification → IAM Server → Authorization Engine → Policy Decision Point → Application.']},
+  {id:'auth',ico:'&#128273;',t:'Authentication',d:'Who are you? Methods, protocols, Kerberos, LDAP.',xp:20,color:'var(--a)',
+   theory:'Authentication verifies the identity of a user, device, or application before granting access. Methods: username/password, biometrics, certificates, Kerberos tickets, FIDO2 passkeys.',
+   example:'Logging into Gmail: Enter email + password → Google verifies hash → If MFA enabled, enter OTP → Access granted.',
+   questions:[{q:'What does authentication answer?',o:['What can you do?','Who are you?','Where are you?','When do you log in?'],a:1,e:'Authentication answers "Who are you?" — it verifies identity before access is granted.'},
+              {q:'Which uses ticket-based auth in Windows AD?',o:['LDAP','RADIUS','Kerberos','SAML'],a:2,e:'Kerberos uses TGTs issued by KDC for mutual authentication in Active Directory.'}],
+   interview:['Q: Kerberos? A: Ticket-based auth protocol in Windows AD. KDC issues TGTs. Supports mutual auth + SSO.','Q: LDAP? A: Lightweight Directory Access Protocol for user lookup and auth. Integrated with AD.']},
+  {id:'authz',ico:'&#128274;',t:'Authorization',d:'What can you do? RBAC, policies, permissions.',xp:20,color:'var(--a3)',
+   theory:'Authorization determines what resources an authenticated user can access. It answers "What are you allowed to do?" Based on roles, policies, and access control models.',
+   example:'Student can VIEW grades. Teacher can EDIT grades. HR employee can READ employee records but NOT the Finance database.',
+   questions:[{q:'Authorization answers which question?',o:['Who are you?','What is your password?','What are you allowed to do?','Are you online?'],a:2,e:'Authorization answers "What are you allowed to do?" and occurs after successful authentication.'}],
+   interview:['Q: What is PoLP? A: Principle of Least Privilege — users receive only minimum permissions necessary for their job.','Q: HTTP 403 means? A: Forbidden — user is authenticated but not authorized for that resource.']},
+  {id:'users',ico:'&#128100;',t:'Users',d:'Digital identities, attributes, user lifecycle.',xp:20,color:'var(--a4)',
+   theory:'A user is a digital identity representing an individual, application, or device. Each user has attributes: name, employee ID, email, department, role, and MFA status.',
+   example:'Employee record in Active Directory: CN=Raj Kumar, Department=HR, Manager=ananya.s, Roles=[HR-Staff], MFAEnabled=True.',
+   questions:[{q:'Which is NOT a user attribute?',o:['Employee ID','Department','Network VLAN','MFA Status'],a:2,e:'Network VLAN is a network attribute, not a user identity attribute. User attributes include name, ID, department, role, and MFA status.'}],
+   interview:['Q: Types of users? A: Employee accounts, contractor accounts, service accounts, customer accounts (CIAM).',]},
+  {id:'groups',ico:'&#128101;',t:'Groups',d:'Collections of users for simplified permission management.',xp:20,color:'var(--pink)',
+   theory:'Groups are collections of users. Instead of assigning permissions to individuals, assign to groups. All members inherit group permissions automatically.',
+   example:'HR Team group: All HR employees are members. Assign "View Employee Records" permission to the group — all members get it instantly.',
+   questions:[{q:'What is the main benefit of groups?',o:['Faster passwords','Simplified bulk permission management','Better encryption','More audit logs'],a:1,e:'Groups allow assigning permissions once to a collection of users, reducing admin effort and ensuring consistency.'}],
+   interview:['Q: AD group types? A: Domain Local (within domain), Global (same domain users), Universal (multiple domains).']},
+  {id:'roles',ico:'&#128193;',t:'Roles & RBAC',d:'Role-Based Access Control — most common enterprise model.',xp:20,color:'var(--a4)',
+   theory:'RBAC assigns permissions to roles based on job functions. Users are assigned roles and inherit permissions. Most widely deployed enterprise access control model.',
+   example:'Bhumika is assigned HR Manager role → HR Manager role has "View Records" + "Edit Records" permissions → Bhumika inherits both without direct assignment.',
+   questions:[{q:'In RBAC, permissions are assigned to:',o:['Individual users','IP addresses','Roles','Devices'],a:2,e:'RBAC assigns permissions to roles. Users inherit permissions through their role assignments.'},
+              {q:'What does RBAC stand for?',o:['Rule-Based AC','Role-Based Access Control','Resource-Based Auth','Remote Batch AC'],a:1,e:'Role-Based Access Control — most widely deployed enterprise IAM model.'}],
+   interview:['Q: RBAC advantages? A: Scalable, easy to manage — change a role once and all members update automatically.']},
+  {id:'mfa',ico:'&#128241;',t:'MFA',d:'Multi-Factor Authentication — three factors explained.',xp:20,color:'var(--red)',
+   theory:'MFA requires 2+ authentication factors: Knowledge (password/PIN), Possession (smartphone/YubiKey), Inherence (fingerprint/face). Reduces account takeover risk by ~99.9%.',
+   example:'Logging into company VPN: Enter password → Approved — push notification on phone → Access granted. Two factors used.',
+   questions:[{q:'Which MFA factor is "something you are"?',o:['Password','Smartphone','Fingerprint','Security question'],a:2,e:'Inherence factor = something you are = biometrics: fingerprint, face recognition, iris scan.'},
+              {q:'MFA Fatigue attack means:',o:['Guessing passwords','Repeated push notifications hoping approval','Cloning SIM','Intercepting SMS'],a:1,e:'Push bombing sends repeated MFA prompts hoping for an accidental approval. Prevented by number matching.'}],
+   interview:['Q: TOTP? A: Time-based OTP. 6-digit code every 30 seconds using HMAC-SHA1 + shared secret + timestamp.','Q: Weakest MFA? A: SMS OTP — vulnerable to SIM swapping and SS7 interception.']},
+  {id:'federation',ico:'&#127758;',t:'Federation & SSO',d:'SAML, OAuth 2.0, OIDC — single identity, multiple apps.',xp:20,color:'var(--a)',
+   theory:'Federation enables a single identity to access multiple systems via trust between IdP and SP. SSO: log in once, access everything. Protocols: SAML 2.0 (XML), OAuth 2.0 (JSON), OIDC (JWT).',
+   example:'Click "Sign in with Google" on Salesforce → Google (IdP) authenticates → Issues SAML assertion → Salesforce (SP) validates → Access granted without separate login.',
+   questions:[{q:'SAML 2.0 format:',o:['JSON','XML','CSV','YAML'],a:1,e:'SAML 2.0 (Security Assertion Markup Language) encodes authentication assertions in XML format.'},
+              {q:'OAuth 2.0 is primarily:',o:['Auth protocol','Authorization framework','Encryption standard','Directory service'],a:1,e:'OAuth 2.0 is a delegated authorization framework — NOT an authentication protocol.'}],
+   interview:['Q: SAML vs OAuth? A: SAML is for enterprise SSO (XML + assertions). OAuth 2.0 is for API authorization (JSON + tokens). OIDC adds auth on top of OAuth via JWT.']},
+  {id:'idp',ico:'&#128100;',t:'Identity Providers',d:'Microsoft Entra ID, Okta, Ping Identity.',xp:20,color:'var(--a2)',
+   theory:'An IdP authenticates users and issues identity assertions/tokens to service providers. Central to SSO architectures. Issues JWTs and SAML tokens.',
+   example:'Okta as IdP: Employee logs into Okta → Okta verifies identity → Issues JWT → Employee accesses Salesforce, Slack, Jira without re-login.',
+   questions:[{q:'What does an IdP issue?',o:['Passwords','Network routes','Authentication tokens/assertions','Firewall rules'],a:2,e:'Identity Providers issue authentication tokens (JWT, SAML assertions) to service providers after verifying user identity.'}],
+   interview:['Q: Enterprise IdPs? A: Microsoft Entra ID, Okta, Ping Identity, Google Workspace, Auth0, ForgeRock.']},
+  {id:'ad',ico:'&#127961;',t:'Active Directory',d:'AD, OUs, GPOs, Kerberos in Windows environments.',xp:20,color:'var(--a)',
+   theory:'Active Directory (AD) is Microsoft\'s directory service. Stores user accounts, groups, computers, OUs. Uses Kerberos for authentication, LDAP for queries. Managed via Group Policy Objects.',
+   example:'corp.local domain → IT OU → IT-Admins group → amit.singh user account. GPO applied to IT OU gives all IT staff the same security settings.',
+   questions:[{q:'AD uses which protocol for authentication?',o:['RADIUS','LDAP','Kerberos','SAML'],a:2,e:'Active Directory uses Kerberos for authentication (ticket-based) and LDAP for directory queries and lookups.'}],
+   interview:['Q: What is an OU? A: Organizational Unit — a container in AD for organizing users, groups, and computers. GPOs can be linked to OUs.']},
+  {id:'ldap',ico:'&#128269;',t:'LDAP',d:'Directory queries, attributes, DN, search filters.',xp:20,color:'var(--a4)',
+   theory:'LDAP (Lightweight Directory Access Protocol) is used for querying and modifying directory services. Used for user authentication, lookup, and attribute retrieval.',
+   example:'LDAP query: (&(objectClass=user)(sAMAccountName=raj.kumar)) returns: DN, email, department, manager, groups.',
+   questions:[{q:'LDAP is primarily used for:',o:['File storage','Directory services and user lookup','Network routing','Email delivery'],a:1,e:'LDAP (Lightweight Directory Access Protocol) handles directory queries, user authentication, and attribute lookups.'}],
+   interview:['Q: LDAP DN? A: Distinguished Name — unique identifier for an LDAP object. Example: CN=Raj Kumar,OU=HR,DC=corp,DC=local']},
+  {id:'sso',ico:'&#128272;',t:'Single Sign-On',d:'One login to rule them all. SAML, OIDC, Kerberos.',xp:20,color:'var(--a2)',
+   theory:'SSO allows users to authenticate once with an IdP and access multiple SPs without re-entering credentials. Reduces password fatigue and improves security.',
+   example:'Login to Okta once → Access Salesforce, Jira, Slack, GitHub, AWS Console, Office 365 — all without re-entering credentials.',
+   questions:[{q:'SSO stands for:',o:['Secure Sign-On','Single Sign-On','System Security Object','Soft Sign-Out'],a:1,e:'SSO (Single Sign-On) lets users authenticate once and access multiple applications.'}],
+   interview:['Q: SSO benefits? A: Reduced password fatigue, fewer credentials to manage, centralized access control, better user experience, faster onboarding.']},
+  {id:'lifecycle',ico:'&#128260;',t:'User Lifecycle',d:'JML: Joiner, Mover, Leaver process.',xp:20,color:'var(--a3)',
+   theory:'JML lifecycle: Joiner (create account, assign role, enable MFA), Mover (update role, remove old access), Leaver (disable account, revoke all access). Automated JML reduces security gaps.',
+   example:'Raj moves from HR to Finance: Remove HR Records access → Remove HR Group → Add Finance Group → Assign Finance Analyst role. Old access must be removed immediately.',
+   questions:[{q:'In JML, what happens during "Leaver"?',o:['Account created','Role updated','Account disabled, access revoked','MFA enabled'],a:2,e:'Leaver = employee offboarding. Account disabled, roles removed, tokens revoked, group memberships removed.'}],
+   interview:['Q: Why is the JML process important? A: Ensures no orphaned accounts, no stale permissions, maintains compliance, prevents insider threats.']},
+  {id:'prov',ico:'&#128100;',t:'Provisioning',d:'Creating accounts, assigning roles, enabling MFA.',xp:20,color:'var(--a4)',
+   theory:'Provisioning is the process of creating user accounts, assigning groups, roles, and permissions, and enabling security features like MFA when a user joins an organization.',
+   example:'New hire Priya Sharma: 1. Create AD account 2. Add to HR Security Group 3. Assign HR Manager role 4. Enable MFA 5. Grant HR Portal access 6. Send welcome email with temp password.',
+   questions:[{q:'First step in user provisioning:',o:['Enable MFA','Assign role','Create user account','Grant database access'],a:2,e:'Creating the user account is always the first step. All other assignments depend on having an account first.'}],
+   interview:['Q: Automated vs manual provisioning? A: Automated (IGA tools) is faster, more accurate, audit-ready. Manual is error-prone and slow for large organizations.']},
+  {id:'deprov',ico:'&#128683;',t:'Deprovisioning',d:'Offboarding, revoking access, disabling accounts.',xp:20,color:'var(--red)',
+   theory:'Deprovisioning removes all access when a user leaves. Steps: disable account → remove roles → revoke tokens → remove group memberships → archive data → generate audit report.',
+   example:'Employee terminated today: 1. HR notifies IAM team 2. Account disabled in minutes 3. Active sessions killed 4. API tokens revoked 5. Physical badge deactivated 6. Audit log created.',
+   questions:[{q:'FIRST action when employee is terminated:',o:['Delete account','Disable account','Reset password','Remove MFA'],a:1,e:'Always DISABLE first — keeps audit logs intact. Deleting may destroy evidence needed for forensics or compliance.'}],
+   interview:['Q: Why disable before delete? A: Preserves audit trail, allows forensic investigation, meets compliance requirements (GDPR, SOC2).']},
+  {id:'access-review',ico:'&#128203;',t:'Access Reviews',d:'Certification campaigns, reviewer workflows.',xp:20,color:'var(--a3)',
+   theory:'Access reviews (certification campaigns) require managers to periodically certify that their employees still need their current access. Identifies over-provisioned users and stale permissions.',
+   example:'Quarterly access review: Manager sees list of their team\'s permissions → Reviews each → Certifies "Keep" or "Revoke" → IAM system automatically implements decisions.',
+   questions:[{q:'Access reviews are also called:',o:['Security audits','Certification campaigns','Penetration tests','Vulnerability assessments'],a:1,e:'Access reviews are called "certification campaigns" in IGA (Identity Governance and Administration) tools.'}],
+   interview:['Q: Why access reviews? A: Ensures PoLP is maintained over time. Employees accumulate permissions — reviews remove unnecessary access.']},
+  {id:'iga',ico:'&#128200;',t:'Identity Governance',d:'IGA tools, access intelligence, compliance.',xp:20,color:'var(--a2)',
+   theory:'IGA (Identity Governance and Administration) manages identities and access at scale. Features: automated provisioning, access certification, role mining, SoD enforcement, audit reporting.',
+   example:'SailPoint IGA: Detects that a user has both "Approve Payments" and "Make Payments" roles → Flags as Separation of Duties violation → Notifies manager for remediation.',
+   questions:[{q:'IGA stands for:',o:['Internet Gateway Access','Identity Governance and Administration','Integrated Group Access','Internal Governance Architecture'],a:1,e:'IGA (Identity Governance and Administration) manages identities, access policies, and compliance at enterprise scale.'}],
+   interview:['Q: SailPoint vs Okta? A: SailPoint is an IGA tool (governance, access reviews, compliance). Okta is an IdP/SSO tool (authentication, federation). Often used together.']},
+  {id:'pam',ico:'&#128511;',t:'PAM',d:'Privileged Access Management — securing admin accounts.',xp:20,color:'var(--red)',
+   theory:'PAM (Privileged Access Management) secures high-privilege accounts. Features: password vaulting, JIT access, session recording, MFA enforcement, approval workflows.',
+   example:'IT Admin needs production database access: PAM request → Manager approval → JIT 2-hour access granted → Session recorded → Access auto-removed after 2 hours.',
+   questions:[{q:'PAM stands for:',o:['Password and Management','Privileged Access Management','Protected Admin Mode','Policy Access Module'],a:1,e:'PAM (Privileged Access Management) secures privileged/admin accounts through vaulting, JIT access, and session recording.'},
+              {q:'JIT in PAM means:',o:['Just-In-Time access','Just-In-Transaction','Jump-Into-Target','Java Integration Tool'],a:0,e:'JIT (Just-In-Time) grants elevated privileges only when needed and removes them immediately after the task.'}],
+   interview:['Q: PAM vs IAM? A: IAM manages all user identities. PAM is a subset of IAM focused specifically on privileged/admin accounts with extra security controls.']},
+  {id:'zt',ico:'&#128737;',t:'Zero Trust',d:'"Never Trust, Always Verify" — ZTA architecture.',xp:20,color:'var(--a)',
+   theory:'Zero Trust Security model: "Never Trust, Always Verify." Every request is authenticated, authorized, and validated regardless of network origin. Continuous verification, micro-segmentation, least privilege.',
+   example:'Employee on internal VPN tries to access database: ZT still requires: identity verification → device health check → risk assessment → policy evaluation → conditional access granted.',
+   questions:[{q:'Zero Trust principle:',o:['Trust internal traffic','Never trust always verify','Block all external','Firewalls only'],a:1,e:'"Never Trust, Always Verify" — every request verified regardless of network location or origin.'},
+              {q:'ZT requires verification of:',o:['Only user identity','Only device','Identity + device + risk context','Only IP address'],a:2,e:'Zero Trust checks identity, device health/posture, and contextual risk signals before granting any access.'}],
+   interview:['Q: Zero Trust vs perimeter security? A: Perimeter assumes internal traffic is safe. ZT treats every request as untrusted — verify first, trust never.']},
+  {id:'cloud',ico:'&#9729;',t:'Cloud IAM',d:'AWS IAM, Azure RBAC, GCP IAM explained.',xp:20,color:'var(--a2)',
+   theory:'Cloud IAM governs access to cloud resources. AWS IAM: users, roles, policies, MFA. Azure: RBAC with built-in roles. GCP: resource hierarchy with IAM bindings.',
+   example:'AWS least privilege: Developer needs to read from one S3 bucket → Create IAM policy with only s3:GetObject on that specific ARN. No wildcard (*) permissions.',
+   questions:[{q:'AWS Least Privilege means:',o:['Grant AdministratorAccess','Only specific needed permissions','Use root account','Share IAM keys'],a:1,e:'AWS PoLP: grant only specific actions on specific resources needed. Avoid wildcards and admin access.'}],
+   interview:['Q: Service accounts in cloud? A: IAM roles/service principals for applications to access cloud resources without human credentials. Should follow PoLP.']},
+  {id:'passwords',ico:'&#128274;',t:'Password Security',d:'Hashing, salting, bcrypt, Argon2, attacks.',xp:20,color:'var(--red)',
+   theory:'Passwords must be hashed (never plaintext) with bcrypt or Argon2 + unique salt. Never use MD5 or SHA-1. Salting prevents rainbow table attacks.',
+   example:'User sets password "Summer2023!" → System generates random salt "a3f9b2" → Computes bcrypt(Summer2023!+a3f9b2) → Stores hash+salt in DB.',
+   questions:[{q:'Best algorithm for storing passwords:',o:['MD5','SHA-256','Argon2 with salt','Base64 encoding'],a:2,e:'Argon2 (or bcrypt) with unique salt is the modern standard. MD5 and SHA-256 are too fast and insecure for passwords.'}],
+   interview:['Q: Why salt? A: Prevents rainbow table attacks — same password generates different hash for each user due to unique salt.']},
+  {id:'compliance',ico:'&#9989;',t:'Compliance',d:'GDPR, SOC2, HIPAA, ISO 27001 in IAM context.',xp:20,color:'var(--a3)',
+   theory:'IAM compliance ensures organizations meet regulatory requirements. GDPR: data subject rights, access control, audit logs. SOC2: access control, availability, confidentiality. HIPAA: PHI protection.',
+   example:'SOC2 audit: Auditor checks 1. Are inactive users disabled? 2. Is MFA enforced? 3. Are access reviews performed quarterly? 4. Are privileged actions logged?',
+   questions:[{q:'GDPR requires organizations to:',o:['Use only cloud storage','Encrypt everything with AES','Control data access and maintain audit logs','Disable all MFA'],a:2,e:'GDPR requires proper access control, audit logging, data minimization, and the ability to honor data subject access/deletion requests.'}],
+   interview:['Q: SOC2 Type 1 vs Type 2? A: Type 1 = point-in-time audit (controls exist). Type 2 = over 6-12 months (controls are effective). Type 2 is more rigorous.']},
+  {id:'tools',ico:'&#128295;',t:'IAM Tools',d:'Okta, CyberArk, SailPoint, Entra ID, Ping.',xp:20,color:'var(--a4)',
+   theory:'IAM ecosystem includes IdP/SSO tools (Okta, Entra ID, Ping), IGA tools (SailPoint, Saviynt), PAM tools (CyberArk, BeyondTrust), and CIAM tools (Auth0, Transmit Security).',
+   example:'Enterprise IAM stack: Okta for SSO/MFA → SailPoint for governance/access reviews → CyberArk for PAM → Splunk for audit logs and SIEM integration.',
+   questions:[{q:'CyberArk is primarily used for:',o:['SSO','Password manager','Privileged Access Management','Email security'],a:2,e:'CyberArk is the leading PAM solution. It vaults privileged credentials, records admin sessions, and enforces JIT access.'}],
+   interview:['Q: Okta vs Microsoft Entra ID? A: Both are IdP/SSO platforms. Okta is vendor-neutral (works with any IdP). Entra ID is Microsoft-centric but broader in Azure ecosystem.']},
+  {id:'casestud',ico:'&#128218;',t:'Case Studies',d:'Banking, Healthcare, University, Cloud IAM.',xp:20,color:'var(--pink)',
+   theory:'Real-world IAM implementations across industries. Banking: strict access control, fraud prevention. Healthcare: HIPAA, PHI protection. Universities: student lifecycle management.',
+   example:'Hospital IAM: Each doctor gets role-based access to only their patient records. Admin has "Approve Orders" but not "Execute Orders" (SoD). All access logged for HIPAA compliance.',
+   questions:[{q:'A bank teller accessing executive salary data is a violation of:',o:['MAC','Principle of Least Privilege','RBAC','LDAP policies'],a:1,e:'PoLP violation — bank teller role should not have access to executive compensation data.'}],
+   interview:['Q: IAM in banking? A: Strict PoLP, real-time access monitoring, SoD for financial transactions, quarterly access reviews, PAM for core banking access.']},
+  {id:'career',ico:'&#128640;',t:'IAM Career Path',d:'Job roles, skills, certifications, salary.',xp:20,color:'var(--a)',
+   theory:'IAM career paths: IAM Analyst → IAM Engineer → IAM Architect → CISO. Key skills: Active Directory, Azure AD, Okta, SailPoint, CyberArk, SAML, scripting (PowerShell, Python).',
+   example:'Entry path: IT Support → IAM Analyst (2 years) → IAM Engineer (3-4 years) → IAM Architect (5+ years). Certifications: SC-300, CISSP, CISM accelerate progression.',
+   questions:[{q:'Which certification is most relevant for IAM/Azure?',o:['CompTIA A+','SC-300 (Microsoft Identity)','CCNA','AWS SAA'],a:1,e:'Microsoft SC-300 (Identity and Access Administrator) is the most relevant IAM certification for Azure/Entra ID environments.'}],
+   interview:['Q: Key IAM skills for 2024? A: Okta/Entra ID, SailPoint IIQ, CyberArk, Sailpoint, PowerShell, Python scripting, Zero Trust, SAML/OIDC/OAuth, PAM.']},
+];
+
+// ── RENDER MODULES ──
+function renderModules(){
+  var el=document.getElementById('modgrid');if(!el)return;
+  el.innerHTML=MODS.map(function(m){
+    var done=G.modDone.indexOf(m.id)>=0;
+    return '<div class="mod-card'+(done?' done-m':'')+'" onclick="openModule(\''+m.id+'\')" style="--mc:'+m.color+'"><div class="mod-ico">'+m.ico+'</div><div class="mod-t">'+m.t+'</div><div class="mod-d">'+m.d+'</div><div class="mod-xp">&#9889; +'+m.xp+' XP'+(done?' &nbsp;<span class="tag tg">Done</span>':'')+'</div></div>';
+  }).join('');
+}
+renderModules();
+
+function openModule(id){
+  var m=MODS.find(function(x){return x.id===id;});if(!m)return;
+  if(G.modDone.indexOf(id)<0){G.modDone.push(id);save();addXP(m.xp,'Module: '+m.t);completeMissionCheck();}
+  var h='<div class="sh"><div class="stag">MODULE</div><h2>'+m.ico+' '+m.t+'</h2><p style="color:var(--t2);font-size:.86rem">'+m.d+'</p></div>';
+  h+='<div class="acwrap">';
+  // Theory
+  h+='<div class="ac"><div class="ach" onclick="this.closest(\'.ac\').classList.toggle(\'open\')"><div class="acico" style="background:rgba(0,212,255,.12);color:var(--a)">&#128218;</div><span class="actit">Theory & Concepts</span><span class="acarr">&#9660;</span></div><div class="acbody"><div class="acin"><div class="tdesc">'+m.theory+'</div></div></div></div>';
+  // Example
+  h+='<div class="ac"><div class="ach" onclick="this.closest(\'.ac\').classList.toggle(\'open\')"><div class="acico" style="background:rgba(16,185,129,.12);color:var(--a3)">&#127760;</div><span class="actit">Real-World Example</span><span class="acarr">&#9660;</span></div><div class="acbody"><div class="acin"><div class="ibox">'+m.example+'</div></div></div></div>';
+  // Quiz
+  h+='<div class="ac"><div class="ach" onclick="this.closest(\'.ac\').classList.toggle(\'open\')"><div class="acico" style="background:rgba(124,58,237,.12);color:#a78bfa">&#10067;</div><span class="actit">Knowledge Check</span><span class="acarr">&#9660;</span></div><div class="acbody"><div class="acin">';
+  m.questions.forEach(function(q,qi){
+    h+='<div style="margin-bottom:14px"><div class="tdesc" style="margin-bottom:8px">'+q.q+'</div><div id="mdq_'+id+'_'+qi+'">';
+    q.o.forEach(function(o,oi){h+='<button class="chopt" onclick="ansModQ(this,\''+id+'\','+qi+','+oi+','+q.a+')"><b>'+'ABCD'[oi]+'.</b> '+o+'</button>';});
+    h+='</div><div id="mdqfb_'+id+'_'+qi+'" class="qexp"></div></div>';
+  });
+  h+='</div></div></div>';
+  // Interview
+  h+='<div class="ac"><div class="ach" onclick="this.closest(\'.ac\').classList.toggle(\'open\')"><div class="acico" style="background:rgba(245,158,11,.12);color:var(--a4)">&#128172;</div><span class="actit">Interview Q&A</span><span class="acarr">&#9660;</span></div><div class="acbody"><div class="acin">';
+  m.interview.forEach(function(qa){h+='<div class="qa-item"><p style="font-size:.79rem;color:var(--t2)">'+qa+'</p></div>';});
+  h+='</div></div></div></div>';
+  document.getElementById('moddetail').innerHTML=h;
+  sv('module-detail');
+}
+function ansModQ(el,mid,qi,ans,cor){
+  var opts=document.querySelectorAll('#mdq_'+mid+'_'+qi+' .chopt');
+  opts.forEach(function(o,i){o.style.pointerEvents='none';if(i===cor)o.classList.add('cor');if(i===ans&&ans!==cor)o.classList.add('wrg');});
+  var m=MODS.find(function(x){return x.id===mid;});
+  var fb=document.getElementById('mdqfb_'+mid+'_'+qi);
+  if(fb){fb.className='qexp on';fb.innerHTML=(ans===cor?'&#10003; Correct! ':'&#10007; Incorrect. ')+(m&&m.questions[qi]?m.questions[qi].e:'');}
+  if(ans===cor)addXP(10,'Module Quiz: '+mid);
+}
+
+// ── MISSIONS ──
+var MISS=[
+  {id:'m1',t:'Complete an IAM Module',d:'Open any module and complete the knowledge check.',ico:'&#128218;',xp:20,b:null},
+  {id:'m2',t:'Complete Authentication Quiz',d:'Score 80%+ on the Authentication quiz.',ico:'&#128273;',xp:50,b:'auth'},
+  {id:'m3',t:'Complete RBAC Lab',d:'Assign all roles correctly in Lab 1.',ico:'&#128193;',xp:50,b:'rbac'},
+  {id:'m4',t:'Explore MFA Simulator',d:'Complete the MFA setup walkthrough.',ico:'&#128241;',xp:30,b:'mfa'},
+  {id:'m5',t:'Complete SSO Demo',d:'Login and access all SSO applications.',ico:'&#128272;',xp:40,b:'fed'},
+  {id:'m6',t:'Complete 5 IAM Challenges',d:'Answer 5 or more scenarios correctly.',ico:'&#127959;',xp:50,b:null},
+  {id:'m7',t:'Beat the Escape Room',d:'Complete all 8 Escape Room challenges.',ico:'&#128682;',xp:80,b:'zt'},
+  {id:'m8',t:'Maturity Assessment',d:'Complete the IAM maturity assessment.',ico:'&#128200;',xp:40,b:null}
+];
+function completeMissionCheck(){
+  if(G.modDone.length>=1&&G.missions.indexOf('m1')<0)completeMission('m1');
+  if(G.challenges.length>=5&&G.missions.indexOf('m6')<0)completeMission('m6');
+}
+function completeMission(id){
+  if(G.missions.indexOf(id)>=0)return;
+  G.missions.push(id);
+  var m=MISS.find(function(x){return x.id===id;});
+  if(m){addXP(m.xp,'Mission: '+m.t);if(m.b)unlockBadge(m.b);}
+  save();renderMissions();
+  if(G.missions.length>=8)addXP(500,'All Missions Complete!');
+}
+function renderMissions(){
+  var el=document.getElementById('mlist');if(!el)return;
+  el.innerHTML=MISS.map(function(m,i){
+    var done=G.missions.indexOf(m.id)>=0;
+    var avail=i===0||G.missions.indexOf(MISS[i-1].id)>=0||done;
+    return '<div class="mitem '+(done?'done':avail?'avail':'')+'"><div class="mico" style="background:rgba(0,212,255,.09);color:var(--a)">'+m.ico+'</div><div class="mbody"><div class="mtit"'+(done?' style="text-decoration:line-through;color:var(--t3)"':'')+'>'+m.t+'</div><div class="mdesc">'+m.d+'</div><div class="mxp">&#9889; +'+m.xp+' XP</div></div>'+(done?'<span class="tag tg">&#10003; Done</span>':avail?'<button class="btn btnp btnsm" onclick="completeMission(\''+m.id+'\')">Claim</button>':'<span class="tag" style="background:rgba(255,255,255,.04);color:var(--t3)">&#128274;</span>')+'</div>';
+  }).join('');
+}
+renderMissions();
+
+// ── SKILL TREE ──
+var SKILLS=[[{id:'iam',lbl:'IAM Fundamentals',sub:'Core concepts',lv:1}],[{id:'auth',lbl:'Authentication',sub:'Verify identity',lv:1},{id:'authz',lbl:'Authorization',sub:'Permissions',lv:1}],[{id:'rbac',lbl:'RBAC',sub:'Role-based AC',lv:2},{id:'mfa',lbl:'MFA',sub:'Multi-factor',lv:2},{id:'abac',lbl:'ABAC',sub:'Attribute-based',lv:2}],[{id:'fed',lbl:'Federation',sub:'SAML/OAuth/OIDC',lv:3},{id:'sso',lbl:'SSO',sub:'Single Sign-On',lv:3},{id:'ldap',lbl:'LDAP/AD',sub:'Directory',lv:3}],[{id:'pam',lbl:'PAM',sub:'Privileged access',lv:4},{id:'cloudiam',lbl:'Cloud IAM',sub:'AWS/Azure/GCP',lv:4},{id:'zt',lbl:'Zero Trust',sub:'Never trust model',lv:5}]];
+function renderST(){
+  var el=document.getElementById('sttree');var h='';
+  SKILLS.forEach(function(row,ri){
+    if(ri>0)h+='<div class="stcon"></div>';
+    h+='<div class="strow">';
+    row.forEach(function(s){
+      var unl=G.level>=s.lv,comp=G.topics.indexOf(s.id)>=0;
+      h+='<div class="stn '+(unl?(comp?'ul':'cur'):'lk')+'" onclick="learnSkill(\''+s.id+'\','+unl+')"><h4>'+s.lbl+'</h4><p>'+(unl?s.sub:'Lv.'+s.lv+' req')+'</p>'+(unl?'<div style="margin-top:3px"><span class="tag '+(comp?'tg':'tb')+'">'+(comp?'&#10003;':'Open')+'</span></div>':'')+'</div>';
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function learnSkill(id,unl){
+  if(!unl){toast('&#128274; Level up to unlock!');return;}
+  if(G.topics.indexOf(id)>=0){toast('Already learned!');return;}
+  G.topics.push(id);save();addXP(30,'Skill: '+id.toUpperCase());renderST();
+}
+
+// ── QUIZ ENGINE ──
+var QT={
+  'Authentication':{qs:[{q:'What does authentication answer?',o:['What can you do?','Who are you?','Where are you?','When?'],a:1,e:'Authentication answers "Who are you?" — verifies identity.'},{q:'Kerberos uses:',o:['Certificates','Passwords','Tickets','Biometrics'],a:2,e:'Kerberos uses TGTs issued by KDC for mutual authentication in AD.'},{q:'FIDO2 prevents:',o:['Brute force only','Phishing attacks','DDoS','Malware'],a:1,e:'FIDO2 passkeys are domain-bound — phishing is technically impossible.'},{q:'LDAP is used for:',o:['File storage','Directory queries + auth','Network routing','Email'],a:1,e:'LDAP handles directory lookups, user authentication, and attribute queries.'},{q:'RADIUS is used for:',o:['SSO','VPN + Wi-Fi auth','Database access','Certificate issuance'],a:1,e:'RADIUS authenticates VPN users and enterprise Wi-Fi clients (802.1X).'}]},
+  'Authorization':{qs:[{q:'Authorization answers:',o:['Who are you?','What is your password?','What can you do?','Are you online?'],a:2,e:'Authorization answers "What are you allowed to do?" and occurs after authentication.'},{q:'PoLP means:',o:['Grant all to admins','Minimum needed permissions','Allow all internal','Share credentials'],a:1,e:'Principle of Least Privilege: grant only the minimum permissions necessary for the job.'},{q:'ABAC uses:',o:['Fixed role names','User + resource + environment attributes','Passwords only','Network zones'],a:1,e:'ABAC evaluates attributes (department, time, location) for dynamic access decisions.'},{q:'HTTP 403 means:',o:['No auth token','Authenticated but forbidden','Not found','Server error'],a:1,e:'403 Forbidden = authenticated user lacks permission for that resource.'},{q:'Authorization occurs ___ authentication.',o:['Before','Instead of','After','Without'],a:2,e:'Authentication (identity check) must succeed before authorization (permission check) runs.'}]},
+  'MFA':{qs:[{q:'"Something you are" is:',o:['Password','Smartphone','Fingerprint','Security question'],a:2,e:'Inherence factor = biometrics: fingerprint, face, iris scan — something you are.'},{q:'MFA Fatigue attack:',o:['Guessing passwords','Repeated push notifications','Cloning SIM','Intercepting SMS'],a:1,e:'Push bombing sends repeated prompts hoping for accidental approval. Prevented by number matching.'},{q:'TOTP refreshes every:',o:['1 minute','30 seconds','5 minutes','1 hour'],a:1,e:'TOTP uses HMAC-SHA1 + timestamp to generate a new 6-digit code every 30 seconds.'},{q:'Weakest MFA factor:',o:['Hardware YubiKey','TOTP app','SMS OTP','Push notification'],a:2,e:'SMS OTP is vulnerable to SIM swapping and SS7 interception — weakest possession factor.'},{q:'Number matching prevents:',o:['Brute force','MFA fatigue push bombing','Credential stuffing','Dictionary attacks'],a:1,e:'Number matching forces user to confirm a code displayed on the login page in authenticator app.'}]},
+  'RBAC':{qs:[{q:'RBAC stands for:',o:['Rule-Based AC','Role-Based Access Control','Resource-Based Auth','Remote Batch AC'],a:1,e:'Role-Based Access Control — most widely deployed enterprise IAM model.'},{q:'Permissions in RBAC are assigned to:',o:['Individual users','IP addresses','Roles','Devices'],a:2,e:'RBAC assigns permissions to roles. Users inherit permissions through role assignments.'},{q:'Role Engineering involves:',o:['Designing routers','Mapping roles to job functions','Encrypting passwords','Monitoring users'],a:1,e:'Role engineering: analyze job functions → identify permissions → create roles → assign users.'},{q:'IT Admin role typically includes:',o:['View HR records','Access payroll','Create users + manage servers','View grades'],a:2,e:'IT Administrator role: create users, reset passwords, manage servers, configure infrastructure.'},{q:'RBAC main advantage:',o:['Faster logins','Scalability + easy management','Better encryption','More logs'],a:1,e:'Change a role once and all users in that role update automatically — highly scalable.'}]},
+  'Federation':{qs:[{q:'SAML 2.0 format:',o:['JSON','XML','CSV','YAML'],a:1,e:'SAML 2.0 encodes authentication assertions in XML format. Enterprise standard.'},{q:'OAuth 2.0 is:',o:['Auth protocol','Authorization framework','Encryption standard','Directory service'],a:1,e:'OAuth 2.0 is a delegated authorization framework — NOT an authentication protocol.'},{q:'OIDC adds ___ on OAuth:',o:['Encryption','Authorization','Authentication','Logging'],a:2,e:'OIDC adds identity/authentication layer on top of OAuth 2.0 by issuing signed JWT ID tokens.'},{q:'IdP role:',o:['Provides apps','Stores files','Authenticates + issues tokens','Routes traffic'],a:2,e:'Identity Provider authenticates users and issues SAML assertions or JWTs to Service Providers.'},{q:'Most modern SSO protocol:',o:['SAML 1.0','WS-Federation','OpenID Connect','Kerberos v4'],a:2,e:'OIDC on OAuth 2.0 is the most modern and widely-used SSO/federation protocol today.'}]},
+  'Zero Trust':{qs:[{q:'Zero Trust principle:',o:['Trust internal traffic','Never trust always verify','Block all external','Firewalls only'],a:1,e:'"Never Trust, Always Verify" — every request verified regardless of network origin.'},{q:'ZT verifies:',o:['Only user','Only device','Identity + device + risk','Only IP'],a:2,e:'ZT continuously checks identity, device posture, and contextual risk before granting access.'},{q:'Micro-segmentation means:',o:['Splitting passwords','Network isolated zones','Multiple firewalls','Fragmenting accounts'],a:1,e:'Divides network into isolated zones to contain breaches and prevent lateral movement.'},{q:'JIT access:',o:['Just-In-Time temporary access','Just-In-Transaction logging','Auto-granting access','VPN protocol'],a:0,e:'JIT grants elevated privileges only when needed and removes them immediately after the task.'},{q:'Best model for Zero Trust:',o:['DAC','MAC','PBAC/ABAC','Legacy RBAC only'],a:2,e:'Policy-Based and Attribute-Based models enable the dynamic context-aware decisions ZT requires.'}]}
+};
+var QS={topic:null,qs:[],cur:0,score:0,answered:false};
+function renderQTopics(){
+  document.getElementById('qplay').style.display='none';
+  document.getElementById('qtopics').style.display='block';
+  document.getElementById('qsc').className='scscrn';
+  document.getElementById('qtbns').innerHTML=Object.keys(QT).map(function(k){
+    var done=G.quizzes.indexOf(k)>=0;
+    return '<button class="qtbtn'+(done?' on':'')+'" onclick="startQ(\''+k+'\')">'+(done?'&#10003; ':'')+k+'</button>';
+  }).join('');
+}
+function startQ(topic){
+  QS={topic:topic,qs:QT[topic].qs.slice(),cur:0,score:0,answered:false};
+  document.getElementById('qtopics').style.display='none';
+  document.getElementById('qplay').style.display='block';
+  document.getElementById('qtlbl').textContent=topic.toUpperCase()+' QUIZ';
+  renderQQ();
+}
+function renderQQ(){
+  if(QS.cur>=QS.qs.length){endQ();return;}
+  var q=QS.qs[QS.cur],tot=QS.qs.length;
+  document.getElementById('qnum').textContent=(QS.cur+1)+' / '+tot;
+  document.getElementById('qpbf').style.width=((QS.cur+1)/tot*100)+'%';
+  document.getElementById('qexp').className='qexp';
+  document.getElementById('qnxt').style.display='none';
+  QS.answered=false;
+  var h='<div style="animation:tin .3s ease"><div class="qtxt">'+q.q+'</div><div class="qopts">';
+  q.o.forEach(function(o,i){h+='<div class="qopt" onclick="ansQ(this,'+i+')"><span class="ok">'+'ABCD'[i]+'</span>'+o+'</div>';});
+  h+='</div></div>';
+  document.getElementById('qcard').innerHTML=h;
+}
+function ansQ(el,idx){
+  if(QS.answered)return;QS.answered=true;
+  var cor=QS.qs[QS.cur].a,opts=document.querySelectorAll('.qopt');
+  opts[cor].classList.add('cor');
+  var exp=document.getElementById('qexp');
+  if(idx===cor){QS.score++;el.classList.add('cor');exp.innerHTML='&#10003; Correct! '+QS.qs[QS.cur].e;exp.className='qexp on';}
+  else{el.classList.add('wrg');opts[cor].classList.add('shc');exp.innerHTML='&#10007; Incorrect. '+QS.qs[QS.cur].e;exp.className='qexp on';}
+  document.getElementById('qnxt').style.display='inline-flex';
+}
+function nextQ(){QS.cur++;renderQQ();}
+function endQ(){
+  var pct=Math.round(QS.score/QS.qs.length*100);
+  document.getElementById('qplay').style.display='none';
+  var sc=document.getElementById('qsc');sc.className='scscrn on';
+  document.getElementById('scn').textContent=QS.score;
+  document.getElementById('sct').textContent=QS.qs.length;
+  var msg=pct>=80?'&#127942; Excellent!':pct>=60?'&#128077; Good work!':'&#128218; Keep studying!';
+  document.getElementById('scmsg').innerHTML=msg;
+  document.getElementById('scdet').textContent=QS.score+'/'+QS.qs.length+' ('+pct+'%) — '+QS.topic;
+  var xpAmt=50+(pct>=80?100:0);
+  if(pct===100&&QS.topic==='MFA')unlockBadge('mfa');
+  if(QS.topic==='Authentication')unlockBadge('auth');
+  if(QS.topic==='Authorization')unlockBadge('authz');
+  if(QS.topic==='RBAC')unlockBadge('rbac');
+  if(QS.topic==='Federation')unlockBadge('fed');
+  addXP(xpAmt,'Quiz: '+QS.topic+' ('+pct+'%)');
+  if(G.quizzes.indexOf(QS.topic)<0){G.quizzes.push(QS.topic);save();}
+  if(G.quizzes.length>=3)unlockBadge('quiz3');
+  if(pct>=80)completeMission('m2');
+}
+function resetQ(){document.getElementById('qsc').className='scscrn';renderQTopics();}
+
+// ── LABS ──
+var RUSERS=[{n:'Raj Kumar',dept:'HR',ico:'&#128100;',cor:'HR Manager'},{n:'Priya Sharma',dept:'Finance',ico:'&#128101;',cor:'Finance Manager'},{n:'Amit Singh',dept:'IT',ico:'&#128104;',cor:'Administrator'}];
+var ROLES2=['HR Manager','Finance Manager','Administrator','Developer','Read Only'];
+var PROVS=['Create User Account','Assign to HR Group','Assign HR Manager Role','Enable MFA'];
+var DEPROVS=['Disable Account','Remove Role Assignments','Revoke Access Tokens','Remove Group Memberships'];
+var provCur=0,deprovCur=0,accreqState=0;
+function initLabs(){
+  // RBAC
+  document.getElementById('rbaclab').innerHTML=RUSERS.map(function(u,i){
+    var opts=ROLES2.map(function(r){return '<option>'+r+'</option>';}).join('');
+    return '<div class="uc"><div class="uav" style="background:rgba(0,212,255,.12);color:var(--a)">'+u.ico+'</div><div style="flex:1"><div style="font-weight:700;font-size:.83rem">'+u.n+'</div><div style="font-size:.71rem;color:var(--t2)">Dept: '+u.dept+'</div></div><select class="rsel" id="rs_'+i+'">'+opts+'</select></div>';
+  }).join('');
+  document.getElementById('rbacres').innerHTML='';
+  provCur=0;deprovCur=0;
+  renderProvSteps();renderDeprovSteps();renderAccReq();
+}
+function renderProvSteps(){
+  document.getElementById('provsteps').innerHTML=PROVS.map(function(s,i){
+    var cls=i<provCur?'done':i===provCur?'actv':'';
+    return '<div class="step '+cls+'"><div class="stepn">'+(i<provCur?'&#10003;':(i+1))+'</div><div style="flex:1"><div style="font-weight:700;font-size:.82rem">'+s+'</div></div>'+(i===provCur?'<button class="btn btnp btnsm" onclick="doProvStep()">Execute</button>':'')+'</div>';
+  }).join('');
+}
+function doProvStep(){
+  if(provCur<PROVS.length){addXP(5,'Prov step: '+PROVS[provCur]);provCur++;renderProvSteps();}
+  if(provCur===PROVS.length){document.getElementById('provres').innerHTML='<div class="ibox" style="color:var(--a3)">&#10003; Priya Sharma provisioned successfully! +20 XP</div>';addXP(20,'Provisioning Lab Done');}
+}
+function renderDeprovSteps(){
+  document.getElementById('deprovsteps').innerHTML=DEPROVS.map(function(s,i){
+    var cls=i<deprovCur?'done':i===deprovCur?'actv':'';
+    return '<div class="step '+cls+'"><div class="stepn">'+(i<deprovCur?'&#10003;':(i+1))+'</div><div style="flex:1"><div style="font-weight:700;font-size:.82rem">'+s+'</div>'+(i===deprovCur?'<div style="font-size:.71rem;color:var(--red)">SECURITY RISK if skipped!</div>':'')+'</div>'+(i===deprovCur?'<button class="btn btnp btnsm" onclick="doDeprovStep()">Execute</button>':'')+'</div>';
+  }).join('');
+}
+function doDeprovStep(){
+  if(deprovCur<DEPROVS.length){addXP(5,'Deprov step: '+DEPROVS[deprovCur]);deprovCur++;renderDeprovSteps();}
+  if(deprovCur===DEPROVS.length){document.getElementById('deprovres').innerHTML='<div class="ibox" style="color:var(--a3)">&#10003; Raj Kumar fully deprovisioned! All access removed. +20 XP</div>';addXP(20,'Deprovisioning Lab Done');}
+}
+function checkRBAC(){
+  var res=document.getElementById('rbacres');var correct=0;var h='';
+  RUSERS.forEach(function(u,i){var sel=document.getElementById('rs_'+i);var v=sel?sel.value:'';var ok=v===u.cor;if(ok){correct++;h+='<div style="color:var(--a3);font-size:.79rem;margin-bottom:3px">&#10003; '+u.n+' &#8594; '+v+' (Correct!)</div>';}else h+='<div style="color:var(--red);font-size:.79rem;margin-bottom:3px">&#10007; '+u.n+' &#8594; '+v+' (Should be: '+u.cor+')</div>';});
+  if(correct===3){addXP(30,'RBAC Lab Complete!');completeMission('m3');h+='<div class="ibox" style="margin-top:8px;color:var(--a3)">&#127942; Perfect! All roles correct. +30 XP</div>';}
+  else if(correct<3){h+='<div style="color:var(--t2);font-size:.77rem;margin-top:7px">'+correct+'/3 correct.</div>';}
+  res.innerHTML=h;
+}
+function renderAccReq(){
+  var el=document.getElementById('accreq');if(!el)return;
+  var stages=[{t:'Access Request',b:'Employee <b>Ananya Rao</b> requests <b>Payroll System</b> access. You are the approving manager. What do you decide?',btns:['Approve','Reject','Request More Info']},
+    {t:'Access Approved &#10003;',b:'Access granted. +20 XP. Ensure this follows PoLP — grant only what is needed for the specific job function.'},
+    {t:'Access Rejected &#10007;',b:'Request rejected. Ananya has been notified. She can resubmit with additional business justification.'},
+    {t:'More Info Requested &#128203;',b:'Additional justification requested. Zero Trust principle: verify the business need before granting any access.'}];
+  var s=stages[accreqState];
+  var h='<h4 style="margin-bottom:11px;font-size:.86rem">'+s.t+'</h4><div class="ibox">'+s.b+'</div>';
+  if(s.btns)h+='<div style="display:flex;gap:8px;flex-wrap:wrap">'+s.btns.map(function(b,i){return '<button class="btn '+(i===0?'btnp':i===1?'btnr':'btns')+' btnsm" onclick="accDecision('+i+')">'+b+'</button>';}).join('')+'</div>';
+  else h+='<button class="btn btns btnsm" onclick="accreqState=0;renderAccReq()">&#8634; New Request</button>';
+  el.innerHTML=h;
+}
+function accDecision(d){if(d===0)addXP(20,'Access Request Approved');accreqState=d+1;renderAccReq();}
+
+// ── CHALLENGES ──
+var CHALS=[
+  {id:'c1',t:'RBAC Scenario',tp:'Authorization',s:'Raj works in HR. He needs to view employee records but must NOT access financial systems. Which access should he receive?',o:['Database Administrator','HR Records Viewer','Network Administrator','System Administrator'],a:1,xp:25,e:'Least Privilege: Raj needs only HR records access. Admin rights would violate PoLP.'},
+  {id:'c2',t:'MFA Selection',tp:'MFA',s:'A bank needs the strongest MFA for privileged admin accounts. Which should they choose?',o:['SMS OTP','Email code','Hardware FIDO2 key (YubiKey)','Backup codes'],a:2,xp:25,e:'FIDO2 hardware keys are phishing-resistant — the strongest available MFA option.'},
+  {id:'c3',t:'Zero Trust Decision',tp:'Zero Trust',s:'Employee VPNs in from an unusual country at 3 AM with an unknown device. What should Zero Trust do?',o:['Allow — valid password','Allow — on VPN','Step-up MFA + device check required','Send email notification only'],a:2,xp:25,e:'ZT: unusual location + time + unknown device = high risk. Require step-up verification.'},
+  {id:'c4',t:'Leaver Process',tp:'IAM Lifecycle',s:'An employee is terminated today. What is the FIRST IAM action?',o:['Delete the account','Disable the account immediately','Reset the password','Remove MFA only'],a:1,xp:25,e:'Always disable first — preserves audit logs needed for compliance and forensics.'},
+  {id:'c5',t:'Federation Protocol',tp:'Federation',s:'Company wants Microsoft Entra ID SSO for Salesforce. Best protocol?',o:['RADIUS','LDAP','SAML 2.0','Kerberos'],a:2,xp:25,e:'SAML 2.0 is the enterprise standard for IdP (Entra ID) to SP (Salesforce) SSO.'},
+  {id:'c6',t:'Password Storage',tp:'Password Security',s:'How should passwords be stored in a production database?',o:['Plaintext','Base64 encoded','MD5 hash','bcrypt hash with unique salt'],a:3,xp:25,e:'bcrypt or Argon2 with unique salt is the industry standard. Plaintext, Base64, and MD5 are insecure.'},
+  {id:'c7',t:'ABAC Policy',tp:'ABAC',s:'Access granted only to HR staff during business hours from office. This is:',o:['RBAC','DAC','ABAC','MAC'],a:2,xp:25,e:'ABAC uses attributes (department, time, location) for dynamic context-aware access decisions.'},
+  {id:'c8',t:'PAM Scenario',tp:'PAM',s:'Admin needs temporary production database access for maintenance. Best PAM practice?',o:['Give permanent root access','Create shared admin account','JIT access with session recording','Email the password'],a:2,xp:25,e:'JIT grants time-limited elevated access. Session recording provides full audit trail.'},
+  {id:'c9',t:'Incident Response',tp:'Security',s:'50 failed login attempts detected on admin account in 2 minutes. Best immediate response?',o:['Ignore — probably the user','Lock account + alert security team','Grant temporary access','Reset password only'],a:1,xp:25,e:'Lock the account immediately and alert the security team — this is a brute force attack pattern.'},
+  {id:'c10',t:'Cloud IAM',tp:'Cloud IAM',s:'In AWS IAM, developer needs to read from one S3 bucket only. Best practice?',o:['Grant AdministratorAccess','s3:GetObject on that specific bucket ARN','Use root account','Share existing admin keys'],a:1,xp:25,e:'Grant only s3:GetObject on the specific ARN — PoLP for cloud IAM. Never use wildcards for production access.'}
+];
+function renderChallenges(){
+  var el=document.getElementById('chlist');if(!el)return;
+  el.innerHTML=CHALS.map(function(c){
+    var done=G.challenges.indexOf(c.id)>=0;
+    return '<div class="chcard"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px"><div><h4 style="font-size:.86rem">'+c.t+'</h4><span class="tag tb" style="margin-top:3px">'+c.tp+'</span></div><div style="display:flex;gap:7px;align-items:center"><span class="tag ty">+'+c.xp+' XP</span>'+(done?'<span class="tag tg">&#10003;</span>':'')+'</div></div><div class="chscen">'+c.s+'</div><div id="cho_'+c.id+'">'+(c.o.map(function(o,i){var oc=done?'style="pointer-events:none"':'onclick="chalAns(this,'+i+',\''+c.id+'\','+c.a+','+c.xp+')"';return '<button class="chopt" '+oc+'><b>'+'ABCD'[i]+'.</b> '+o+'</button>';}).join(''))+'</div>'+(done?'<div class="qexp on" style="margin-top:6px">&#10003; '+c.e+'</div>':'')+'</div>';
+  }).join('');
+}
+function chalAns(el,idx,cid,cor,xp){
+  var opts=document.querySelectorAll('#cho_'+cid+' .chopt');
+  opts.forEach(function(o,i){o.style.pointerEvents='none';if(i===cor)o.classList.add('cor');if(i===idx&&idx!==cor)o.classList.add('wrg');});
+  var c=CHALS.find(function(x){return x.id===cid;});
+  var div=document.createElement('div');div.className='qexp on';div.style.marginTop='6px';
+  if(idx===cor){addXP(xp,'Challenge: '+(c?c.t:cid));if(G.challenges.indexOf(cid)<0){G.challenges.push(cid);save();}div.innerHTML='&#10003; '+(c?c.e:'Correct!');if(G.challenges.length>=5)completeMission('m6');}
+  else{div.style.borderColor='var(--red)';div.style.background='rgba(239,68,68,.04)';div.innerHTML='&#10007; '+(c?c.e:'Incorrect.');}
+  el.closest('.chcard').appendChild(div);
+}
+renderChallenges();
+
+// ── ESCAPE ROOM ──
+var ESC=[{t:'The Terminated Employee',s:'An employee is terminated today. What is the FIRST IAM action?',o:['Reset Password','Disable Account','Enable MFA','Archive Emails'],a:1},{t:'The Suspicious Login',s:'User logs in from Nigeria at 2 AM — normally works in Mumbai. Zero Trust policy:',o:['Allow — valid password','Block permanently','Step-up MFA + device check','Email warning only'],a:2},{t:'The Overprivileged Admin',s:'IT admin has unnecessary access to HR, Finance, and Medical records. This violates:',o:['RBAC','Principle of Least Privilege','Federation rules','Kerberos protocol'],a:1},{t:'The Password Breach',s:'Attackers have your password database. Which format is safest?',o:['Plaintext','MD5 hash','SHA-256 hash','Argon2 + unique salt'],a:3},{t:'The OAuth Decision',s:'Third-party app wants to post tweets on user\'s behalf. User grants via:',o:['Their password','OAuth 2.0 authorization','SAML assertion','Kerberos ticket'],a:1},{t:'The New Joiner',s:'New employee joins today. Correct IAM provisioning ORDER:',o:['Give all access then restrict','Create account → Role → MFA → Monitor','Admin access for first week','Use previous employee\'s account'],a:1},{t:'Privilege Escalation',s:'Attacker gains user access and tries to escalate to admin. Best protection:',o:['Strong passwords only','MFA only','PAM + JIT + Session Recording + PoLP','Firewall rules only'],a:2},{t:'The Final Escape',s:'You\'ve secured the IAM system. Final verification ensures ALL access is:',o:['Permanent and unrestricted','Logged, monitored, and audited continuously','Shared among team leads','Disabled for contractors'],a:1}];
+var escStg=G.escStage||0;
+function renderEscape(){
+  var el=document.getElementById('escwrap');
+  if(escStg>=ESC.length){
+    if(!G.escape){G.escape=true;completeMission('m7');addXP(100,'Escape Room Complete!');save();}
+    el.innerHTML='<div style="padding:16px"><div style="font-size:2.8rem;margin-bottom:12px">&#127881;</div><h2 style="color:var(--a3);margin-bottom:7px">You Escaped!</h2><p style="color:var(--t2);margin-bottom:14px">All 8 IAM security challenges solved.</p><button class="btn btnp btnsm" onclick="escStg=0;G.escStage=0;save();renderEscape()">&#8634; Play Again</button></div>';return;
+  }
+  var s=ESC[escStg];
+  var dots=ESC.map(function(_,i){return '<div class="esdot '+(i<escStg?'d':i===escStg?'c':'')+'"></div>';}).join('');
+  var oH=s.o.map(function(o,i){return '<button class="esopt" onclick="escAns(this,'+i+','+s.a+')">'+o+'</button>';}).join('');
+  el.innerHTML='<div style="font-size:.66rem;letter-spacing:2px;color:var(--a2);text-transform:uppercase;margin-bottom:8px">STAGE '+(escStg+1)+' / '+ESC.length+'</div><div class="esdots">'+dots+'</div><div style="font-size:1.2rem;font-weight:800;margin-bottom:5px">'+s.t+'</div><div class="esscen">'+s.s+'</div><div class="esopts">'+oH+'</div><div id="esfb" style="margin-top:10px;font-size:.8rem;min-height:16px"></div>';
+}
+function escAns(el,idx,cor){
+  document.querySelectorAll('.esopt').forEach(function(o){o.onclick=null;});
+  if(idx===cor){el.classList.add('cor');document.getElementById('esfb').innerHTML='<span style="color:var(--a3)">&#10003; Correct!</span>';addXP(25,'Escape Stage '+(escStg+1));escStg++;G.escStage=escStg;save();setTimeout(renderEscape,1000);}
+  else{el.classList.add('wrg');document.querySelectorAll('.esopt')[cor].classList.add('cor');document.getElementById('esfb').innerHTML='<span style="color:var(--red)">&#10007; Incorrect. Resetting…</span>';setTimeout(function(){renderEscape();},1300);}
+}
+renderEscape();
+
+// ── PASSWORD LAB ──
+function analyzePassword(pw){
+  var s=0,issues=[],sugg=[];
+  if(pw.length>=8)s+=20;else{issues.push('Too short (min 8)');sugg.push('Use 12+ characters');}
+  if(pw.length>=12)s+=10;if(pw.length>=16)s+=5;
+  if(/[A-Z]/.test(pw))s+=15;else{issues.push('No uppercase');sugg.push('Add A-Z letters');}
+  if(/[a-z]/.test(pw))s+=15;else issues.push('No lowercase');
+  if(/[0-9]/.test(pw))s+=15;else{issues.push('No numbers');sugg.push('Add digits 0-9');}
+  if(/[^A-Za-z0-9]/.test(pw))s+=20;else{issues.push('No special chars');sugg.push('Add !@#$%^&*');}
+  var common=['password','123456','qwerty','letmein','admin','welcome'];
+  if(common.indexOf(pw.toLowerCase())>=0){s=5;issues=['Common password — easily cracked!'];}
+  var cs=['#ef4444','#ef4444','#f59e0b','#f59e0b','#10b981','#10b981'];
+  var ls=['Very Weak','Weak','Fair','Good','Strong','Very Strong'];
+  var idx=Math.min(5,Math.floor(s/18));
+  var ct=['Instantly','< 1 second','Minutes','Hours','Years','Centuries+'];
+  document.getElementById('pwfil').style.width=s+'%';
+  document.getElementById('pwfil').style.background=cs[idx];
+  var h='<div style="display:flex;justify-content:space-between;font-size:.79rem;margin-bottom:10px"><span style="color:'+cs[idx]+';font-weight:700">'+ls[idx]+'</span><span style="color:var(--t2)">Score: '+s+'/100</span></div>';
+  h+='<div class="ibox"><div style="font-size:.74rem;color:var(--t2)">&#9200; Estimated crack time: <strong style="color:'+cs[idx]+'">'+ct[idx]+'</strong></div>';
+  if(issues.length){h+='<div style="margin-top:7px;font-size:.73rem;color:var(--red)">Issues:</div>';issues.forEach(function(i){h+='<div style="font-size:.71rem;color:var(--t2);padding-left:10px">&#10007; '+i+'</div>';});}
+  if(sugg.length){h+='<div style="margin-top:6px;font-size:.73rem;color:var(--a4)">Suggestions:</div>';sugg.forEach(function(s2){h+='<div style="font-size:.71rem;color:var(--t2);padding-left:10px">&#128161; '+s2+'</div>';});}
+  h+='</div>';
+  document.getElementById('pwinfo').innerHTML=h;
+}
+function simHash(s){var h=0;for(var i=0;i<s.length;i++)h=(Math.imul(31,h)+s.charCodeAt(i))|0;return Math.abs(h).toString(16).padStart(8,'0');}
+function showHash(v){
+  if(!v){document.getElementById('hout').innerHTML='';return;}
+  var salt=simHash(v+'salt').substr(0,8);
+  var h1=simHash(v).repeat(4).substr(0,32);
+  var h2=simHash(v+salt).repeat(4).substr(0,40);
+  document.getElementById('hout').innerHTML='<div style="margin-top:9px;font-size:.77rem"><div style="color:var(--t3);margin-bottom:5px">Plaintext: <span style="color:var(--red)">'+v+'</span> &#8592; NEVER store!</div><div style="margin-bottom:4px">MD5 (INSECURE): <span style="font-family:monospace;color:var(--a4)">'+h1+'</span></div><div style="margin-bottom:4px">Salt: <span style="font-family:monospace;color:var(--a2)">'+salt+'</span></div><div style="color:var(--a3)">bcrypt+salt (SECURE): <span style="font-family:monospace">$2b$12$'+h2+'...</span></div><div style="margin-top:7px;font-size:.71rem;color:var(--t3)">&#128161; Same password = different hash per user due to unique salt. Prevents rainbow table attacks.</div></div>';
+}
+function renderAtkGrid(){
+  var el=document.getElementById('atkgrid');if(!el)return;
+  var atks=[{n:'Brute Force',risk:95,c:'var(--red)',tip:'Account lockout + CAPTCHA + rate limiting'},{n:'Dictionary Attack',risk:80,c:'var(--a4)',tip:'Reject common passwords via HaveIBeenPwned API'},{n:'Credential Stuffing',risk:75,c:'#a78bfa',tip:'MFA + breach monitoring + bot detection'},{n:'Password Spraying',risk:70,c:'var(--a)',tip:'UEBA behavioral analytics + cross-account monitoring'}];
+  el.innerHTML=atks.map(function(a){return '<div style="background:var(--bg3);border:1px solid var(--b);border-radius:9px;padding:13px"><div style="font-weight:700;font-size:.82rem;margin-bottom:5px;color:'+a.c+'">'+a.n+'</div><div style="display:flex;justify-content:space-between;font-size:.71rem;color:var(--t3);margin-bottom:4px"><span>Risk</span><span>'+a.risk+'%</span></div><div style="background:var(--b);border-radius:3px;height:5px;margin-bottom:7px"><div style="width:'+a.risk+'%;height:100%;background:'+a.c+';border-radius:3px"></div></div><div style="font-size:.69rem;color:var(--a3)">&#10003; '+a.tip+'</div></div>';}).join('');
+}
+renderAtkGrid();
+
+// ── PHISHING TRAINER ──
+var PH=[{from:'security@miicros0ft-alerts.com',subj:'URGENT: Account suspended in 24 hours',body:'Dear User,\n\nWe detected suspicious activity. Click immediately:\nhttp://miicros0ft-alerts.com/verify?token=abc123\n\nMicrosoft Security Team',isPhish:true,clues:['Misspelled domain: miicros0ft-alerts.com','Urgency tactics (24 hours)','Suspicious redirect URL','Threatening language']},{from:'noreply@github.com',subj:'[GitHub] A personal access token was added',body:'Hi there,\n\nA new personal access token was added to your account.\n\nIf this was done in error, remove it at: https://github.com/settings/tokens\n\nThe GitHub Team',isPhish:false,clues:['Legitimate domain: github.com','No urgency or threats','Official GitHub format','Provides legitimate settings link']},{from:'payroll@yourcompany-secure.net',subj:'Action Required: Update banking details for salary',body:'Dear Employee,\n\nDue to system upgrade, update salary deposit details immediately:\nhttp://payroll-update.xyz/banking\n\nComplete within 2 hours to avoid payment delay.\n\nHR & Payroll Team',isPhish:true,clues:['Suspicious domain: yourcompany-secure.net','External .xyz redirect domain','Requests sensitive banking information','Urgency pressure (2 hours)']},{from:'admin@corp.local',subj:'System maintenance tonight 11PM–2AM IST',body:'Team,\n\nScheduled maintenance tonight from 11:00 PM to 2:00 AM.\n\nNo action required. Systems will auto-restore.\n\nIT Infrastructure Team\nExt: 4521',isPhish:false,clues:['Internal domain: corp.local','No links or credential requests','No urgency or threats','Contact information provided']}];
+var phIdx=0;
+function renderPhishing(){
+  var el=document.getElementById('phemails');if(!el)return;
+  document.getElementById('phsc').textContent=G.phSc;
+  document.getElementById('phto').textContent=G.phTo;
+  document.getElementById('phco').textContent=G.phCo;
+  if(phIdx>=PH.length){el.innerHTML='<div class="ibox">&#127881; All '+PH.length+' emails analyzed! Score: '+G.phCo+'/'+PH.length+'.<br><button class="btn btns btnsm" style="margin-top:9px" onclick="phIdx=0;G.phSc=0;G.phTo=0;G.phCo=0;save();renderPhishing()">&#8634; Restart</button></div>';return;}
+  var e=PH[phIdx];
+  var h='<div class="ecard"><div class="ehdr"><div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">FROM: '+(e.isPhish?'<span style="color:var(--red)">':'')+e.from+(e.isPhish?'</span>':'')+' </div><div style="font-weight:700;font-size:.84rem">'+e.subj+'</div></div>';
+  h+='<div class="ebody">'+e.body+'</div>';
+  h+='<div style="padding:13px;border-top:1px solid var(--b)"><p style="font-size:.77rem;color:var(--t2);margin-bottom:10px">Is this email safe or phishing?</p><div style="display:flex;gap:8px"><button class="btn btns btnsm" onclick="phAns(false)">&#128737; Safe</button><button class="btnr btn btnsm" onclick="phAns(true)">&#127907; Phishing</button></div><div id="phfb" style="margin-top:9px;font-size:.78rem;min-height:16px"></div></div></div>';
+  h+='<div style="text-align:center;margin-top:10px"><span style="font-size:.75rem;color:var(--t3)">Email '+(phIdx+1)+' of '+PH.length+'</span></div>';
+  el.innerHTML=h;
+}
+function phAns(guessPhish){
+  var e=PH[phIdx];var cor=guessPhish===e.isPhish;
+  G.phTo++;if(cor){G.phCo++;addXP(15,'Phishing Detection');}save();
+  var fb=document.getElementById('phfb');if(!fb)return;
+  fb.innerHTML=(cor?'<span style="color:var(--a3)">&#10003; Correct! '+(e.isPhish?'This was phishing.':'This was legitimate.')+'</span>':'<span style="color:var(--red)">&#10007; Incorrect. '+(e.isPhish?'This WAS phishing!':'This was SAFE.')+'</span>')+'<div style="margin-top:6px;font-size:.71rem;color:var(--t3)">Clues: '+e.clues.join(' | ')+'</div>';
+  document.querySelectorAll('.btn.btns.btnsm, .btnr.btn.btnsm').forEach(function(b){b.disabled=true;b.style.opacity='.5';});
+  setTimeout(function(){phIdx++;renderPhishing();},2000);
+}
+
+// ── MFA SIMULATOR ──
+var mfaStep=0;
+function renderMFA(){
+  var el=document.getElementById('mfawrap');if(!el)return;
+  var steps=[{t:'Step 1: Enter Username',ico:'&#128100;',content:'<input id="mfau" class="mi" style="margin:0 0 11px" placeholder="Enter username..."/><button class="btn btnp btnsm" onclick="mfaNext(0)">Continue &#8594;</button>'},
+    {t:'Step 2: Scan QR Code',ico:'&#128247;',content:'<p style="font-size:.81rem;color:var(--t2);margin-bottom:12px">Scan this QR code with your authenticator app to register.</p><div class="qrbox"><svg width="88" height="88" viewBox="0 0 88 88"><rect width="88" height="88" fill="white"/><rect x="4" y="4" width="28" height="28" fill="none" stroke="black" stroke-width="4"/><rect x="9" y="9" width="18" height="18" fill="black"/><rect x="56" y="4" width="28" height="28" fill="none" stroke="black" stroke-width="4"/><rect x="61" y="9" width="18" height="18" fill="black"/><rect x="4" y="56" width="28" height="28" fill="none" stroke="black" stroke-width="4"/><rect x="9" y="61" width="18" height="18" fill="black"/><rect x="40" y="40" width="5" height="5" fill="black"/><rect x="48" y="40" width="5" height="5" fill="black"/><rect x="44" y="44" width="5" height="5" fill="black"/><rect x="54" y="54" width="14" height="5" fill="black"/><rect x="63" y="59" width="5" height="19" fill="black"/></svg></div><button class="btn btnp btnsm" onclick="mfaNext(1)">QR Scanned &#8594;</button>'},
+    {t:'Step 3: Enter OTP',ico:'&#128272;',content:'<p style="font-size:.81rem;color:var(--t2);margin-bottom:9px">Enter the 6-digit code from your authenticator app:</p><div class="otprow"><input maxlength="1" oninput="om(this,1)"/><input maxlength="1" oninput="om(this,2)"/><input maxlength="1" oninput="om(this,3)"/><input maxlength="1" oninput="om(this,4)"/><input maxlength="1" oninput="om(this,5)"/><input maxlength="1" oninput="om(this,6)"/></div><button class="btn btnp btnsm" onclick="mfaNext(2)">Verify OTP &#8594;</button>'},
+    {t:'MFA Enabled! &#10003;',ico:'&#128737;',content:'<div style="text-align:center;padding:13px"><div style="font-size:2.8rem;margin-bottom:11px">&#128737;</div><p style="color:var(--a3);font-weight:700;margin-bottom:7px">MFA Successfully Enabled!</p><p style="font-size:.81rem;color:var(--t2)">Your account is now protected with TOTP-based MFA. +40 XP</p></div>'}];
+  el.innerHTML=steps.map(function(s,i){
+    var cls=i<mfaStep?'done-s':i===mfaStep?'actv':'';
+    return '<div class="mfastep '+cls+'"><div style="font-weight:700;font-size:.86rem;margin-bottom:8px">'+s.ico+' '+s.t+'</div>'+(i===mfaStep?s.content:i<mfaStep?'<span class="tag tg">&#10003; Completed</span>':'<span style="color:var(--t3);font-size:.77rem">Pending…</span>')+'</div>';
+  }).join('');
+}
+function om(inp,idx){var inputs=document.querySelectorAll('.otprow input');if(inp.value&&idx<6)inputs[idx].focus();}
+function mfaNext(step){
+  if(step===0){var u=document.getElementById('mfau');if(!u||!u.value.trim()){toast('Enter a username');return;}}
+  mfaStep=step+1;
+  if(mfaStep===3&&!G.mfaDone){G.mfaDone=true;addXP(40,'MFA Sim Complete');completeMission('m4');}
+  renderMFA();
+}
+
+// ── SSO DEMO ──
+var ssoLogged=false;
+var SSOAPPS=[{id:'hr',n:'HR Portal',ico:'&#128100;',desc:'Employee records'},{id:'fin',n:'Finance Portal',ico:'&#128200;',desc:'Payroll & reports'},{id:'crm',n:'CRM System',ico:'&#129309;',desc:'Customer management'},{id:'tickets',n:'IT Ticketing',ico:'&#128203;',desc:'Support system'},{id:'gitlab',n:'GitLab',ico:'&#128187;',desc:'Code repository'},{id:'slack',n:'Slack',ico:'&#128172;',desc:'Team messaging'}];
+function renderSSO(){
+  var el=document.getElementById('ssowrap');if(!el)return;
+  if(!ssoLogged){
+    el.innerHTML='<div class="card" style="padding:22px;max-width:360px;margin:0 auto;text-align:center"><div style="font-size:2.4rem;margin-bottom:12px">&#128272;</div><h3 style="margin-bottom:7px">Corporate SSO Login</h3><p style="font-size:.8rem;color:var(--t2);margin-bottom:15px">Authenticate once via Entra ID to access all applications.</p><input class="mi" id="ssou" placeholder="Username" style="text-align:center"/><input class="mi" id="ssop" placeholder="Password" type="password" style="text-align:center"/><button class="btn btnp" style="width:100%;justify-content:center;margin-top:3px" onclick="ssoLogin()">&#128272; Login with Entra ID</button><div style="margin-top:12px;font-size:.71rem;color:var(--t3)">Powered by SAML 2.0 / OpenID Connect</div></div>';
+  } else {
+    var h='<div class="ibox" style="color:var(--a3)">&#10003; SSO Authenticated as <strong>'+G.name+'</strong>. Access all apps without re-login!</div>';
+    h+='<div class="ssoapps">';
+    SSOAPPS.forEach(function(a){h+='<div class="ssoapp ul" onclick="toast(\'&#10003; Accessing '+a.n+' via SSO — no re-login needed!\')"><span class="ssoico">'+a.ico+'</span><div class="ssonm">'+a.n+'</div><div class="ssostat tag tg" style="justify-content:center;margin-top:4px">&#10003; SSO Access</div></div>';});
+    h+='</div>';
+    h+='<div class="card" style="padding:15px;margin-top:13px"><h4 style="font-size:.83rem;margin-bottom:9px">&#128203; SSO Federation Flow</h4>';
+    h+='<div class="flow"><div class="fn s">User Logs In Once</div><div class="farr"></div><div class="fn">Entra ID (IdP) Validates</div><div class="farr"></div><div class="fn">Issues SAML Assertion / JWT</div><div class="farr"></div><div class="fn e">All 6 Apps Authorized &#10003;</div></div></div>';
+    el.innerHTML=h;
+  }
+}
+function ssoLogin(){
+  var u=document.getElementById('ssou'),p=document.getElementById('ssop');
+  if(!u.value||!p.value){toast('Enter username and password');return;}
+  ssoLogged=true;
+  if(!G.ssoDone){G.ssoDone=true;addXP(40,'SSO Demo Complete');completeMission('m5');}
+  renderSSO();
+}
+
+// ── MATURITY ──
+var MATQS=[{q:'Does your org use MFA?',o:['No','Some users','All users','All + hardware keys']},{q:'How often are access permissions reviewed?',o:['Never','Annually','Quarterly','Continuously']},{q:'Is SSO implemented?',o:['No','Partial','Enterprise-wide','Yes + Federation']},{q:'Is RBAC formally implemented?',o:['No','Informal','Formal RBAC','RBAC + ABAC']},{q:'Is Least Privilege enforced?',o:['No','Partially','Enforced','Enforced + automated']},{q:'Do you have a PAM solution?',o:['No','Manual process','Basic PAM','Full PAM + session recording']},{q:'Is user provisioning automated?',o:['Manual','Semi-automated','Fully automated','Automated + IGA']},{q:'Do you have Zero Trust architecture?',o:['No','Planning','Partial implementation','Full ZTA']},{q:'Are access changes fully logged?',o:['No','Some systems','Most systems','All + SIEM integration']},{q:'Is offboarding automated?',o:['No','Manual checklist','Semi-automated','Fully automated']},{q:'Do you use certificate-based auth?',o:['No','Some VPNs','Most services','All + FIDO2']},{q:'Is regular IAM security testing performed?',o:['No','Annually','Twice a year','Continuous testing']}];
+var matAns={};
+function renderMaturity(){
+  var el=document.getElementById('matwrap');if(!el)return;
+  if(G.matDone){showMatResult(el);return;}
+  var h=MATQS.map(function(q,i){return '<div class="matq"><h4>Q'+(i+1)+'. '+q.q+'</h4><div class="matopts">'+q.o.map(function(o,j){return '<button class="matopt'+(matAns[i]===j?' sel':'')+'" onclick="matSel('+i+','+j+')">'+o+'</button>';}).join('')+'</div></div>';}).join('');
+  h+='<button class="btn btnp" onclick="submitMat()">&#128200; Calculate Score</button>';
+  el.innerHTML=h;
+}
+function matSel(qi,ai){matAns[qi]=ai;renderMaturity();}
+function submitMat(){
+  if(Object.keys(matAns).length<MATQS.length){toast('Answer all questions');return;}
+  var t=0;Object.values(matAns).forEach(function(v){t+=v;});
+  var pct=Math.round(t/(MATQS.length*3)*100);
+  G.matDone=true;G.matScore=pct;save();addXP(50,'Maturity Assessment');completeMission('m8');
+  showMatResult(document.getElementById('matwrap'));
+}
+function showMatResult(el){
+  var pct=G.matScore||0;
+  var lv=pct<30?'Basic':pct<55?'Intermediate':pct<80?'Advanced':'Enterprise Ready';
+  var c=pct<30?'var(--red)':pct<55?'var(--a4)':pct<80?'var(--a)':'var(--a3)';
+  var recs={'Basic':['Implement MFA for all users immediately','Deploy basic RBAC','Establish formal access review process','Automate offboarding'],'Intermediate':['Expand MFA to hardware keys for privileged accounts','Deploy PAM solution','Automate provisioning with IGA'],'Advanced':['Move toward Zero Trust architecture','Implement ABAC for fine-grained access','Deploy SIEM integration'],'Enterprise Ready':['Continuous ZT policy evaluation','Advanced UEBA analytics','Zero standing privileges (JIT everywhere)']};
+  var r=recs[lv]||[];
+  var h='<div class="card" style="padding:24px;text-align:center;margin-bottom:14px"><div style="font-size:2.6rem;margin-bottom:10px">&#128200;</div><h3 style="margin-bottom:5px">IAM Maturity Score</h3><div style="font-size:2.4rem;font-weight:800;color:'+c+'">'+pct+'%</div><div style="font-size:.95rem;color:'+c+';font-weight:700;margin-bottom:13px">'+lv+'</div><h4 style="margin-bottom:8px;font-size:.83rem;color:var(--t2)">Recommendations:</h4><div style="text-align:left">'+r.map(function(rec){return '<div style="font-size:.78rem;color:var(--t2);padding:5px 0;border-bottom:1px solid var(--b)">&#128161; '+rec+'</div>';}).join('')+'</div><button class="btn btns btnsm" style="margin-top:13px" onclick="G.matDone=false;matAns={};save();renderMaturity()">Retake</button></div>';
+  el.innerHTML=h;
+}
+
+// ── COMPLIANCE ──
+var AUDITD=[{id:'a1',t:'20 Inactive Users Still Active',d:'Accounts inactive 90+ days still have active access.',sev:'high'},{id:'a2',t:'15 Users Lack MFA',d:'These accounts have no MFA enrolled.',sev:'high'},{id:'a3',t:'Admin Accounts Without Session Recording',d:'5 admin accounts have no PAM session recording.',sev:'med'},{id:'a4',t:'Overprivileged Service Accounts',d:'3 service accounts have Domain Admin unnecessarily.',sev:'high'},{id:'a5',t:'Access Reviews Overdue',d:'Last review was 8 months ago (SLA: quarterly).',sev:'med'},{id:'a6',t:'Shared Admin Accounts',d:'2 teams sharing one admin — no accountability.',sev:'high'},{id:'a7',t:'Weak Password Policy',d:'Policy allows 6-char passwords, no complexity.',sev:'med'},{id:'a8',t:'No Automated Offboarding',d:'Manual offboarding averages 3 days — too slow.',sev:'med'}];
+function renderCompliance(){
+  var el=document.getElementById('auditlist');if(!el)return;
+  var fixed=G.compFixed.length;
+  var pct=40+Math.round(fixed/AUDITD.length*60);
+  document.getElementById('compscore').textContent=pct+'%';
+  document.getElementById('compscore').style.color=pct>=80?'var(--a3)':pct>=60?'var(--a4)':'var(--red)';
+  el.innerHTML=AUDITD.map(function(a){
+    var done=G.compFixed.indexOf(a.id)>=0;
+    return '<div class="ai'+(done?' fixed':'')+'"><span class="aiico">'+(done?'&#10003;':a.sev==='high'?'&#128308;':'&#128992;')+'</span><div class="aibody"><div class="ait">'+(done?'<s>'+a.t+'</s>':a.t)+'</div><div class="aid">'+a.d+'</div></div>'+(done?'<span class="tag tg">Fixed</span>':'<button class="btn btnp btnsm" onclick="fixAudit(\''+a.id+'\')">Fix +10 XP</button>')+'</div>';
+  }).join('');
+}
+function fixAudit(id){if(G.compFixed.indexOf(id)>=0)return;G.compFixed.push(id);save();addXP(10,'Compliance Fix');renderCompliance();}
+
+// ── CASE STUDIES ──
+var CASES=[{t:'Banking: RBAC Access Breach',ico:'&#127968;',s:'A bank teller accessed executive salary data. RBAC was not properly enforced.',q:'What should the bank do FIRST?',o:['Fire the teller','Fix RBAC role definitions + review all assignments','Do nothing','Disable all access'],cor:1,out:{0:'Termination without fixing root cause means it can happen again.',1:'Correct! Fix the RBAC model, separate Teller permissions from executive data, then investigate.',2:'Ignoring violates banking regulations (PCI DSS).',3:'Disabling all access halts bank operations.'}},{t:'Healthcare: Shared Credentials',ico:'&#127973;',s:'3 doctors were sharing one admin login. PHI was accessed inappropriately — HIPAA violation.',q:'Best immediate response?',o:['Verbal warning','Create individual accounts + enforce MFA + audit logs','Block all computer access','Reset shared password'],cor:1,out:{0:'Verbal warning does not address the technical vulnerability or HIPAA compliance gap.',1:'Correct! Individual accounts enable accountability. MFA + logs ensure HIPAA compliance.',2:'Blocking disrupts patient care. Targeted fix needed.',3:'Resetting still leaves no accountability trail.'}},{t:'University: Over-provisioned Students',ico:'&#127979;',s:'500 student accounts had "Grade Modification" permission — only 20 faculty should have it.',q:'Best remediation?',o:['Email students not to abuse it','Remove permission from all, reassign to faculty via RBAC','Increase monitoring only','Block ERP for all students'],cor:1,out:{0:'Relying on students not abusing access is not a security control.',1:'Correct! Remove excess permissions immediately. Implement proper RBAC with faculty-specific roles.',2:'Monitoring without fixing the vulnerability leaves the system at risk.',3:'Complete blocking prevents legitimate student access.'}},{t:'Cloud Enterprise: Public S3 Bucket',ico:'&#9729;',s:'3 AWS S3 buckets with customer PII were publicly accessible due to misconfigured IAM policies.',q:'Priority action?',o:['Notify customers first','Make private + audit all policies + enable logging','Delete the buckets','Blame DevOps'],cor:1,out:{0:'Notification is important but securing data is first (within minutes, not hours).',1:'Correct! Immediate containment: make private, audit ALL policies with IAM Access Analyzer, enable CloudTrail.',2:'Deleting destroys data and evidence for breach investigation.',3:'Blame culture doesn\'t secure the data. Fix first, review process second.'}}];
+function renderCases(){
+  var el=document.getElementById('caselist');if(!el)return;
+  el.innerHTML=CASES.map(function(c,ci){
+    return '<div class="chcard" style="border-left-color:'+(ci===0?'var(--a)':ci===1?'var(--a2)':ci===2?'var(--a3)':'var(--a4)')+'"><div style="display:flex;align-items:center;gap:10px;margin-bottom:9px"><span style="font-size:1.45rem">'+c.ico+'</span><h3 style="font-size:.92rem">'+c.t+'</h3></div><div class="chscen">'+c.s+'</div><div style="font-weight:700;font-size:.81rem;margin-bottom:8px">'+c.q+'</div><div id="casopts_'+ci+'">'+c.o.map(function(o,i){return '<button class="chopt" onclick="caseAns('+ci+','+i+')"><b>'+'ABCD'[i]+'.</b> '+o+'</button>';}).join('')+'</div><div id="casfb_'+ci+'" style="margin-top:7px"></div></div>';
+  }).join('');
+}
+function caseAns(ci,ans){
+  var c=CASES[ci];
+  var opts=document.querySelectorAll('#casopts_'+ci+' .chopt');
+  opts.forEach(function(o,i){o.style.pointerEvents='none';if(i===c.cor)o.classList.add('cor');if(i===ans&&ans!==c.cor)o.classList.add('wrg');});
+  var fb=document.getElementById('casfb_'+ci);
+  if(ans===c.cor)addXP(25,'Case Study: '+c.t);
+  fb.innerHTML='<div class="qexp on">'+(ans===c.cor?'&#10003; Correct! ':'&#10007; Incorrect. ')+c.out[ans]+'</div>';
+}
+
+// ── IAM TOOLS ──
+var TOOLS=[{n:'Microsoft Entra ID',ico:'&#128187;',c:'#00a4ef',cat:'IdP / SSO',features:['Cloud IAM platform','MFA + Conditional Access','SSO for 3000+ SaaS apps','Azure AD B2B/B2C','Privileged Identity Management (PIM)'],usecase:'Enterprise SSO, Microsoft 365, Azure workloads'},{n:'Okta',ico:'&#9676;',c:'#007dc1',cat:'IdP / SSO / CIAM',features:['Universal Directory','Single Sign-On (SSO)','Adaptive MFA','Lifecycle Management','API Access Management'],usecase:'Cloud-first enterprise IdP, works with any application'},{n:'SailPoint',ico:'&#127979;',c:'#ec4899',cat:'IGA (Governance)',features:['Access certification campaigns','Role mining + modeling','Automated provisioning/deprovisioning','SoD policy enforcement','Compliance reporting'],usecase:'Identity governance, access reviews, compliance (SOC2, ISO 27001)'},{n:'CyberArk',ico:'&#128511;',c:'#ef4444',cat:'PAM',features:['Privileged credential vaulting','Session recording + isolation','Just-In-Time access','Threat analytics (UEBA)','Cloud PAM (AWS, Azure, GCP)'],usecase:'Securing admin accounts, PAM for cloud and on-premise'},{n:'Ping Identity',ico:'&#128737;',c:'#a78bfa',cat:'IdP / Federation',features:['Enterprise federation hub','SAML 2.0, OAuth, OIDC','Adaptive authentication','API security','Hybrid cloud support'],usecase:'Complex federation across multiple IdPs and SPs'},{n:'Auth0 (Okta CIC)',ico:'&#128272;',c:'#10b981',cat:'CIAM',features:['Customer Identity platform','Universal Login page','Social login (Google, FB)','MFA for consumers','Developer-friendly SDKs'],usecase:'Customer-facing applications, B2C identity management'}];
+function renderTools(){
+  var el=document.getElementById('toolsgrid');if(!el)return;
+  el.innerHTML=TOOLS.map(function(t){return '<div class="tool-card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:11px"><div style="width:38px;height:38px;border-radius:8px;background:'+t.c+'22;border:1px solid '+t.c+'44;display:flex;align-items:center;justify-content:center;font-size:1.3rem">'+t.ico+'</div><div><div style="font-weight:800;font-size:.88rem">'+t.n+'</div><div style="font-size:.68rem;color:var(--t3)"><span class="tag tb" style="font-size:.62rem">'+t.cat+'</span></div></div></div><div style="font-size:.77rem;color:var(--t2);margin-bottom:9px"><b>Key Features:</b><ul style="list-style:none;margin-top:5px">'+t.features.map(function(f){return '<li style="padding-left:11px;position:relative;margin-bottom:2px"><span style="position:absolute;left:0;color:var(--a3)">▸</span>'+f+'</li>';}).join('')+'</ul></div><div class="ibox" style="font-size:.74rem;margin-bottom:0">&#127919; <b>Primary Use:</b> '+t.usecase+'</div></div>';}).join('');
+}
+
+// ── INTERNSHIP ──
+function renderInternship(){
+  var el=document.getElementById('internwrap');if(!el)return;
+  var items=[{ico:'&#128188;',t:'What IAM Interns Do',content:['Process provisioning/deprovisioning tickets (Joiner/Mover/Leaver)','Assist with quarterly access certification campaigns','Create and modify user accounts in Active Directory/Entra ID','Write PowerShell/Python scripts to automate IAM tasks','Generate compliance reports for SOC2/ISO audits','Monitor security alerts in SIEM dashboards']},{ico:'&#128198;',t:'Daily IAM Tasks',content:['Review and process access request tickets (ServiceNow/Jira)','Run LDAP queries for user attribute lookups','Update Active Directory group memberships','Verify MFA enrollment for new users','Document IAM procedures and runbooks','Support access review campaigns in SailPoint/Saviynt']},{ico:'&#128295;',t:'Skills You Will Learn',content:['Active Directory / Microsoft Entra ID administration','LDAP queries and directory service management','PowerShell scripting for IAM automation','IAM tools: Okta, SailPoint, CyberArk, Ping Identity','SAML / OAuth 2.0 / OIDC federation concepts','RBAC design and role engineering','Compliance frameworks: SOC2, GDPR, HIPAA, ISO 27001']},{ico:'&#128640;',t:'Career Opportunities After Internship',content:['IAM Analyst → IAM Engineer → IAM Architect','Cloud Identity Engineer (Azure, AWS, GCP)','Identity Governance Consultant','PAM Administrator → PAM Architect','IAM Product Manager / Solutions Architect','CISO pathway for senior IAM professionals']}];
+  el.innerHTML=items.map(function(i){return '<div class="intern-card"><h4>'+i.ico+' '+i.t+'</h4><ul style="list-style:none">'+i.content.map(function(c){return '<li style="font-size:.79rem;color:var(--t2);padding:4px 0 4px 13px;position:relative;border-bottom:1px solid rgba(255,255,255,.03)"><span style="position:absolute;left:0;color:var(--a3)">▸</span>'+c+'</li>';}).join('')+'</ul></div>';}).join('');
+}
+
+// ── CAREER ──
+function renderCareer(){
+  var el=document.getElementById('careerwrap');if(!el)return;
+  var path=[{level:'Entry Level (0–2 years)',role:'IAM Analyst / Junior IAM Engineer',skills:['Active Directory','Provisioning/Deprovisioning','Access Reviews','Basic PowerShell'],cert:'SC-300, CompTIA Security+',sal:'₹4–7 LPA / $55–75K'},{level:'Mid Level (2–5 years)',role:'IAM Engineer / Identity Engineer',skills:['Okta / Entra ID','SAML/OAuth/OIDC','SailPoint IIQ','Python scripting','PAM basics'],cert:'SC-300, CISSP, CyberArk Sentry',sal:'₹8–18 LPA / $80–110K'},{level:'Senior Level (5–8 years)',role:'Senior IAM Engineer / IAM Architect',skills:['Zero Trust design','IGA platform architecture','Federation design','Cloud IAM (AWS/Azure/GCP)','Security governance'],cert:'CISM, CISSP, SABSA',sal:'₹18–35 LPA / $110–150K'},{level:'Executive Level (8+ years)',role:'IAM Principal / CISO',skills:['Enterprise security strategy','Board-level risk communication','Compliance leadership','Team leadership','Vendor management'],cert:'CISM, CISSP, Executive MBA',sal:'₹35–80 LPA / $150–250K+'}];
+  el.innerHTML=path.map(function(p,i){return '<div class="path-item"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px"><div><div style="font-size:.68rem;color:var(--t3)">'+p.level+'</div><div style="font-weight:800;font-size:.9rem">'+p.role+'</div></div><span class="tag ty">'+p.sal+'</span></div><div style="font-size:.76rem;color:var(--t2);margin-bottom:7px"><b>Key Skills: </b>'+p.skills.join(' • ')+'</div><div style="font-size:.73rem;color:var(--a4)">&#128247; Certifications: '+p.cert+'</div></div>';}).join('');
+}
+
+// ── AI ASSISTANT ──
+var AIFAQ={
+  'rbac':'RBAC (Role-Based Access Control) assigns permissions to roles based on job functions. Users are assigned roles and inherit permissions. Example: HR Manager role = View + Edit employee records. Benefits: scalable, easy to manage, consistent. Most widely deployed enterprise IAM model.',
+  'ldap':'LDAP (Lightweight Directory Access Protocol) is used for directory queries, user authentication, and attribute lookups. Query syntax: (&(objectClass=user)(sAMAccountName=raj.kumar)). Returns: DN, email, department, manager, groups. Integrated with Active Directory and OpenLDAP.',
+  'saml':'SAML 2.0 (Security Assertion Markup Language) is an XML-based protocol for enterprise SSO. IdP authenticates user → sends signed XML assertion → SP validates assertion → grants access. Used for Salesforce, ServiceNow, Workday integrations. Older but very stable.',
+  'oauth':'OAuth 2.0 is a delegated authorization framework (not authentication). It allows apps to access resources on behalf of users with consent. Returns access tokens. Example: "Allow Twitter app to post on your behalf" uses OAuth 2.0. Not for authentication — use OIDC for that.',
+  'oidc':'OpenID Connect (OIDC) adds an authentication layer on top of OAuth 2.0. Returns a signed JWT ID Token containing user claims (sub, email, name). Used by Google Login, Microsoft Login, Apple Sign In. More modern than SAML for web and mobile applications.',
+  'pam':'PAM (Privileged Access Management) secures high-privilege admin accounts. Features: credential vaulting (no one knows the password), Just-In-Time access (temporary elevation), session recording (full audit), MFA enforcement, approval workflows. Tools: CyberArk, BeyondTrust, Delinea.',
+  'zero trust':'"Never Trust, Always Verify." Every request is authenticated, authorized, and validated regardless of network location. Key components: Identity verification, Device health check, Micro-segmentation, Least privilege, Continuous monitoring. Replaces perimeter-based security.',
+  'jwt':'JWT (JSON Web Token) is a compact, URL-safe token format: Header.Payload.Signature. Payload contains claims: sub (user ID), email, roles, exp (expiry). Signed with HMAC-SHA256 or RSA. Used by OIDC for ID tokens and OAuth 2.0 for access tokens. Never store sensitive data in payload — it\'s base64, not encrypted!',
+  'active directory':'Active Directory (AD) is Microsoft\'s directory service. Stores users, groups, computers in a hierarchical domain structure. Uses Kerberos for authentication, LDAP for queries. Organized by Organizational Units (OUs). Group Policy Objects (GPOs) apply security settings. Domain: corp.local. DC: Domain Controller.',
+  'sso':'Single Sign-On: log in once with an IdP, access multiple SPs without re-entering credentials. Built on SAML, OIDC, or Kerberos. Benefits: better UX, fewer passwords, centralized control, faster provisioning. Examples: Okta SSO, Microsoft Entra ID, Google Workspace.',
+  'mfa':'MFA (Multi-Factor Authentication) requires 2+ factors. Knowledge: password/PIN. Possession: smartphone/YubiKey. Inherence: fingerprint/face. TOTP generates 6-digit codes every 30 seconds using HMAC-SHA1. SMS OTP is weakest (SIM swapping). FIDO2 hardware keys are strongest (phishing-resistant). MFA reduces account takeover by ~99.9%.',
+  'jml':'JML (Joiner-Mover-Leaver) is the identity lifecycle. Joiner: create account, assign role, enable MFA, grant app access. Mover: update role, remove old permissions, update group memberships. Leaver: disable account FIRST, remove roles, revoke tokens, remove from groups, archive data. Automated JML reduces security gaps.',
+  'iam':'IAM (Identity and Access Management) is the framework ensuring right users get right access to right resources at the right time. Components: Authentication (who are you), Authorization (what can you do), User lifecycle management, Audit logging, MFA, SSO/Federation, RBAC, PAM, and Compliance.',
+  'kerberos':'Kerberos is a ticket-based auth protocol used in Windows Active Directory. KDC (Key Distribution Center) has two services: AS (Authentication Service) and TGS (Ticket Granting Service). Flow: user gets TGT from AS → presents TGT to get service ticket from TGS → presents service ticket to access resource. Supports mutual authentication + SSO.',
+  'abac':'ABAC (Attribute-Based Access Control) makes access decisions based on attributes. Subject attributes: department, role, clearance. Resource attributes: classification, owner. Environment attributes: time, location, IP. Example policy: IF department=HR AND time<18:00 AND location=office THEN allow. More flexible than RBAC but complex to manage.'
+};
+function initAI(){
+  var qqlist=['What is RBAC?','What is LDAP?','Explain SAML vs OAuth','What is PAM?','What is Zero Trust?','What is JWT?','Explain MFA','What is JML?','What is ABAC?'];
+  document.getElementById('qqbtns').innerHTML=qqlist.map(function(q){return '<button class="qq" onclick="askAI(\''+q+'\')">'+q+'</button>';}).join('');
+  if(!document.getElementById('chatbox').children.length)addBotMsg('Hello! I\'m your IAM tutor. Ask me anything about RBAC, LDAP, SAML, OAuth, MFA, Zero Trust, PAM, AD, Kerberos, or any IAM topic!');
+}
+function sendChat(){var inp=document.getElementById('cinp');if(!inp.value.trim())return;askAI(inp.value);inp.value='';}
+function askAI(q){
+  addUserMsg(q);
+  var kl=q.toLowerCase();var ans=null;
+  for(var k in AIFAQ)if(kl.indexOf(k)>=0){ans=AIFAQ[k];break;}
+  if(!ans){var ks=Object.keys(AIFAQ);for(var i=0;i<ks.length;i++)if(ks[i].split(' ').some(function(w){return kl.indexOf(w)>=0&&w.length>3;})){ans=AIFAQ[ks[i]];break;}}
+  if(!ans)ans='Great question! For "'+q+'", I recommend exploring the Modules section. Key IAM topics include: RBAC, ABAC, MFA, LDAP, Kerberos, SAML, OAuth 2.0, OIDC, Zero Trust, PAM, and the JML lifecycle. Type a specific topic and I\'ll give you a detailed explanation!';
+  setTimeout(function(){addBotMsg(ans);addXP(5,'AI Learning Session');},550);
+}
+function addUserMsg(msg){var cb=document.getElementById('chatbox');var d=document.createElement('div');d.className='cmsg u';d.innerHTML='<div class="cava" style="background:rgba(124,58,237,.2);color:#a78bfa">U</div><div class="cbb">'+msg+'</div>';cb.appendChild(d);cb.scrollTop=cb.scrollHeight;}
+function addBotMsg(msg){var cb=document.getElementById('chatbox');var d=document.createElement('div');d.className='cmsg b';d.innerHTML='<div class="cava" style="background:rgba(0,212,255,.1);color:var(--a)">&#129302;</div><div class="cbb">'+msg+'</div>';cb.appendChild(d);cb.scrollTop=cb.scrollHeight;}
+
+// ── LEADERBOARD ──
+function renderLB(){
+  var myLv=getLv(G.xp);
+  var rows=[{n:'Ananya S.',lv:'IAM Architect',xp:3200,b:10,c:'#7c3aed'},{n:'Rohan M.',lv:'IAM Expert',xp:2600,b:9,c:'#00d4ff'},{n:'Priya K.',lv:'IAM Engineer',xp:1950,b:7,c:'#10b981'},{n:G.name||'You',lv:myLv.n,xp:G.xp,b:G.badges.length,c:'#f59e0b',me:true},{n:'Dev P.',lv:'IAM Analyst',xp:680,b:4,c:'#ec4899'},{n:'Sneha R.',lv:'IAM Learner',xp:420,b:3,c:'#6366f1'},{n:'Karan B.',lv:'IAM Beginner',xp:180,b:1,c:'#94a3b8'}];
+  rows.sort(function(a,b){return b.xp-a.xp;});
+  var med=['&#129945;','&#129944;','&#129943;'];
+  var h='<thead><tr><th>RANK</th><th>LEARNER</th><th>LEVEL</th><th>XP</th><th>BADGES</th></tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    h+='<tr style="'+(r.me?'background:rgba(0,212,255,.04)':'')+'"><td style="font-weight:800;color:'+(i===0?'var(--a4)':i===1?'#94a3b8':i===2?'#cd7c4a':'var(--t2)')+'">'+( i<3?med[i]:'#'+(i+1))+'</td>';
+    h+='<td><span class="lbav" style="background:'+r.c+'22;color:'+r.c+'">'+r.n[0]+'</span>'+r.n+(r.me?'<span class="tag tb" style="margin-left:6px;font-size:.6rem">You</span>':'')+'</td>';
+    h+='<td><span class="tag tp">'+r.lv+'</span></td><td style="color:var(--a4);font-size:.77rem">&#9889; '+r.xp.toLocaleString()+'</td><td>&#127941; '+r.b+'</td></tr>';
+  });
+  h+='</tbody>';
+  document.getElementById('lbtbl').innerHTML=h;
+}
+
+// ── STORE ──
+var STORE=[{id:'st1',ico:'&#127919;',n:'Expert Quiz Pack',d:'10 bonus expert-level questions per topic.',c:300},{id:'st2',ico:'&#128218;',n:'IAM Case Studies',d:'Breach analyses: Okta, SolarWinds, Uber.',c:400},{id:'st3',ico:'&#128293;',n:'Elite Hacker Badge',d:'Exclusive permanent profile badge.',c:500},{id:'st4',ico:'&#127775;',n:'Security Challenge Pack',d:'5 advanced multi-step security scenarios.',c:250},{id:'st5',ico:'&#127942;',n:'Gold Profile Frame',d:'Premium leaderboard styling and "Pro" tag.',c:600},{id:'st6',ico:'&#129504;',n:'IAM Cheat Sheet PDF',d:'2-page downloadable reference card.',c:150},{id:'st7',ico:'&#128295;',n:'Lab Automation Scripts',d:'PowerShell + Python IAM automation scripts.',c:350}];
+function renderStore(){
+  var el=document.getElementById('sgrid');if(!el)return;
+  el.innerHTML=STORE.map(function(s){
+    var owned=G.store.indexOf(s.id)>=0,can=G.xp>=s.c&&!owned;
+    return '<div class="sitm'+(owned?' owned':'')+'"><span style="font-size:1.9rem;display:block;margin-bottom:9px">'+s.ico+'</span><div style="font-weight:700;font-size:.83rem;margin-bottom:4px">'+s.n+'</div><div style="font-size:.69rem;color:var(--t2);margin-bottom:9px">'+s.d+'</div>'+(owned?'<div style="color:var(--a3);font-size:.76rem;font-weight:700">&#10003; Owned</div>':'<div style="color:var(--a4);font-size:.76rem;font-weight:700;margin-bottom:8px">&#9889; '+s.c+' XP</div><button class="btn '+(can?'btnp':'btns')+' btnsm" style="width:100%;justify-content:center" '+(can?'onclick="buyItem(\''+s.id+'\','+s.c+')"':'disabled')+'>'+( can?'Buy Now':'Need '+s.c+' XP')+'</button>')+'</div>';
+  }).join('');
+}
+function buyItem(id,c){if(G.xp<c)return;G.xp-=c;G.store.push(id);save();refreshUI();renderStore();toast('&#127873; Item purchased!','b');}
+
+// ── CERTIFICATE ──
+function checkCert(){
+  var prog=G.missions.length+G.quizzes.length;
+  document.getElementById('certprog').textContent=prog+' / 8';
+  if(prog>=8||G.escape){
+    document.getElementById('certlk').style.display='none';
+    document.getElementById('certul').style.display='block';
+    document.getElementById('certnm').textContent=G.name||'Student';
+    document.getElementById('certdt').textContent=new Date().toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('certxp').textContent=G.xp+' XP';
+    document.getElementById('certlv').textContent=getLv(G.xp).n;
+    document.getElementById('certid').textContent='IAM-'+Math.random().toString(36).substr(2,8).toUpperCase();
+  }
+}
+function dlCert(){var w=window.open('','_blank');w.document.write('<html><body style="background:#030b18;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">'+document.getElementById('certwrap').outerHTML+'</body></html>');w.document.close();setTimeout(function(){w.print();},500);}
+
+// ── SEARCH ──
+var SDATA=[{t:'Dashboard',v:'dash'},{t:'All Modules',v:'modules'},{t:'IAM Fundamentals',v:'modules'},{t:'Authentication',v:'modules'},{t:'Authorization',v:'modules'},{t:'MFA Multi-Factor',v:'modules'},{t:'RBAC Roles',v:'modules'},{t:'Federation SSO SAML OAuth',v:'modules'},{t:'PAM Privileged Access',v:'modules'},{t:'Zero Trust',v:'modules'},{t:'Missions',v:'missions'},{t:'Skill Tree',v:'skilltree'},{t:'Quiz',v:'quiz'},{t:'Hands-On Labs',v:'labs'},{t:'RBAC Lab',v:'labs'},{t:'Provisioning Lab',v:'labs'},{t:'Challenges',v:'challenges'},{t:'Escape Room',v:'escape'},{t:'Password Lab Security',v:'password'},{t:'Phishing Trainer',v:'phishing'},{t:'MFA Simulator',v:'mfasim'},{t:'SSO Demo Federation',v:'ssodemo'},{t:'Maturity Assessment',v:'maturity'},{t:'Compliance Audit',v:'compliance'},{t:'Case Studies',v:'casestudies'},{t:'IAM Tools Okta CyberArk',v:'tools'},{t:'Internship Guide',v:'internship'},{t:'Career Path',v:'career'},{t:'AI Assistant Chatbot',v:'ai'},{t:'Badges Achievements',v:'badges'},{t:'Leaderboard Rankings',v:'leaderboard'},{t:'Store Rewards',v:'store'},{t:'Certificate',v:'cert'}];
+function doSearch(q){
+  var el=document.getElementById('sres');
+  if(!q.trim()){el.style.display='none';return;}
+  var f=SDATA.filter(function(d){return d.t.toLowerCase().indexOf(q.toLowerCase())>=0;});
+  if(!f.length){el.style.display='none';return;}
+  el.innerHTML=f.slice(0,7).map(function(d){return '<div class="sri" onclick="sv(\''+d.v+'\');document.getElementById(\'srch\').value=\'\';document.getElementById(\'sres\').style.display=\'none\'">'+d.t+'</div>';}).join('');
+  el.style.display='block';
+}
+document.addEventListener('click',function(e){if(!e.target.closest('.nsearch')&&!e.target.closest('#sres'))document.getElementById('sres').style.display='none';});
+
+// ── START ──
+function startJ(){
+  var n=document.getElementById('ni').value.trim();
+  if(!n){document.getElementById('ni').style.borderColor='var(--red)';return;}
+  G.name=n;save();
+  document.getElementById('modal').classList.add('hide');
+  refreshUI();toast('&#128737; Welcome, '+n+'! Your IAM Academy journey begins!');
+}
+if(G.name){document.getElementById('modal').classList.add('hide');refreshUI();}
+</script>
+</body>
+</html>
